@@ -1,0 +1,35 @@
+body {
+        background-color: #f2f2f2;
+        opacity: 80%;
+}
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #3366ff;
+    width: 100%;
+}
+
+li {
+    float: left;
+}
+
+li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 12px 12px;
+    text-decoration: none;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+}
+
+li a:hover:not(.active) {
+    background-color: #3399ff;
+}
+
+.active {
+    background-color: #0033cc;
+    font-weight: bold;
+}
