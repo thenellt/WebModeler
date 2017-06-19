@@ -1,3 +1,4 @@
+6/18/17 v4 - Added background page and started to include badges to show form completion. \n
 6/16/17 v3 - Side bar works, added tabbed interface and changelog fade. \n
 6/16/17 v2 - Continued design work. First try at getting a reasonable side bar style ui. \n
 6/15/17 v1 - Initial setup for the website and started messing around with material design. \n
