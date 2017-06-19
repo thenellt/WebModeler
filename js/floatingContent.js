@@ -1,19 +1,52 @@
-var visibilityToggle = 0;
+var logVisibility = 0;
+var backgroundVisibility = 0;
 
 var changelogButton = document.getElementById("changelogButton");
 changelogButton.addEventListener('click', function() {
         var changeDiv = document.getElementById("changelog");
         var hidepage = document.getElementById("hidepage");
-        if(visibilityToggle == 0){
+        if(backgroundVisibility){
+                var backgroundDiv = document.getElementById("projBackground");
+                backgroundVisibility = 0;
+                logVisibility = 1;
+                fadeOut(backgroundDiv);
+                fadeIn(changeDiv);
+        }
+        else if(logVisibility == 0){
                 console.log("unhiding");
-                visibilityToggle = 1;
+                logVisibility = 1;
                 fadeIn(changeDiv);
                 fadeIn(hidepage);
         }
         else{
                 console.log("hiding");
-                visibilityToggle = 0;
+                logVisibility = 0;
                 fadeOut(changeDiv);
+                fadeOut(hidepage);
+        }
+});
+
+var changelogButton = document.getElementById("backgroundButton");
+changelogButton.addEventListener('click', function() {
+        var backgroundDiv = document.getElementById("projBackground");
+        var hidepage = document.getElementById("hidepage");
+        if(logVisibility){
+                var changeDiv = document.getElementById("changelog");
+                backgroundVisibility = 1;
+                logVisibility = 0;
+                fadeOut(changeDiv);
+                fadeIn(backgroundDiv);
+        }
+        else if(backgroundVisibility == 0){
+                console.log("unhiding");
+                backgroundVisibility = 1;
+                fadeIn(backgroundDiv);
+                fadeIn(hidepage);
+        }
+        else{
+                console.log("hiding");
+                backgroundVisibility = 0;
+                fadeOut(backgroundDiv);
                 fadeOut(hidepage);
         }
 });

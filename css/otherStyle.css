@@ -61,7 +61,7 @@ div.tab button.active {
     visibility: hidden;
 }
 
-#changelog {
+.floatingContent {
         position: absolute;
         z-index: 20;
         left: 10%;
