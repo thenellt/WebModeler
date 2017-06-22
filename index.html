@@ -23,17 +23,26 @@
         </nav>
 
         <div class="tab">
-                <button class="tablinks waves-effect waves-light" onclick="changeTab(event, 'getStarted')">Get Started</button>
-                <button class="tablinks waves-effect waves-light" onclick="changeTab(event, 'popSetup')" id="defaultOpen">Setup Populations</button>
-                <button class="tablinks waves-effect waves-light" onclick="changeTab(event, 'page2')">Settings</button>
-                <button class="tablinks waves-effect waves-light" onclick="changeTab(event, 'page2')">Advanced Settings</button>
-                <button class="tablinks waves-effect waves-light" onclick="changeTab(event, 'page3')">Simulation Parameters</button>
+                <button id="getStartedTab" class="tablinks waves-effect waves-light defaultOpen" onclick="changeTab('getStarted')">Get Started</button>
+                <button id="popSetupTab" class="tablinks waves-effect waves-light" onclick="changeTab('popSetup')">Setup Populations</button>
+                <button id="tab3" class="tablinks waves-effect waves-light" onclick="changeTab('page2')">Settings</button>
+                <button id="tab4" class="tablinks waves-effect waves-light" onclick="changeTab('page2')">Advanced Settings</button>
+                <button id="tab5" class="tablinks waves-effect waves-light" onclick="changeTab(event, 'page3')">Simulation Parameters</button>
                 <div class="fillertab"></div>
         </div>
 
+        <div class="tabcontent" id="getStarted">
+                <div class="row">
+                        <div class="col s7"><h3>Select the Simulation Type</h3></div>
+                </div>
+                <div class="divider"></div>
+                <div class="row valign-wrapper">
+                        <div class="col s9"><h5>Start a new simulation: </h5></div>
+                </div>
+        </div>
         <div class="tabcontent" id="popSetup">
                 <div class="row">
-                        <div class="col s7"><h4>Setup the Simulation Populations</h5></div>
+                        <div class="col s7"><h4>Setup the Simulation Populations</h4></div>
                         <div class="col s4"><a class="waves-effect waves-light btn" id="importPopData" style="position:absolute; top: 84px; right: 200px;">Import Data</a></div>
                         <a class='dropdown-button btn' href='#' data-activates='dropdown1' style="position:absolute; top: 84px; right: 15px;">Change View</a>
                         <ul id='dropdown1' class='dropdown-content'>
@@ -95,5 +104,6 @@
         <script src="js/input.js" type="text/javascript"></script>
         <script src="js/floatingContent.js" type="text/javascript"></script>
         <script src="js/tabs.js" type="text/javascript"></script>
+        <script src="js/main.js" type="text/javascript"></script>
 </body>
 </html>
