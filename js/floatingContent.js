@@ -1,5 +1,6 @@
 var logVisibility = 0;
 var backgroundVisibility = 0;
+var otherPopup = 0;
 
 //pure javascript fade and unfade from: https://stackoverflow.com/questions/6121203/how-to-do-fade-in-and-fade-out-with-javascript-and-css
 var fadeOut = function(element) {
@@ -42,10 +43,12 @@ var toggleChangelog = function() {
                 changeDiv.classList.add('scale-in');
                 changeDiv.classList.remove('scale-out');
         }
-        else if(logVisibility == 0){
+        else if(logVisibility === 0){
                 console.log("unhiding");
                 logVisibility = 1;
-                fadeIn(hidepage);
+                if(!otherPopup){
+                        fadeIn(hidepage);
+                }
                 changeDiv.classList.add('scale-in');
                 changeDiv.classList.remove('scale-out');
         }
@@ -54,7 +57,9 @@ var toggleChangelog = function() {
                 logVisibility = 0;
                 changeDiv.classList.add('scale-out');
                 changeDiv.classList.remove('scale-in');
-                fadeOut(hidepage);
+                if(!otherPopup){
+                        fadeOut(hidepage);
+                }
         }
 }
 
@@ -74,19 +79,23 @@ var toggleBackground = function() {
                 changeDiv.classList.add('scale-out');
                 changeDiv.classList.remove('scale-in');
         }
-        else if(backgroundVisibility == 0){
+        else if(backgroundVisibility === 0){
                 console.log("unhiding");
                 backgroundVisibility = 1;
                 backgroundDiv.classList.add('scale-in');
                 backgroundDiv.classList.remove('scale-out');
-                fadeIn(hidepage);
+                if(!otherPopup){
+                        fadeIn(hidepage);
+                }
         }
         else{
                 console.log("hiding");
                 backgroundVisibility = 0;
                 backgroundDiv.classList.add('scale-out');
                 backgroundDiv.classList.remove('scale-in');
-                fadeOut(hidepage);
+                if(!otherPopup){
+                        fadeOut(hidepage);
+                }
         }
 }
 
@@ -129,5 +138,14 @@ readLocalFile("./changelog.txt", 'GET', function(responseText) {
         }
 
         document.getElementById("changelogTitle").appendChild(document.createTextNode("Project Change Log:"));
-        document.getElementById('changelogContent').appendChild(list);
+        document.getElementById('changeLogEntries').appendChild(list);
 });
+
+function createFloatingDialog(title, message, type, response){ //0 - ok/cancel. 1 - ok
+        var hidepage = document.getElementById("hidepage");
+        var dialogBox = document.createElement('div');
+        dialogBox.classList.add("hide floatingDialog card blue-grey lighten-4 scale-transition scale-in");
+
+
+        document.body.appendChild(dialogBox);
+}

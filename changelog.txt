@@ -1,3 +1,8 @@
+8/6/17 v9b - Added popup for finishing the population setup of a popution added through the mapview. Currently testable through the table view page. \n
+8/4/17 v9a - Table can now be navigated with arrow keys, tab, and shift+tab as well as return. \n
+8/4/17 v9 - Added dynamic javascript table for population entry. \n
+8/2/17 v8 - Finished parameter user interface. \n
+8/1/17 v7 - Started writing user interface to hook up to backend simulator. \n
 6/22/17 v6 - Minor changes to sidebar usage, started formatting the getting started page. \n
 6/19/17 v5 - Cosmetic upgrades, start of population interface, cleaned up some javascript. \n
 6/18/17 v4 - Added background page and started to include badges to show form completion. \n

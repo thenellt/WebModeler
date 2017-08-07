@@ -1,3 +1,5 @@
+var populationView = 1;
+
 //based on vertical tab tutorial from: https://www.w3schools.com/howto/howto_js_vertical_tabs.asp
 function changeTab(tabName) {
     var i, tabcontent, tablinks;
@@ -17,4 +19,22 @@ function changeTab(tabName) {
     document.getElementById(tabName).style.display = "block";
     document.getElementById(tabButtonName).className += " active";
     //evt.currentTarget.className += " active";
+    document.body.scrollTop = document.documentElement.scrollTop = 0;
+}
+
+function togglePopulationView(mode){
+        console.log("population toggled: " + mode);
+        if(mode == populationView){
+                return;
+        }
+        
+        populationView = mode;
+        if(populationView){
+                document.getElementById("popMapContent").classList.add("hide");
+                document.getElementById("popTableContent").classList.remove("hide");
+        }
+        else{
+                document.getElementById("popMapContent").classList.remove("hide");
+                document.getElementById("popTableContent").classList.add("hide");
+        }
 }

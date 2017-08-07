@@ -1,0 +1,56 @@
+#popTable{
+        border-collapse: collapse;
+        width: 100%;
+}
+
+
+#popTable thead th, #popTable tbody td{
+        height: 32px;
+        padding: 0;
+}
+
+/*
+#popTable th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+}
+
+#popTable tbody tr:hover {
+        background-color: #E3E3E3;
+}
+*/
+#popTable tr input {
+        border: 0;
+        width: 100%;
+        height: 29px;
+        -webkit-box-sizing:border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        padding: 0;
+        margin: 0 0 2px 0;
+}
+
+#popTable td:nth-child(1), #popTable th:nth-child(1){
+        width: 25%;
+}
+
+#popTable td:nth-child(2), #popTable th:nth-child(2){
+        width: 20%;
+}
+
+#popTable td:nth-child(3), #popTable th:nth-child(3){
+        width: 20%;
+}
+
+#popTable td:nth-child(4), #popTable th:nth-child(4){
+        width: 10%;
+}
+
+#popTable td:nth-child(5), #popTable th:nth-child(5){
+        width: 15%;
+}
+
+#popTable td:nth-child(6), #popTable th:nth-child(6){
+        width: 10%;
+}
