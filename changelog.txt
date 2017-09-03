@@ -1,3 +1,5 @@
+9/2/17 v11 - Continue work on ui integration. Simulator is almost runnable but more table, map, simmulator data synchronization code is necessary. \n
+8/28/17 v10 - Started working on integrating the modeling code into the user interface. \n
 8/6/17 v9b - Added popup for finishing the population setup of a popution added through the mapview. Currently testable through the table view page. \n
 8/4/17 v9a - Table can now be navigated with arrow keys, tab, and shift+tab as well as return. \n
 8/4/17 v9 - Added dynamic javascript table for population entry. \n

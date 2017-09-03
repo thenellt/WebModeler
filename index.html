@@ -23,7 +23,7 @@
                 </div>
         </nav>
 
-        <table>
+        <table id="mainContentContainer">
                 <tr>
                         <td class="tab">
                                 <div class="tab">
@@ -162,7 +162,7 @@
                                         </div>
                                         <div class="divider"></div>
                                         <div id="popMapContent" class="hide" style="height: 80%; width 100%;">
-                                                <div id="map" class="map"></div>
+                                                <div id="popMapDiv" class="map" style="min-height: 600px; min-width: 600px;"></div>
                                                 <div class="divider" style="margin-top: 4px; margin-bottom: 8px;"></div>
                                                 <div class="row">
                                                         <div class="col s9"><i>Click a location to add a village at that spot.</i></div>
@@ -173,8 +173,8 @@
                                                         <thead>
                                                                 <tr>
                                                                         <th>Name</th>
-                                                                        <th>Latitude</th>
                                                                         <th>Longitude</th>
+                                                                        <th>Latitude</th>
                                                                         <th>Population</th>
                                                                         <th>Growth Factor</th>
                                                                         <th>Kill Rate</th>
@@ -189,17 +189,12 @@
                                                                 </a>
                                                         </div>
                                                 </div>
-                                                <div class="row" style="position: absolute; bottom: 8px; width: 80%">
-                                                        <div class="col s3 offset-s6">
-                                                                <a class="waves-effect waves-light btn" id="testFloatPopEditor" onclick="showPopEditor()">
-                                                                        No Position
-                                                                </a>
-                                                        </div>
-                                                        <div class="col s3">
-                                                                <a class="waves-effect waves-light btn" id="testFloatPopEditor" onclick="showPopEditor([1,2])">
-                                                                        With Position
-                                                                </a>
-                                                        </div>
+                                        </div>
+                                        <div class="row" style="position: absolute; bottom: 8px; width: 80%">
+                                                <div class="col s3 offset-s9">
+                                                        <a class="waves-effect waves-light btn" id="runSimButton" onclick="runTests()">
+                                                                Run Simulation
+                                                        </a>
                                                 </div>
                                         </div>
                                         <!--
@@ -311,10 +306,10 @@
                         <li class="collection-item">
                                 <div class="row" style="margin-bottom: 2px;">
                                         <div class="col s4"><h5>Position: </h5></div>
-                                        <div class="col s2"><h5>Latitude</h5></div>
-                                        <div class="col s2"><input type="text" id="floatLat"></div>
                                         <div class="col s2"><h5>Longitude</h5></div>
                                         <div class="col s2"><input type="text" id="floatLong"></div>
+                                        <div class="col s2"><h5>Latitude</h5></div>
+                                        <div class="col s2"><input type="text" id="floatLat"></div>
                                 </div>
                         </li>
                         <li class="collection-item">
@@ -352,5 +347,7 @@
         <script src="js/tabs.js" type="text/javascript"></script>
         <script src="js/main.js" type="text/javascript"></script>
         <script src="js/table.js" type="text/javascript"></script>
+        <script src="jsDev/model.js" type="text/javascript"></script>
+        <script src="jsDev/testFunctions.js" type="text/javascript"></script>
 </body>
 </html>

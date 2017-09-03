@@ -1,4 +1,3 @@
-var tableData;
 var rowCounter = 0;
 
 function addPopulation(name, lat, long, pop, growth){
@@ -26,8 +25,17 @@ function populateTable(){
         
 }
 
-function addEntry(){
+function addEntry(name, x, y, pop, growth, kill){
+        addRow("popTable");
+        var table = document.getElementById("popTable");
+        var row = table.rows[rowCounter - 1];
         
+        row.cells[0].innerHTML = name;
+        row.cells[1].innerHTML = x;
+        row.cells[2].innerHTML = y;
+        row.cells[3].innerHTML = pop;
+        row.cells[4].innerHTML = growth;
+        row.cells[5].innerHTML = kill;
 }
 
 function addRow(tableId){
@@ -39,11 +47,19 @@ function addRow(tableId){
         var row = body.insertRow(table.rows.length - 1);
         row.id = rowId;
         var nameCell = row.insertCell(cellNum++);
-        var latCell = row.insertCell(cellNum++);
         var longCell = row.insertCell(cellNum++);
+        var latCell = row.insertCell(cellNum++);
         var popCell = row.insertCell(cellNum++);
         var growthCell = row.insertCell(cellNum++);
         var killCell = row.insertCell(cellNum++);
+        var deleteCell = row.insertCell(cellNum++);
+        
+        var delButton = document.createElement('input');
+        delButton.type = "button";
+        delButton.className = "tableDelButton";
+        delButton.value = "Delete";
+        delButton.onclick = (function () {deleteRow(tableId, rowId);});
+        deleteCell.appendChild(delButton);
         
         for(var i = 0; i < row.cells.length; i++){
                 row.cells[i].ondblclick =(function() {
@@ -59,6 +75,22 @@ function editFinished(cell, x, y, origValue){
         //TODO check value against origValue for sanity
         cell.removeChild(input);
         cell.innerHTML = value;
+        
+        var table = document.getElementById("popTable");
+        var row = table.rows[y];
+        var name = row.cells[0].innerHTML;
+        
+        if(x === 0){ //name was changed, update map view
+                var features = source.getFeatures();
+        
+                for(var j = 0; j < features.length; j++){
+                        console.log(features[j].get('description'));
+                        if(features[j].get('description') == name){
+                                source.removeFeature(features[j]);
+                                break;
+                        }
+                }
+        }
 }
 
 function checkKey(e){
@@ -133,7 +165,7 @@ function cellClicked(cell){
                         else{
                                 var prevRow = cell.parentNode.previousElementSibling;
                                 if(prevRow){
-                                        cellClicked(prevRow.lastChild);
+                                        cellClicked(prevRow.lastChild.previousElementSibling);
                                 }
                         }
                 }
@@ -181,8 +213,42 @@ function printTable(tableId){
         }
 }
 
-function deleteRow(tableID, rowId){
+function deleteRow(tableId, rowId){
+        console.log("delete row called. table: " + tableId + " rowId: " + rowId);
+        var table = document.getElementById(tableId);
+        var row;
+        var i;
+        for(i = 0; i < table.rows.length; i++){
+                row = table.rows[i];
+                if(!row.id.localeCompare(rowId)){
+                        break;
+                }
+        }
         
+        var name = row.cells[0].innerHTML;
+        console.log("pop name: " + name);
+        
+        //remove from point storage
+        for(var k = 0; k < towns.length; k++){
+                if(towns[k].name == name){
+                        towns.splice(k, 1);
+                        break;
+                }
+        }
+        
+        //remove population visual from map
+        var features = source.getFeatures();
+        
+        for(var j = 0; j < features.length; j++){
+                console.log(features[j].get('description'));
+                if(features[j].get('description') == name){
+                        source.removeFeature(features[j]);
+                        break;
+                }
+        }
+        
+        //remove from table
+        table.deleteRow(i);
 }
 
 addRow("popTable");

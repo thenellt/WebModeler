@@ -36,5 +36,7 @@ function togglePopulationView(mode){
         else{
                 document.getElementById("popMapContent").classList.remove("hide");
                 document.getElementById("popTableContent").classList.add("hide");
+                map.updateSize();
+                //map.calculateBounds();
         }
 }

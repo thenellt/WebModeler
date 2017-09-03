@@ -1,4 +1,6 @@
-function setup(){
+
+
+function setupTabs(){
         var tabs = document.getElementsByClassName("tablinks");
         for(i = 0; i < tabs.length; i++){
                 if(!tabs[i].classList.contains("defaultOpen")){
@@ -12,6 +14,7 @@ function setup(){
                 }
         }
         
+        /*
         map = new ol.Map({
         target: 'map',
         layers: [
@@ -22,9 +25,10 @@ function setup(){
         view: new ol.View({
                 center: ol.proj.fromLonLat([-123.269542, 44.568696]),
                 zoom: 10
-        })
-});
+        })});
+        */
 }
+
 
 function newSimulation(){
         console.log("new simulation run");
@@ -71,8 +75,8 @@ function closeAdvancedSettings(clear){
 
 function showPopEditor(position){
         if(typeof position !== 'undefined'){
-                document.getElementById("floatLat").value = position[0];
-                document.getElementById("floatLong").value = position[1];
+                document.getElementById("floatLat").value = position[1];
+                document.getElementById("floatLong").value = position[0];
         }
         
         otherPopup = 1;
@@ -90,6 +94,24 @@ function closePopEditor(clear){
         
         if(!clear){ //user hit cancel
                 //check parameters
+                var tempLat = document.getElementById("floatLat").value;
+                var tempLong = document.getElementById("floatLong").value;
+                var tempName = document.getElementById("floatPopName").value;
+                var tempPop = document.getElementById("floatPop").value;
+                var tempKill = document.getElementById("floatKill").value;
+                var tempGrowth =  document.getElementById("floatGrowth").value;
+                console.log(tempName);
+                //add the pop
+                addVillage(tempLong, tempLat, tempPop, tempKill, tempName);
+                addEntry(tempName, tempLong, tempLat, tempPop, tempGrowth, tempKill);
+                
+                //clear dialog
+                document.getElementById("floatLat").value = "";
+                document.getElementById("floatLong").value = "";
+                document.getElementById("floatPopName").value = "";
+                document.getElementById("floatPop").value = "";
+                document.getElementById("floatKill").value = "";
+                document.getElementById("floatGrowth").value = "";
         }
         
         var changeDiv = document.getElementById('floatingPopEditor');
@@ -113,4 +135,4 @@ function checkSettings(){
         return true;
 }
 
-setup();
+setupTabs();

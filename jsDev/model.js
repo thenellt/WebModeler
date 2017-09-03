@@ -11,7 +11,7 @@ var carryCapacity;
 var years;
 var diffusionSamples;
 
-var towns;
+var towns = [];
 
 
 var buffer;
@@ -28,10 +28,26 @@ var map;
 var features;
 
 var source = new ol.source.Vector({wrapX: false});
+var popLabelFeatures = [];
+var pointVector;
 
-function town(x, y, pop, killRate, name){
-        this.x = x;
-        this.y = y;
+var lowColorCode = "ffeda0";
+var highColorCode = "f03b20";
+var gradientSteps = 63;
+//var gradient = [];
+
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+}
+
+function town(long, lat, pop, killRate, name, growth){
+        this.long = long;
+        this.lat = lat;
+        //this.x = x;
+        //this.y = y;
+        this.growthRate = growth;
         this.population = pop;
         this.killRate = killRate;
         this.name = name;
@@ -54,10 +70,51 @@ function town(x, y, pop, killRate, name){
         };
 }
 
+//https://stackoverflow.com/questions/39006597/openlayers-3-add-text-label-to-feature
+function styleFunction() {
+  return [
+    new ol.style.Style({
+        fill: new ol.style.Fill({
+        color: 'rgba(255,255,255,0.4)'
+      }),
+      stroke: new ol.style.Stroke({
+        color: '#3399CC',
+        width: 1.25
+      }),
+      text: new ol.style.Text({
+        font: '12px Calibri,sans-serif',
+        fill: new ol.style.Fill({ color: '#000' }),
+        stroke: new ol.style.Stroke({
+          color: '#fff', width: 2
+        }),
+        // get the text from the feature - `this` is ol.Feature
+        // and show only under certain resolution
+        text: this.get('description')
+      })
+    })
+  ];
+}
+
+function addVillage(x, y, pop, kills, name, growth){
+        towns.push(new town(x, y, pop, kills, name));
+        var tempPoint = new ol.geom.Point(
+                [x, y]
+        );
+        
+        var tempFeature = new ol.Feature(tempPoint);
+        tempFeature.set('description', name);
+        tempFeature.setStyle(styleFunction);
+        
+        source.addFeature(tempFeature);
+        
+        towns.push(new town(x, y, pop, kills, name, growth));
+}
+
 function setupSim(){
         curImage = 0;
         xSize = geoGrid[0].length;
-        ySize = geoGrid[1].length;
+        ySize = geoGrid.length;
+        console.log("setupSim grid size: " + xSize + ", " + ySize);
         animalDiffRate = 0.1;
         animalGrowthRate = 0.07;
         killProb = .1;
@@ -68,12 +125,16 @@ function setupSim(){
         years = 10;
         diffusionSamples = 1;
         huntRange = 10;
-        towns = [];
-        for(var g = 0; g < points.length; g++){
-                towns.push(new town(points[g][3], points[g][2], 10, .2, "test" + g));
+        
+        //towns = [];
+        //for(var g = 0; g < points.length; g++){
+        //        var pop = getRandomInt(0, 100);
+        //        towns.push(new town(points[g][3], points[g][2], pop, .2, "test" + g));
+        //}
+
+        for(var g = 0; g < towns.length; g++){
+                points.push([]);
         }
-        //towns[0] = new town(15, 15, 20, .1, "test");
-        //towns[1] = new town(85, 85, 100, .2, "test1");
 
         grid = new Array(years + 1);
 
@@ -222,15 +283,46 @@ function printArray(array){
         }
 }
 
-function generateHeatmap(){
+function setupGradient(){
+        var gradient = [];
+        var hotColor = [];
+        hotColor[0] = parseInt(highColorCode.substring(0, 2) , 16);
+        hotColor[1] = parseInt(highColorCode.substring(2, 4) , 16);
+        hotColor[2] = parseInt(highColorCode.substring(4, 6) , 16);
+        
+        var coolColor = [];
+        coolColor[0] = parseInt(lowColorCode.substring(0, 2) , 16);
+        coolColor[1] = parseInt(lowColorCode.substring(2, 4) , 16);
+        coolColor[2] = parseInt(lowColorCode.substring(4, 6) , 16);
+        
+        console.log(hotColor);
+        console.log(coolColor);
+        
+        var redRange = hotColor[0] - coolColor[0];
+        var greenRange = hotColor[1] - coolColor[1];
+        var blueRange = hotColor[2] - coolColor[2];
+        
+        for(var i = 0; i <= gradientSteps; i++){
+                var colorOffset = i / gradientSteps;
+                var tempColor = [];
+                tempColor[0] = Math.round(redRange * colorOffset) + coolColor[0];
+                tempColor[1] = Math.round(greenRange * colorOffset) + coolColor[1];
+                tempColor[2] = Math.round(blueRange * colorOffset) + coolColor[2];
+                gradient.push(tempColor.slice());
+        }
+        
+        console.log(gradient);
+        return gradient;
+}
+
+function setupOlInputMap(){
         var drawControls;
         var teststyle = new ol.style.Style({
-                //stroke: new ol.style.Stroke({width: 0 }),
                 fill: new ol.style.Fill({ color: [0, 255, 0, 0.3]})
         });
         features = new ol.source.Vector();
         map = new ol.Map({
-                target: 'map_canvas',
+                target: 'popMapDiv', //'map_canvas',
                 layers: [
                         new ol.layer.Tile({
                                 source: new ol.source.OSM()
@@ -244,63 +336,46 @@ function generateHeatmap(){
                         projection: 'EPSG:4326',
                         center: [37.41, 8.82],
                         zoom: 2
-                })
+                }),
+                controls: []
         });
         
-var vector = new ol.layer.Vector({
-  source: source,
-  style: new ol.style.Style({
-    fill: new ol.style.Fill({
-      color: 'rgba(255, 255, 255, 0.2)'
-    }),
-    stroke: new ol.style.Stroke({
-      color: '#ffcc33',
-      width: 2
-    }),
-    image: new ol.style.Circle({
-      radius: 7,
-      fill: new ol.style.Fill({
-        color: '#ffcc33'
-      })
-    })
-  })
-});
+        pointVector = new ol.layer.Vector({
+                source: source,
+                style: new ol.style.Style({
+                        fill: new ol.style.Fill({color: 'rgba(255, 255, 255, 0.2)'}),
+                        stroke: new ol.style.Stroke({color: '#ffcc33', width: 2}),
+                        image: new ol.style.Circle({radius: 7, fill: new ol.style.Fill({color: '#ffcc33'})})
+                })
+        });
 
-        map.addLayer(vector);
+        map.addLayer(pointVector);
         
+        /*
         var maxPoints, geometryFunction;
-        draw = new ol.interaction.Draw({
+        drawControls = new ol.interaction.Draw({
                 source: source,
                 type: 'Point',
                 geometryFunction: geometryFunction,
                 maxPoints: maxPoints
         });
-        map.addInteraction(draw);
-
-        console.log(map.getView().calculateExtent(map.getSize()));
-        console.log(ol.geom.Polygon.fromExtent(map.getView().calculateExtent(map.getSize())));
-
+        map.addInteraction(drawControls);
+        */
         map.on('click', function(e){
-                addPoint(e.coordinate);
-                //drawHeatMap(e.coordinate);
+                showPopEditor(e.coordinate);
         });
+        
+        map.updateSize();
 }
 
 function drawHeatMap(matrix){
-        console.log("starting drawHeatMap: " + matrix[0][0][0]);
-        //var curPosition = startPoint;
-        //var otherCorner;
-        console.log("ySize: " + ySize +  " xSize: " + xSize);
-        for(var y = 0; y < ySize; y++){
+        console.log("starting drawHeatMap: ");
+        
+        var gradient = setupGradient();
+        
+        for(var y = 0; y < ySize - 1; y++){
                 console.log("starting row: " + y);
                 for(var x = 0; x < xSize - 1; x++){
-                        //var lowerPoint = destEllipse(curPosition[1], curPosition[0], 180);
-                        //var sidePoint = destEllipse(curPosition[1], curPosition[0], 90);
-                        //otherCorner = [sidePoint[1], lowerPoint[0]];
-                        //console.log(curPosition);
-                        //console.log([lowerPoint[1], lowerPoint[0]]);
-                        //console.log(otherCorner);
-                        //console.log([sidePoint[1], sidePoint[0]]);
                         var tempPolygon = new ol.geom.Polygon([[
                                 [matrix[y][x][1], matrix[y][x][0]],
                                 [matrix[y][x][1], matrix[y + 1][x][0]],
@@ -313,55 +388,21 @@ function drawHeatMap(matrix){
                                 name: ("pos" + x + "," + y),
                                 geometry: tempPolygon
                         });
+                        
+                        var gradientPosition = Math.ceil(gradientSteps * (1 - (grid[years][y][x] / carryCapacity)));
+                        if(gradientPosition < 0){
+                                gradientPosition = 0;
+                        }
 
                         var teststyle = new ol.style.Style({
-                                //stroke: new ol.style.Stroke({width: 1 }),
-                                fill: new ol.style.Fill({ color: [255, 0, 0, (1 - (grid[years][y][x] / carryCapacity))]})
-                                //stroke: new ol.style.Stroke({color: [255, 0, 0, (1 - (grid[years][y][x] / carryCapacity))], width: 1})
+                                fill: new ol.style.Fill({ color: [gradient[gradientPosition][0], gradient[gradientPosition][1], gradient[gradientPosition][2], .5]}) //color: [255, 0, 0, (1 - (grid[years][y][x] / carryCapacity))]
                         });
                         tempFeature.setStyle(teststyle);
                         features.addFeature(tempFeature);
-
-                        //curPosition = [sidePoint[1], sidePoint[0]];
                 }
-                //curPosition = [startPoint[0], otherCorner[1]];
         }
-
-        /*
-        console.log("new square");
-        var coordinates = e.coordinate;
-        var corner = [coordinates[1], coordinates[0]];
-        var lowerPoint = destEllipse(coordinates[1], coordinates[0], 180);
-        var sidePoint = destEllipse(coordinates[1], coordinates[0], 90);
-        var otherCorner = [sidePoint[1], lowerPoint[0]];
-        console.log(coordinates);
-        console.log([lowerPoint[1], lowerPoint[0]]);
-        console.log(otherCorner);
-        console.log([sidePoint[1], sidePoint[0]]);
-
-        var tempPolygon = new ol.geom.Polygon( [[
-                coordinates,
-                [lowerPoint[1], lowerPoint[0]],
-                otherCorner,
-                [sidePoint[1], sidePoint[0]],
-                coordinates
-        ]]);
-
-        var tempFeature = new ol.Feature({
-                name: "Thing1",
-                geometry: tempPolygon
-        });
-
-        features.addFeature(tempFeature);
-
-        var coords = [coordinates, [lowerPoint[1], lowerPoint[0]], otherCorner, [sidePoint[1], sidePoint[0]], coordinates];
-        var area;
-        var sphere = new ol.Sphere(6378137);
-        var area_m = sphere.geodesicArea(coords);
-        var area = area_m /1000/1000;
-
-        console.log("area: " + area);
-        */
+        
+        pointVector.setVisible(false);
 }
 
 function getExtent(){
@@ -377,6 +418,8 @@ function getExtent(){
 function generateCanvas(curYear, scale){
         console.log("generating canvas for year: " + curYear + " and scale: " + scale);
         //towns[0].printOfftake();
+        var gradient = setupGradient();
+        
         var canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
 
@@ -390,6 +433,7 @@ function generateCanvas(curYear, scale){
         for(var y = 0; y < ySize; y++) {
                 for(var row = 0; row < scale; row++){
                         for(var x = 0; x < xSize; x++) {
+                                /*
                                 var opacity = (1 - (grid[curYear][y][x] / carryCapacity)) * 255;
                                 for(var s = 0; s < scale; s++){
                                         data[pos] = 255;           // some R value [0, 255]
@@ -397,6 +441,28 @@ function generateCanvas(curYear, scale){
                                         data[pos + 2] = 0;           // some B value
                                         data[pos + 3] = opacity;
                                         pos += 4;
+                                }
+                                */
+                                //console.log("test: " + grid[curYear][y][x] / carryCapacity);
+                                var gradientPosition = Math.ceil(gradientSteps * (1 - (grid[curYear][y][x] / carryCapacity)));
+                                if(gradientPosition < 0){
+                                        for(var s = 0; s < scale; s++){
+                                                data[pos] = gradient[0][0];//gradient[gradientPosition][0];           // some R value [0, 255]
+                                                data[pos + 1] = gradient[0][1];//gradient[gradientPosition][1];           // some G value
+                                                data[pos + 2] = gradient[0][2];//gradient[gradientPosition][2];           // some B value
+                                                data[pos + 3] = 255;
+                                                pos += 4;
+                                        }
+                                }
+                                else{
+                                        //console.log("gradient pos: " + gradientPosition);
+                                        for(var s = 0; s < scale; s++){
+                                                data[pos] = gradient[gradientPosition][0];           // some R value [0, 255]
+                                                data[pos + 1] = gradient[gradientPosition][1];           // some G value
+                                                data[pos + 2] = gradient[gradientPosition][2];           // some B value
+                                                data[pos + 3] = 255;
+                                                pos += 4;
+                                        }
                                 }
                         }
                 }
@@ -499,6 +565,4 @@ function destEllipse(lat1, lon1, bearing) {
         return point;
 }
 
-//setupSim();
-//runSimulation(0);
-generateHeatmap();
+setupOlInputMap();

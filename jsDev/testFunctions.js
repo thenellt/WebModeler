@@ -16,7 +16,7 @@ function addPoint(position){
         console.log("adding point: " + position);
         points.push(position);
         console.log("number of points: " + points.length);
-        generateBounds(0);
+        //generateBounds(0);
 }
 
 function generateBounds(range){
@@ -64,7 +64,7 @@ function generateBounds(range){
         console.log("topLeft: " + topOffset[0] + ", " + topOffset[1]);
         console.log("botRight: " + botOffset[0] + ", " + botOffset[1]);
         
-        
+        /*
         var tempPolygon = new ol.geom.Polygon([[
                                 [topOffset[1], topOffset[0]],
                                 [topOffset[1], botOffset[0]],
@@ -85,7 +85,7 @@ function generateBounds(range){
         });
         tempFeature.setStyle(teststyle);
         features.addFeature(tempFeature);
-        
+        */
         return [topOffset, botOffset];
 }
 
@@ -269,9 +269,9 @@ function normalizeLongitude(lon) {
 }
 
 function runTests(){
-        setupPoints();
+        //setupPoints();
         //var bounds = generateBounds(10);
-        var bounds2 = generateBounds(15);
+        var bounds2 = generateBounds(30);
         generategeoGrid(bounds2);
         //drawgeoGrid();
         placeLocations(geoGrid, points);
