@@ -72,31 +72,37 @@ function town(long, lat, pop, killRate, name, growth){
 
 //https://stackoverflow.com/questions/39006597/openlayers-3-add-text-label-to-feature
 function styleFunction() {
-  return [
-    new ol.style.Style({
-        fill: new ol.style.Fill({
-        color: 'rgba(255,255,255,0.4)'
-      }),
-      stroke: new ol.style.Stroke({
-        color: '#3399CC',
-        width: 1.25
-      }),
-      text: new ol.style.Text({
-        font: '12px Calibri,sans-serif',
-        fill: new ol.style.Fill({ color: '#000' }),
-        stroke: new ol.style.Stroke({
-          color: '#fff', width: 2
-        }),
-        // get the text from the feature - `this` is ol.Feature
-        // and show only under certain resolution
-        text: this.get('description')
-      })
-    })
-  ];
+        return [
+                new ol.style.Style({
+                        fill: new ol.style.Fill({
+                                color: 'rgba(255,255,255,0.4)'
+                        }),
+                        stroke: new ol.style.Stroke({
+                                color: '#3399CC',
+                                width: 1.25
+                        }),
+                        text: new ol.style.Text({
+                                font: '12px Calibri,sans-serif',
+                                fill: new ol.style.Fill({ color: '#000' }),
+                                stroke: new ol.style.Stroke({
+                                        color: '#fff', width: 2
+                                }),
+                                text: this.get('description'),
+                                offsetY: 13
+                        }),
+                        image: new ol.style.Circle({
+                                radius: 6,
+                                fill: new ol.style.Fill({ color: 'rgba(255,0,0,1)'}),
+                                stroke: new ol.style.Stroke({
+                                        color: 'rgba(38,166,154,1)',
+                                        width: 1
+                                })
+                        })
+                })
+        ];
 }
 
 function addVillage(x, y, pop, kills, name, growth){
-        towns.push(new town(x, y, pop, kills, name));
         var tempPoint = new ol.geom.Point(
                 [x, y]
         );
@@ -104,10 +110,9 @@ function addVillage(x, y, pop, kills, name, growth){
         var tempFeature = new ol.Feature(tempPoint);
         tempFeature.set('description', name);
         tempFeature.setStyle(styleFunction);
-        
         source.addFeature(tempFeature);
         
-        towns.push(new town(x, y, pop, kills, name, growth));
+        towns.push(new town(parseFloat(x), parseFloat(y), pop, kills, name, growth));
 }
 
 function setupSim(){
@@ -125,16 +130,6 @@ function setupSim(){
         years = 10;
         diffusionSamples = 1;
         huntRange = 10;
-        
-        //towns = [];
-        //for(var g = 0; g < points.length; g++){
-        //        var pop = getRandomInt(0, 100);
-        //        towns.push(new town(points[g][3], points[g][2], pop, .2, "test" + g));
-        //}
-
-        for(var g = 0; g < towns.length; g++){
-                points.push([]);
-        }
 
         grid = new Array(years + 1);
 
@@ -321,11 +316,12 @@ function setupOlInputMap(){
                 fill: new ol.style.Fill({ color: [0, 255, 0, 0.3]})
         });
         features = new ol.source.Vector();
+        
         map = new ol.Map({
                 target: 'popMapDiv', //'map_canvas',
                 layers: [
                         new ol.layer.Tile({
-                                source: new ol.source.OSM()
+                                source: new ol.source.OSM({wrapX: false})
                         }),
                         new ol.layer.Vector({
                                 source: features,
@@ -350,20 +346,30 @@ function setupOlInputMap(){
         });
 
         map.addLayer(pointVector);
-        
-        /*
-        var maxPoints, geometryFunction;
-        drawControls = new ol.interaction.Draw({
-                source: source,
-                type: 'Point',
-                geometryFunction: geometryFunction,
-                maxPoints: maxPoints
-        });
-        map.addInteraction(drawControls);
-        */
+
         map.on('click', function(e){
-                showPopEditor(e.coordinate);
+                var tempFeatures = [];
+                map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
+                        tempFeatures.push(feature);
+                        
+                }, {hitTolerance: 5});
+                console.log("results: " + tempFeatures.length);
+                if(!tempFeatures.length){
+                        showPopEditor(e.coordinate);
+                }
+                else{
+                        var tempName = tempFeatures[0].get('description');
+                        console.log("existing feature clicked" + tempName);
+                        for(var t = 0; t < towns.length; t++){
+                                if(towns[t].name == tempName){
+                                        showPopUpdater(t);
+                                        break;
+                                }
+                        }
+                        //console.log("couldn't find village to update...");
+                }
         });
+        
         
         map.updateSize();
 }
@@ -390,7 +396,7 @@ function drawHeatMap(matrix){
                         });
                         
                         var gradientPosition = Math.ceil(gradientSteps * (1 - (grid[years][y][x] / carryCapacity)));
-                        if(gradientPosition < 0){
+                        if(gradientPosition < 0 || !gradientPosition){
                                 gradientPosition = 0;
                         }
 
@@ -445,7 +451,7 @@ function generateCanvas(curYear, scale){
                                 */
                                 //console.log("test: " + grid[curYear][y][x] / carryCapacity);
                                 var gradientPosition = Math.ceil(gradientSteps * (1 - (grid[curYear][y][x] / carryCapacity)));
-                                if(gradientPosition < 0){
+                                if(gradientPosition < 0 || !gradientPosition){
                                         for(var s = 0; s < scale; s++){
                                                 data[pos] = gradient[0][0];//gradient[gradientPosition][0];           // some R value [0, 255]
                                                 data[pos + 1] = gradient[0][1];//gradient[gradientPosition][1];           // some G value
@@ -455,7 +461,6 @@ function generateCanvas(curYear, scale){
                                         }
                                 }
                                 else{
-                                        //console.log("gradient pos: " + gradientPosition);
                                         for(var s = 0; s < scale; s++){
                                                 data[pos] = gradient[gradientPosition][0];           // some R value [0, 255]
                                                 data[pos + 1] = gradient[gradientPosition][1];           // some G value
@@ -503,66 +508,6 @@ function normalizeLongitude(lon) {
                 lon = lon + 2*n
         }
         return lon;
-}
-
-function destEllipse(lat1, lon1, bearing) {
-        var point = [0.0, 0.0, 0.0, 0.0];
-        var brg = new Array(0, 180, 0);
-        brg[0] = bearing;
-        var j=0;
-        if (lat1 == 90) {
-                startlat = 89.999999999;
-                j=1
-        }
-        if (lat1 == -90) {
-                startlat = -89.999999999;
-                j=2;
-        }
-        lat1 = rad(lat1);
-        lon1 = rad(lon1);
-        brg[j] = rad(brg[j]);
-        var s = 1;
-        var a = 6378137;
-        var b = a - (a/298.257223563);
-        with (Math) {
-                s *= 1000;
-                //var ind = max(f1.model.selectedIndex, 1);
-                var cs1, ds1, ss1, cs1m;
-                var f = 1/298.257223563;
-                var sb=sin(brg[j]);
-                var cb=cos(brg[j]);
-                var tu1=(1-f)*tan(lat1);
-                var cu1=1/sqrt((1+tu1*tu1));
-                var su1=tu1*cu1;
-                var s2=atan2(tu1, cb);
-                var sa = cu1*sb;
-                var csa=1-sa*sa;
-                var us=csa*(a*a - b*b)/(b*b);
-                var A=1+us/16384*(4096+us*(-768+us*(320-175*us)));
-                var B = us/1024*(256+us*(-128+us*(74-47*us)));
-                var s1=s/(b*A);
-                var s1p = 2*PI;
-                while (abs(s1-s1p) > 1e-12) {
-                        cs1m=cos(2*s2+s1);
-                        ss1=sin(s1);
-                        cs1=cos(s1);
-                        ds1=B*ss1*(cs1m+B/4*(cs1*(-1+2*cs1m*cs1m)- B/6*cs1m*(-3+4*ss1*ss1)*(-3+4*cs1m*cs1m)));
-                        s1p=s1;
-                        s1=s/(b*A)+ds1;
-                }
-                var t=su1*ss1-cu1*cs1*cb;
-                var lat2=atan2(su1*cs1+cu1*ss1*cb, (1-f)*sqrt(sa*sa + t*t));
-                var l2=atan2(ss1*sb, cu1*cs1-su1*ss1*cb);
-                var c=f/16*csa*(4+f*(4-3*csa));
-                var l=l2-(1-c)*f*sa* (s1+c*ss1*(cs1m+c*cs1*(-1+2*cs1m*cs1m)));
-                var d=atan2(sa, -t);
-                point[2] = d+2*PI;
-                point[3] = d+PI;
-                point[0] = deg(lat2);
-                point[1] = deg(normalizeLongitude(lon1+l));
-        }
-
-        return point;
 }
 
 setupOlInputMap();

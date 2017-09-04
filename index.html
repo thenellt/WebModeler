@@ -1,7 +1,8 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
         <link rel="stylesheet" href="https://openlayers.org/en/v4.2.0/css/ol.css" type="text/css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <!--<link rel="stylesheet" type="text/css" href="css/mainStyle.css" media="screen,projection"> -->
         <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
         <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
@@ -28,16 +29,16 @@
                         <td class="tab">
                                 <div class="tab">
                                         <button id="getStartedTab" class="tablinks waves-effect waves-light defaultOpen" onclick="changeTab('getStarted')">Get Started</button>
-                                        <button id="parameterSetupTab" class="tablinks waves-effect waves-light" onclick="changeTab('parameterSetup')">Settings</button>
+                                        <button id="parameterSetupTab" class="tablinks waves-effect waves-light" onclick="changeTab('parameterSetup')">Simulation Parameters</button>
                                         <button id="popSetupTab" class="tablinks waves-effect waves-light" onclick="changeTab('popSetup')">Setup Populations</button>
-                                        <button id="tab4" class="tablinks waves-effect waves-light" onclick="changeTab('page2')">Advanced Settings</button>
-                                        <button id="tab5" class="tablinks waves-effect waves-light" onclick="changeTab(event, 'page3')">Simulation Parameters</button>
+                                        <button id="tab4" class="tablinks waves-effect waves-light" onclick="changeTab('page2')">Simulation Overview</button>
+                                        <button id="tab5" class="tablinks waves-effect waves-light" onclick="changeTab(event, 'page3')">Results</button>
                                         <div class="fillertab"></div>
                                 </div>
                         </td>
                         <td class="content">
                                 <div class="tabcontent" id="getStarted">
-                                        <h3 class="header">Select the Simulation Type</h3>
+                                        <h4 class="header">Start or Continue a Simulation</h4>
                                         <div class="divider" style="margin-bottom: 10px;"></div>
                                         
                                         <div class="row">
@@ -159,13 +160,24 @@
                                                                 <li><a href="#!" onclick="togglePopulationView(1)">Table View</a></li>
                                                         </ul>
                                                 </div>
+                                                
                                         </div>
-                                        <div class="divider"></div>
+                                        <!--
+                                        <div class="row">
+                                                <div class="nav-content">
+                                                        <ul class="tabs tabs-fixed-width">
+                                                                <li class="tab"><a href="" onclick="togglePopulationView(1)" id="tableViewTab">Table View</a></li>
+                                                                <li class="tab"><a href="" onclick="togglePopulationView(0)">Map View</a></li>
+                                                        </ul>
+                                                </div>
+                                        </div>
+                                        -->
                                         <div id="popMapContent" class="hide" style="height: 80%; width 100%;">
+                                                <div class="divider" style="margin-bottom: 4px;"></div>
                                                 <div id="popMapDiv" class="map" style="min-height: 600px; min-width: 600px;"></div>
                                                 <div class="divider" style="margin-top: 4px; margin-bottom: 8px;"></div>
                                                 <div class="row">
-                                                        <div class="col s9"><i>Click a location to add a village at that spot.</i></div>
+                                                        <div class="col s9"><i>Click on the map to add a population to that location. Click on an existing population to edit it.</i></div>
                                                 </div>
                                         </div>
                                         <div id="popTableContent">
@@ -191,7 +203,12 @@
                                                 </div>
                                         </div>
                                         <div class="row" style="position: absolute; bottom: 8px; width: 80%">
-                                                <div class="col s3 offset-s9">
+                                                <div class="col s4 offset-s4">
+                                                        <div id="progressContainer">
+                                                                <progress id="progressBar" value="0" max="100" style="display: none;"></progress>
+                                                        </div>
+                                                </div>
+                                                <div class="col s3 offset-s1">
                                                         <a class="waves-effect waves-light btn" id="runSimButton" onclick="runTests()">
                                                                 Run Simulation
                                                         </a>
@@ -291,7 +308,6 @@
                         </div>
                 </div>
         </div>
-        
         <div id="floatingPopEditor" class="floatingContent card blue-grey lighten-4 scale-transition scale-out">
                 <div class="card-content black-text">
                         <span class="card-title" id="popEditorTitle">Population Properties</span>
@@ -337,6 +353,57 @@
                         </div>
                         <div class="col s2 offset-s1">
                                 <a class="waves-effect waves-light btn" onclick="closePopEditor(0);">Done</a>
+                        </div>
+                </div>
+        </div>
+        <div id="floatingPopUpdater" class="floatingContent card blue-grey lighten-4 scale-transition scale-out">
+                <div class="card-content black-text">
+                        <span class="card-title" id="popUpdaterTitle">Modify Population</span>
+                </div>
+                <ul class="collection">
+                        <li class="collection-item">
+                                <div class="row" style="margin-bottom: 0px;">
+                                        <div class="col s9"><h5>Name:</h5></div>
+                                        <div class="col s3"><input type="text" id="floatPopUName"></div>
+                                </div>
+                        </li>
+                        <li class="collection-item">
+                                <div class="row" style="margin-bottom: 2px;">
+                                        <div class="col s4"><h5>Position: </h5></div>
+                                        <div class="col s2"><h5>Longitude</h5></div>
+                                        <div class="col s2"><input type="text" id="floatULong"></div>
+                                        <div class="col s2"><h5>Latitude</h5></div>
+                                        <div class="col s2"><input type="text" id="floatULat"></div>
+                                </div>
+                        </li>
+                        <li class="collection-item">
+                                <div class="row" style="margin-bottom: 2px;">
+                                        <div class="col s9"><h5>Population:</h5></div>
+                                        <div class="col s3"><input type="text" id="floatUPop"></div>
+                                </div>
+                        </li>
+                        <li class="collection-item">
+                                <div class="row" style="margin-bottom: 2px;">
+                                        <div class="col s9"><h5>Growth:</h5></div>
+                                        <div class="col s3"><input type="text" id="floatUGrowth"></div>
+                                </div>
+                        </li>
+                        <li class="collection-item">
+                                <div class="row" style="margin-bottom: 2px;">
+                                        <div class="col s9"><h5>Kill Rate:</h5></div>
+                                        <div class="col s3"><input type="text" id="floatUKill"></div>
+                                </div>
+                        </li>
+                </ul>
+                <div class="row" style="position: absolute; bottom: 8px; width: 100%">
+                        <div class="col s3 offset-s1">
+                                <a class="waves-effect waves-light btn red darken-2" onclick="closePopUpdater(0);">Delete Village</a>
+                        </div>
+                        <div class="col s2 offset-s4">
+                                <a class="waves-effect waves-light btn blue-grey lighten-3" onclick="closePopUpdater(1);">Cancel</a>
+                        </div>
+                        <div class="col s2">
+                                <a class="waves-effect waves-light btn" onclick="closePopUpdater(2);">Update</a>
                         </div>
                 </div>
         </div>

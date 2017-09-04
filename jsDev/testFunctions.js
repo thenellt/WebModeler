@@ -21,18 +21,17 @@ function addPoint(position){
 
 function generateBounds(range){
         console.log("range: " + range);
-        var topLeft;
-        var botRight;
+        var topLeft = points[0].slice(0);
+        var botRight = points[0].slice(0);
 
-        topLeft = points[0].slice(0);
-        botRight = points[0].slice(0);
         for(var i = 1; i < points.length; i++){
 
                 console.log("array point: " + points[i][0] +  ", " + points[i][1]);
                 console.log("top Left: " + topLeft[0] +  ", " + topLeft[1]);
 
                 if(points[i][0] < topLeft[0]){
-                        console.log("replacing " + topLeft[0] + " with " + points[i][0]);
+                        console.log("type of orig: " + (typeof topLeft[0]) + " type of new: " + (typeof points[i][0]));
+                        console.log("replacing " + topLeft[0] +  " with " + points[i][0]);
                         topLeft[0] = points[i][0];
                 }
                 else if(points[i][0] > botRight[0]){
@@ -48,24 +47,21 @@ function generateBounds(range){
                 console.log("");
         }
         
-        console.log("***********results**************");
-        console.log("topLeft: " + topLeft[0] + ", " + topLeft[1]);
-        console.log("botRight: " + botRight[0] + ", " + botRight[1]);
-        
-        var topOffset, botOffset;
+        var topOffset = [];
+        var botOffset = [];
         
         topOffset = destEllipse(topLeft[1], topLeft[0], 0, range);
         topOffset = destEllipse(topOffset[0], topOffset[1], 270, range);
-        
+
         botOffset = destEllipse(botRight[1], botRight[0], 180, range);
         botOffset = destEllipse(botOffset[0], botOffset[1], 90, range);
         
-        console.log("***********offsets**************");
+        console.log("***********offsetsf**************");
         console.log("topLeft: " + topOffset[0] + ", " + topOffset[1]);
         console.log("botRight: " + botOffset[0] + ", " + botOffset[1]);
         
         /*
-        var tempPolygon = new ol.geom.Polygon([[
+        var tempPolygon1 = new ol.geom.Polygon([[
                                 [topOffset[1], topOffset[0]],
                                 [topOffset[1], botOffset[0]],
                                 [botOffset[1], botOffset[0]],
@@ -73,18 +69,14 @@ function generateBounds(range){
                                 [topOffset[1], topOffset[0]]
                         ]]);
 
-        var tempFeature = new ol.Feature({
+        var tempFeature1 = new ol.Feature({
                 name: ("pos" + counter++),
-                geometry: tempPolygon
+                geometry: tempPolygon1
         });
 
-        var teststyle = new ol.style.Style({
-                stroke: new ol.style.Stroke({width: 1 })
-                //fill: new ol.style.Fill({ color: [255, 0, 0, (1 - (geoGrid[years][y][x] / carryCapacity))]})
-                //stroke: new ol.style.Stroke({color: [255, 0, 0, (1 - (geoGrid[years][y][x] / carryCapacity))], width: 1})
-        });
-        tempFeature.setStyle(teststyle);
-        features.addFeature(tempFeature);
+        var teststyle1 = new ol.style.Style({ stroke: new ol.style.Stroke({width: 1 })});
+        tempFeature1.setStyle(teststyle1);
+        features.addFeature(tempFeature1);
         */
         return [topOffset, botOffset];
 }
@@ -184,7 +176,9 @@ function placeLocations(matrix, pointSet){
                 
                 console.log("placing point " + pointSet[i] + " at: " + x + ", " + y);
                 pointSet[i].push(y - 1);
+                towns[i].y = (y - 1);
                 pointSet[i].push(x - 1);
+                towns[i].x = (x - 1);
                 
                 x = 0;
                 y = 0;
@@ -269,19 +263,26 @@ function normalizeLongitude(lon) {
 }
 
 function runTests(){
-        //setupPoints();
-        //var bounds = generateBounds(10);
-        var bounds2 = generateBounds(30);
-        generategeoGrid(bounds2);
+        for(var g = 0; g < towns.length; g++){
+                points.push([towns[g].long, towns[g].lat]);
+        }
+
+        console.log("towns: " + towns.length);
+        console.log("points: " + points.length);
+        
+        var bounds = generateBounds(30);
+        
+        generategeoGrid(bounds);
         //drawgeoGrid();
+        setupSim();
         placeLocations(geoGrid, points);
         
-        setupSim();
-        
         var progressBar = document.getElementById("progressBar");
+        progressBar.style.display = "none";
         progressBar.value = 0;
         
         runSimulation(0);
+        
         /*
         for(var i = 0; i < years; i++){
                 runSimulation(i);
