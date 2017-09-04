@@ -262,6 +262,29 @@ function normalizeLongitude(lon) {
         return lon;
 }
 
+function readUserParameters(){
+        years = parseInt(document.getElementById("paramYears"), 10) || years;
+        carryCapacity = parseInt(document.getElementById("paramCarry"), 10) || carryCapacity;
+        animalDiffRate = parseFloat(document.getElementById("paramDifRate")) || animalDiffRate;
+        animalGrowthRate = parseFloat(document.getElementById("paramGrowthRate")) || animalGrowthRate;
+        encounterRate = parseFloat(document.getElementById("paramEncounterRate")) || encounterRate;
+        killProb = parseFloat(document.getElementById("paramKillProb")) || killProb;
+        HpHy = parseInt(document.getElementById("paramHphy"), 10) || HpHy;
+        huntRange = parseInt(document.getElementById("rangeHphy"), 10) || huntRange;
+        
+        theta = parseFloat(document.getElementById("paramTheta")) || theta;
+        diffusionSamples = parseInt(document.getElementById("diffSamples"), 10) || diffusionSamples;
+        
+        for(var i = 0; i < years + 1; i++){
+                grid[i] = new Array(ySize);
+                for(var j = 0; j < ySize; j++){
+                        grid[i][j] = new Array(xSize).fill(carryCapacity);
+                }
+        }
+        
+        gradientSteps = carryCapacity - 1;
+}
+
 function runTests(){
         for(var g = 0; g < towns.length; g++){
                 points.push([towns[g].long, towns[g].lat]);
@@ -270,11 +293,14 @@ function runTests(){
         console.log("towns: " + towns.length);
         console.log("points: " + points.length);
         
-        var bounds = generateBounds(30);
+        var tempRange = parseInt(document.getElementById("rangeHphy"), 10) || 10;
+        
+        var bounds = generateBounds(15 + tempRange);
         
         generategeoGrid(bounds);
         //drawgeoGrid();
         setupSim();
+        //readUserParameters();
         placeLocations(geoGrid, points);
         
         var progressBar = document.getElementById("progressBar");

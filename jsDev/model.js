@@ -33,7 +33,7 @@ var pointVector;
 
 var lowColorCode = "ffeda0";
 var highColorCode = "f03b20";
-var gradientSteps = 63;
+var gradientSteps;
 //var gradient = [];
 
 function getRandomInt(min, max) {
@@ -143,6 +143,8 @@ function setupSim(){
                         grid[i][j] = new Array(xSize).fill(carryCapacity);
                 }
         }
+        
+        gradientSteps = carryCapacity - 1;
 
         for(var k = 0; k < ySize; k++){
                 yearlyGrid[k] = new Array(xSize).fill(0.0);
@@ -478,7 +480,8 @@ function generateCanvas(curYear, scale){
         image.id = 'image' + curYear;
 
         image.src = canvas.toDataURL();
-        document.body.appendChild(image);
+        document.getElementById("heatMapContainer").style.display = "inline";
+        document.getElementById("heatMapCanvas").appendChild(image);
 }
 
 function setVisibleImage(change){

@@ -1,3 +1,5 @@
+9/4/17 v12a - Parameters entered in the settings and advanced settings screens
+are actually used now. \n
 9/4/17 v12 - First version that somewhat works. Parameters are placeholder but
 population input is fully working. \n
 9/2/17 v11 - Continue work on ui integration. Simulator is almost runnable but more table, map, simmulator data synchronization code is necessary. \n
