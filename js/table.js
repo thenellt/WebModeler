@@ -1,17 +1,5 @@
 var rowCounter = 0;
 
-function addPopulation(name, lat, long, pop, growth){
-        var newTown;
-        newTown.id = populations.length + 1;
-        newTown.name = name;
-        newTown.lat = lat,
-        newTown.long = long;
-        newTown.pop = pop;
-        newTown.growth = growth;
-        
-        populations.push(newTown);
-}
-
 function removePopulation(id){
         for(var i = 0; i < populations.length; i++){
                 if(populations[i].id === id){

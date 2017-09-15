@@ -72,6 +72,11 @@
                                                 </div>
                                                 -->
                                         </div>
+                                        <div class="row">
+                                                <div class="col s4">
+                                                        <input type="file" onchange='loadFromFile(this)'>
+                                                </div>
+                                        </div>
                                 </div>
                                 <div class="tabcontent" id="parameterSetup">
                                         <div class="row">
@@ -204,13 +209,14 @@
                                         </div>
                                         <div class="row" id="heatMapContainer" style="display: none;">
                                                 Simulation Raw Output:
-                                                <div id="heatMapCanvas"></div>
+                                                <div id="heatMapCanvas" style="max-width:600px; max-height: 600px;"></div>
+                                                <div id="testMap2"></div>
                                         </div>
                                         <div class="row" style="position: absolute; bottom: 8px; width: 80%">
-                                                <div class="col s4 offset-s4">
-                                                        <div id="progressContainer">
-                                                                <progress id="progressBar" value="0" max="100" style="display: none;"></progress>
-                                                        </div>
+                                                <div class="col s3 offset-s5">
+                                                        <a class="waves-effect waves-light btn" id="runSimButton" onclick="toggleImgLayer()">
+                                                                Toggle ImgLayer
+                                                        </a>
                                                 </div>
                                                 <div class="col s3 offset-s1">
                                                         <a class="waves-effect waves-light btn" id="runSimButton" onclick="runTests()">
@@ -420,5 +426,7 @@
         <script src="js/table.js" type="text/javascript"></script>
         <script src="jsDev/model.js" type="text/javascript"></script>
         <script src="jsDev/testFunctions.js" type="text/javascript"></script>
+        <script src="jsDev/FileSaver.min.js" type="text/javascript"></script>
+        <script src="jsDev/saveLoad.js" type="text/javascript"></script>
 </body>
 </html>

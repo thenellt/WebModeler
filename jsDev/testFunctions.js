@@ -125,7 +125,7 @@ function generategeoGrid(extremePoints){
                 i++;
         }
         temp = destEllipse(geoGrid[j][i][0], geoGrid[j][i][1], 90, 1);
-        geoGrid[j].push(temp.slice());
+        geoGrid[j].push([temp[0], temp[1]]);
         
         console.log("geoGrid size: " + geoGrid[0].length + " x " + geoGrid.length);
 }
@@ -270,11 +270,20 @@ function readUserParameters(){
         encounterRate = parseFloat(document.getElementById("paramEncounterRate")) || encounterRate;
         killProb = parseFloat(document.getElementById("paramKillProb")) || killProb;
         HpHy = parseInt(document.getElementById("paramHphy"), 10) || HpHy;
-        huntRange = parseInt(document.getElementById("rangeHphy"), 10) || huntRange;
+        //huntRange = parseInt(document.getElementById("rangeHphy"), 10) || huntRange;
         
         theta = parseFloat(document.getElementById("paramTheta")) || theta;
         diffusionSamples = parseInt(document.getElementById("diffSamples"), 10) || diffusionSamples;
         
+        ySize = geoGrid.length;
+        xSize = geoGrid[ySize - 1].length;
+        
+        grid = new Array(years + 1);
+
+        yearlyGrid = new Array(ySize);
+        growth = new Array(ySize);
+        effort = new Array(ySize);
+
         for(var i = 0; i < years + 1; i++){
                 grid[i] = new Array(ySize);
                 for(var j = 0; j < ySize; j++){
@@ -283,6 +292,16 @@ function readUserParameters(){
         }
         
         gradientSteps = carryCapacity - 1;
+
+        for(var k = 0; k < ySize; k++){
+                yearlyGrid[k] = new Array(xSize).fill(0.0);
+                growth[k] = new Array(xSize).fill(0.0);
+                effort[k] = new Array(xSize).fill(0.0);
+        }
+        
+        gradientSteps = carryCapacity - 1;
+        
+        console.log("finished reading user input and allocating memory");
 }
 
 function runTests(){
@@ -293,19 +312,19 @@ function runTests(){
         console.log("towns: " + towns.length);
         console.log("points: " + points.length);
         
-        var tempRange = parseInt(document.getElementById("rangeHphy"), 10) || 10;
+        huntRange = parseInt(document.getElementById("rangeHphy"), 10) || 10;
         
-        var bounds = generateBounds(15 + tempRange);
-        
+        var bounds = generateBounds(30 + huntRange);
         generategeoGrid(bounds);
-        //drawgeoGrid();
+        
         setupSim();
-        //readUserParameters();
+        readUserParameters();
+        //drawgeoGrid();
         placeLocations(geoGrid, points);
         
-        var progressBar = document.getElementById("progressBar");
-        progressBar.style.display = "none";
-        progressBar.value = 0;
+        //var progressBar = document.getElementById("progressBar");
+        //progressBar.style.display = "none";
+        //progressBar.value = 0;
         
         runSimulation(0);
         
@@ -321,4 +340,3 @@ function runTests(){
         
         //drawHeatMap(geoGrid);
 }
-

@@ -1,3 +1,4 @@
+//simulation parameters
 var xSize;
 var ySize;
 var animalDiffRate;
@@ -11,42 +12,38 @@ var carryCapacity;
 var years;
 var diffusionSamples;
 
-var towns = [];
-
-
-var buffer;
+//model arrays
 var grid;
-
 var yearlyGrid;
 var growth;
 var effort;
-var grid;
+var towns = [];
 
 var curImage;
 
+//ol maps variables
 var map;
 var features;
-
 var source = new ol.source.Vector({wrapX: false});
 var popLabelFeatures = [];
 var pointVector;
+var canvasImage;
+var imageLayer;
 
+//graident parameters
 var lowColorCode = "ffeda0";
 var highColorCode = "f03b20";
 var gradientSteps;
-//var gradient = [];
 
 function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+  return Math.floor(Math.random() * (max - min)) + min;
 }
 
 function town(long, lat, pop, killRate, name, growth){
         this.long = long;
         this.lat = lat;
-        //this.x = x;
-        //this.y = y;
         this.growthRate = growth;
         this.population = pop;
         this.killRate = killRate;
@@ -117,9 +114,6 @@ function addVillage(x, y, pop, kills, name, growth){
 
 function setupSim(){
         curImage = 0;
-        xSize = geoGrid[0].length;
-        ySize = geoGrid.length;
-        console.log("setupSim grid size: " + xSize + ", " + ySize);
         animalDiffRate = 0.1;
         animalGrowthRate = 0.07;
         killProb = .1;
@@ -130,27 +124,6 @@ function setupSim(){
         years = 10;
         diffusionSamples = 1;
         huntRange = 10;
-
-        grid = new Array(years + 1);
-
-        yearlyGrid = new Array(ySize);
-        growth = new Array(ySize);
-        effort = new Array(ySize);
-
-        for(var i = 0; i < years + 1; i++){
-                grid[i] = new Array(ySize);
-                for(var j = 0; j < ySize; j++){
-                        grid[i][j] = new Array(xSize).fill(carryCapacity);
-                }
-        }
-        
-        gradientSteps = carryCapacity - 1;
-
-        for(var k = 0; k < ySize; k++){
-                yearlyGrid[k] = new Array(xSize).fill(0.0);
-                growth[k] = new Array(xSize).fill(0.0);
-                effort[k] = new Array(xSize).fill(0.0);
-        }
 }
 
 function runSimulation(curYear){
@@ -161,14 +134,12 @@ function runSimulation(curYear){
                 yearlyGrid[j].fill(0.0);
         }
 
-        //for(var curYear = 0; curYear < years; curYear++){ //10 is years
-        console.log("starting year number: " + curYear);
-        //count = 0;
+        console.log("modeling year number: " + curYear);
         var a, b, c, d, e;
         var x, y;
         //d*(n[year,i+1,j]+n[year,i-1,j])+(1-4*d)*n[year,i,j]+d*(n[year,i,j+1]+n[year,i,j-1])
         for(var i = 0; i < diffusionSamples; i++){
-                console.log("running diff sample: " + i);
+                //console.log("running diff sample: " + i);
                 for(y = 0; y < ySize; y++){
                         for(x = 0; x < xSize; x++){
                                 if(y > 0 && y < ySize - 1){
@@ -246,25 +217,20 @@ function runSimulation(curYear){
                         }
                 }
         }
-
-        //console.log("growth: ");
-        //printArray(growth);
-        //console.log("yearly grid: ");
-        //printArray(yearlyGrid);
         
         if(curYear + 1 < years){
-                document.getElementById("progressBar").value = ((curYear + 1) / years) * 100;
-                console.log(document.getElementById("progressBar").value);
+                //document.getElementById("progressBar").value = ((curYear + 1) / years) * 100;
+                //console.log(document.getElementById("progressBar").value);
                 //runSimulation(curYear + 1);
                 //generateCanvas(curYear);
                 setTimeout(runSimulation, 10, curYear + 1);
         }
         else{
-                document.getElementById("progressBar").style.display = "none";
+                //document.getElementById("progressBar").style.display = "none";
                 //setVisibleImage(0);
                 //drawHeatMap(geoGrid);
-                generateCanvas(curYear, 8);
-                drawHeatMap(geoGrid);
+                generateCanvas(curYear, 1);
+                //drawHeatMap(geoGrid);
         }
         
 }
@@ -368,10 +334,8 @@ function setupOlInputMap(){
                                         break;
                                 }
                         }
-                        //console.log("couldn't find village to update...");
                 }
         });
-        
         
         map.updateSize();
 }
@@ -441,23 +405,12 @@ function generateCanvas(curYear, scale){
         for(var y = 0; y < ySize; y++) {
                 for(var row = 0; row < scale; row++){
                         for(var x = 0; x < xSize; x++) {
-                                /*
-                                var opacity = (1 - (grid[curYear][y][x] / carryCapacity)) * 255;
-                                for(var s = 0; s < scale; s++){
-                                        data[pos] = 255;           // some R value [0, 255]
-                                        data[pos + 1] = 0;           // some G value
-                                        data[pos + 2] = 0;           // some B value
-                                        data[pos + 3] = opacity;
-                                        pos += 4;
-                                }
-                                */
-                                //console.log("test: " + grid[curYear][y][x] / carryCapacity);
                                 var gradientPosition = Math.ceil(gradientSteps * (1 - (grid[curYear][y][x] / carryCapacity)));
                                 if(gradientPosition < 0 || !gradientPosition){
                                         for(var s = 0; s < scale; s++){
-                                                data[pos] = gradient[0][0];//gradient[gradientPosition][0];           // some R value [0, 255]
-                                                data[pos + 1] = gradient[0][1];//gradient[gradientPosition][1];           // some G value
-                                                data[pos + 2] = gradient[0][2];//gradient[gradientPosition][2];           // some B value
+                                                data[pos] = gradient[0][0];
+                                                data[pos + 1] = gradient[0][1];
+                                                data[pos + 2] = gradient[0][2];
                                                 data[pos + 3] = 255;
                                                 pos += 4;
                                         }
@@ -476,41 +429,73 @@ function generateCanvas(curYear, scale){
         }
 
         ctx.putImageData(imgData, 0, 0);
-        var image = new Image();
-        image.id = 'image' + curYear;
+        canvasImage = new Image();
+        canvasImage.id = 'image' + curYear;
 
-        image.src = canvas.toDataURL();
-        document.getElementById("heatMapContainer").style.display = "inline";
-        document.getElementById("heatMapCanvas").appendChild(image);
-}
-
-function setVisibleImage(change){
-        var position = curImage + change;
-        if(position < 0){
-                position = 0;
+        canvasImage.src = canvas.toDataURL();
+        
+        canvasImage.onload = function(){
+                console.log("picture: " + canvasImage.naturalHeight);
+                console.log("picture: " + canvasImage.naturalWidth);
+                document.getElementById("heatMapContainer").style.display = "inline";
+                document.getElementById("heatMapCanvas").appendChild(canvasImage);
+                
+                var tempLength = geoGrid.length - 1;
+                var tempPoint = geoGrid[tempLength][geoGrid[tempLength].length - 1]
+                
+                console.log("top corner: " + geoGrid[0][0] + " bot corner: " + tempPoint);
+                console.log("extent: " + [geoGrid[0][0][1], tempPoint[0], tempPoint[1], geoGrid[0][0][0]]);
+                
+                imageLayer = new ol.layer.Image({
+                        opacity: 0.8,
+                        source: new ol.source.ImageStatic({
+                            url: canvasImage.src,
+                            imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
+                            projection: map.getView().getProjection(),
+                            imageExtent: [geoGrid[0][0][1], tempPoint[0], tempPoint[1], geoGrid[0][0][0]]
+                        })
+                });
+                
+                imageLayer.set('name', 'imgLayer');
+                
+                /*
+                var projection = new ol.proj.Projection({
+                        projection: 'EPSG:4326'
+                });
+                
+                var map2 = new ol.Map({
+                        layers: [
+                          new ol.layer.Image({
+                            source: new ol.source.ImageStatic({
+                              url: canvasImage.src,
+                              projection: projection,
+                              imageExtent: [geoGrid[0][0][1], tempPoint[0], tempPoint[1], geoGrid[0][0][0]]
+                            })
+                          })
+                        ],
+                        target: 'testMap2',
+                        view: new ol.View({
+                          projection: projection,
+                          zoom: 2,
+                          maxZoom: 8
+                        })
+                });
+                */
+                //var tempLayers = map.getLayers();
+                //for(var c = 0; c < tempLayers.getLength(); c++){
+                //        tempLayers.item(c).setVisible(false);
+                //}
+                map.addLayer(imageLayer);
         }
-        else if(position > years){
-                position = years;
+}
+
+function toggleImgLayer(){
+        if(imageLayer.getVisible()){
+                imageLayer.setVisible(false);
         }
-
-}
-
-function rad(dg) {
-        return (dg* Math.PI / 180);
-}
-
-function deg(rd) {
-        return (rd* 180 / Math.PI);
-}
-
-function normalizeLongitude(lon) {
-        var n=Math.PI;
-        if (lon > n) {
-                lon = lon - 2*n
-        } else if (lon < -n) {
-                lon = lon + 2*n
+        else{
+                imageLayer.setVisible(true);
         }
-        return lon;
 }
 
 setupOlInputMap();
