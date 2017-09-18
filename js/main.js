@@ -14,21 +14,6 @@ function setupTabs(){
                         changeTab(contentName.substring(0, contentName.length - 3));
                 }
         }
-
-        
-        /*
-        map = new ol.Map({
-        target: 'map',
-        layers: [
-                new ol.layer.Tile({
-                        source: new ol.source.OSM()
-                })
-        ],
-        view: new ol.View({
-                center: ol.proj.fromLonLat([-123.269542, 44.568696]),
-                zoom: 10
-        })});
-        */
 }
 
 

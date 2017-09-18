@@ -1,4 +1,3 @@
-
 var points = [];
 var geoGrid = [[[]]];
 var counter = 0;
@@ -271,6 +270,20 @@ function readUserParameters(){
         killProb = parseFloat(document.getElementById("paramKillProb")) || killProb;
         HpHy = parseInt(document.getElementById("paramHphy"), 10) || HpHy;
         //huntRange = parseInt(document.getElementById("rangeHphy"), 10) || huntRange;
+        var tempLow = document.getElementById("paramLowColor");
+        if(tempLow.length > 0){
+                lowColorCode = tempLow;
+        }
+        
+        var tempHigh = document.getElementById("paramHighColor");
+        if(tempHigh.length > 0){
+                highColorCode = tempHigh;
+        }
+        
+        var tempName = document.getElementById("paramName");
+        if(tempName.length > 0){
+                simName = tempName;
+        }
         
         theta = parseFloat(document.getElementById("paramTheta")) || theta;
         diffusionSamples = parseInt(document.getElementById("diffSamples"), 10) || diffusionSamples;
@@ -291,15 +304,11 @@ function readUserParameters(){
                 }
         }
         
-        gradientSteps = carryCapacity - 1;
-
         for(var k = 0; k < ySize; k++){
                 yearlyGrid[k] = new Array(xSize).fill(0.0);
                 growth[k] = new Array(xSize).fill(0.0);
                 effort[k] = new Array(xSize).fill(0.0);
         }
-        
-        gradientSteps = carryCapacity - 1;
         
         console.log("finished reading user input and allocating memory");
 }

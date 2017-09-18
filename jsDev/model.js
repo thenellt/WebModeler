@@ -1,4 +1,6 @@
 //simulation parameters
+var modelParams = {};
+
 var xSize;
 var ySize;
 var animalDiffRate;
@@ -11,6 +13,9 @@ var theta;
 var carryCapacity;
 var years;
 var diffusionSamples;
+var lowColorCode = "";
+var highColorCode = "";
+var simName = "";
 
 //model arrays
 var grid;
@@ -29,11 +34,6 @@ var popLabelFeatures = [];
 var pointVector;
 var canvasImage;
 var imageLayer;
-
-//graident parameters
-var lowColorCode = "ffeda0";
-var highColorCode = "f03b20";
-var gradientSteps;
 
 function getRandomInt(min, max) {
   min = Math.ceil(min);
@@ -116,14 +116,36 @@ function setupSim(){
         curImage = 0;
         animalDiffRate = 0.1;
         animalGrowthRate = 0.07;
-        killProb = .1;
+        killProb = 0.1;
         HpHy = 40;
-        encounterRate = .02043;
+        encounterRate = 0.02043;
         carryCapacity = 25;
         theta = 1;
         years = 10;
         diffusionSamples = 1;
         huntRange = 10;
+        lowColorCode = "ffeda0";
+        highColorCode = "f03b20";
+        simName = "defaultName";
+        /*
+        modelParams.curImage.val = 0;
+        modelParams.animalDiffRate.val = 0.1;
+        modelParams.animalGrowthRate.val = 0.07;
+        modelParams.killProb.val = 0.1;
+        modelParams.HpHy.val = 40;
+        modelParams.encounterRate.val = 0.02043;
+        modelParams.carryCapacity.val = 25;
+        modelParams.theta.val = 1;
+        modelParams.years.val = 10;
+        modelParams.diffusionSamples.val = 1;
+        modelParams.huntRange.val = 10;
+        modelParams.lowColorCode.val = "ffeda0";
+        modelParams.highColorCode.val = "f03b20";
+        
+        for(var key in modelParams){
+                modelParams[key].default = 1;
+        }
+        */
 }
 
 function runSimulation(curYear){
@@ -230,6 +252,7 @@ function runSimulation(curYear){
                 //setVisibleImage(0);
                 //drawHeatMap(geoGrid);
                 generateCanvas(curYear, 1);
+                saveSimToFile(false);
                 //drawHeatMap(geoGrid);
         }
         
@@ -265,8 +288,10 @@ function setupGradient(){
         var greenRange = hotColor[1] - coolColor[1];
         var blueRange = hotColor[2] - coolColor[2];
         
+        var gradientSteps = carryCapacity - 1;
+        
         for(var i = 0; i <= gradientSteps; i++){
-                var colorOffset = i / gradientSteps;
+                var colorOffset = i / (gradientSteps);
                 var tempColor = [];
                 tempColor[0] = Math.round(redRange * colorOffset) + coolColor[0];
                 tempColor[1] = Math.round(greenRange * colorOffset) + coolColor[1];
@@ -344,6 +369,7 @@ function drawHeatMap(matrix){
         console.log("starting drawHeatMap: ");
         
         var gradient = setupGradient();
+        var gradientSteps = carryCapacity - 1;
         
         for(var y = 0; y < ySize - 1; y++){
                 console.log("starting row: " + y);
@@ -391,6 +417,7 @@ function generateCanvas(curYear, scale){
         console.log("generating canvas for year: " + curYear + " and scale: " + scale);
         //towns[0].printOfftake();
         var gradient = setupGradient();
+        var gradientSteps = carryCapacity - 1;
         
         var canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
