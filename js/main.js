@@ -243,6 +243,14 @@ function changeToPopulations(){
         }
 }
 
+function changeToOutput(){
+        document.getElementById("resultMapDiv").appendChild(document.getElementById("popMapDiv"));
+        map.updateSize();
+        map.getViewport().removeEventListener('click', addPopFunction);
+        document.getElementById("resultsPageTab").disabled = false;
+        changeTab('resultsPage');
+}
+
 function checkSettings(){
         //will check for valid numbers for all parameters
         return true;

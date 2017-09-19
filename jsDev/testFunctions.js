@@ -269,7 +269,6 @@ function readUserParameters(){
         encounterRate = parseFloat(document.getElementById("paramEncounterRate")) || encounterRate;
         killProb = parseFloat(document.getElementById("paramKillProb")) || killProb;
         HpHy = parseInt(document.getElementById("paramHphy"), 10) || HpHy;
-        //huntRange = parseInt(document.getElementById("rangeHphy"), 10) || huntRange;
         var tempLow = document.getElementById("paramLowColor");
         if(tempLow.length > 0){
                 lowColorCode = tempLow;
@@ -314,6 +313,11 @@ function readUserParameters(){
 }
 
 function runTests(){
+        if(!towns.length){
+                console.log("no populations found");
+                return;
+        }
+        
         for(var g = 0; g < towns.length; g++){
                 points.push([towns[g].long, towns[g].lat]);
         }
@@ -336,16 +340,4 @@ function runTests(){
         //progressBar.value = 0;
         
         runSimulation(0);
-        
-        /*
-        for(var i = 0; i < years; i++){
-                runSimulation(i);
-                progressBar.value = ((i + 1) / years) * 100;
-        }
-        
-        progressBar.style.display = "none";
-        */
-        //generateCanvas(years, 4);
-        
-        //drawHeatMap(geoGrid);
 }

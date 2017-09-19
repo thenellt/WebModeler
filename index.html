@@ -3,7 +3,6 @@
 <head>
         <link rel="stylesheet" href="https://openlayers.org/en/v4.2.0/css/ol.css" type="text/css">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-        <!--<link rel="stylesheet" type="text/css" href="css/mainStyle.css" media="screen,projection"> -->
         <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
         <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
         <script type="text/javascript" src="js/materialize.min.js"></script>
@@ -32,7 +31,7 @@
                                         <button id="parameterSetupTab" class="tablinks waves-effect waves-light" onclick="changeTab('parameterSetup')">Simulation Parameters</button>
                                         <button id="popSetupTab" class="tablinks waves-effect waves-light" onclick="changeTab('popSetup')">Setup Populations</button>
                                         <button id="tab4" class="tablinks waves-effect waves-light" onclick="changeTab('page2')">Simulation Overview</button>
-                                        <button id="tab5" class="tablinks waves-effect waves-light" onclick="changeTab(event, 'page3')">Results</button>
+                                        <button id="resultsPageTab" class="tablinks waves-effect waves-light" onclick="changeTab('resultsPage')">Results</button>
                                         <div class="fillertab"></div>
                                 </div>
                         </td>
@@ -210,7 +209,7 @@
                                         <div class="row" id="heatMapContainer" style="display: none;">
                                                 Simulation Raw Output:
                                                 <div id="heatMapCanvas" style="max-width:600px; max-height: 600px;"></div>
-                                                <div id="testMap2"></div>
+                                                <div id="testMap2" ></div>
                                         </div>
                                         <div class="row" style="position: absolute; bottom: 8px; width: 80%">
                                                 <div class="col s3 offset-s5">
@@ -257,6 +256,14 @@
                                                 </tr>
                                         </table>
                                         -->
+                                </div>
+                                <div class="tabcontent" id="resultsPage">
+                                        <div class="row">
+                                                <div class="col s6"><h4>Simulation Results</h4></div>
+                                        </div>
+                                        <div class="divider" style="margin-bottom: 4px;"></div>
+                                        <div id="resultMapDiv" style="height: 600px; width: 800px;"></div>
+                                        
                                 </div>
                         </td>
                 </tr>
@@ -337,37 +344,37 @@
                         <span class="card-title" id="popEditorTitle">Population Properties</span>
                 </div>
                 <ul class="collection">
-                        <li class="collection-item">
-                                <div class="row" style="margin-bottom: 0px;">
+                        <li class="collection-item" style="padding: 5px 5px 5px 5px;">
+                                <div class="row" style="margin-bottom: 0px; padding: 5px 5px 5px 5px;" >
                                         <div class="col s9"><h5>Name:</h5></div>
-                                        <div class="col s3"><input type="text" id="floatPopName"></div>
+                                        <div class="col s3"><input type="text" id="floatPopName" style="margin-bottom: 5px;"></div>
                                 </div>
                         </li>
-                        <li class="collection-item">
-                                <div class="row" style="margin-bottom: 2px;">
+                        <li class="collection-item" style="padding: 5px 5px 5px 5px;">
+                                <div class="row" style="margin-bottom: 0px;">
                                         <div class="col s4"><h5>Position: </h5></div>
                                         <div class="col s2"><h5>Longitude</h5></div>
-                                        <div class="col s2"><input type="text" id="floatLong"></div>
+                                        <div class="col s2"><input type="text" id="floatLong" style="margin-bottom: 5px;"></div>
                                         <div class="col s2"><h5>Latitude</h5></div>
-                                        <div class="col s2"><input type="text" id="floatLat"></div>
+                                        <div class="col s2"><input type="text" id="floatLat" style="margin-bottom: 5px;"></div>
                                 </div>
                         </li>
-                        <li class="collection-item">
-                                <div class="row" style="margin-bottom: 2px;">
+                        <li class="collection-item" style="padding: 5px 5px 5px 5px;">
+                                <div class="row" style="margin-bottom: 0px;">
                                         <div class="col s9"><h5>Population:</h5></div>
-                                        <div class="col s3"><input type="text" id="floatPop"></div>
+                                        <div class="col s3"><input type="text" id="floatPop" style="margin-bottom: 5px;"></div>
                                 </div>
                         </li>
-                        <li class="collection-item">
-                                <div class="row" style="margin-bottom: 2px;">
+                        <li class="collection-item" style="padding: 5px 5px 5px 5px;">
+                                <div class="row" style="margin-bottom: 0px;">
                                         <div class="col s9"><h5>Growth:</h5></div>
-                                        <div class="col s3"><input type="text" id="floatGrowth"></div>
+                                        <div class="col s3"><input type="text" id="floatGrowth" style="margin-bottom: 5px;"></div>
                                 </div>
                         </li>
-                        <li class="collection-item">
-                                <div class="row" style="margin-bottom: 2px;">
+                        <li class="collection-item" style="padding: 5px 5px 5px 5px;">
+                                <div class="row" style="margin-bottom: 0px;">
                                         <div class="col s9"><h5>Kill Rate:</h5></div>
-                                        <div class="col s3"><input type="text" id="floatKill"></div>
+                                        <div class="col s3"><input type="text" id="floatKill" style="margin-bottom: 5px;"></div>
                                 </div>
                         </li>
                 </ul>
@@ -392,7 +399,7 @@
                                 </div>
                         </li>
                         <li class="collection-item">
-                                <div class="row" style="margin-bottom: 2px;">
+                                <div class="row" style="margin-bottom: 0px;">
                                         <div class="col s4"><h5>Position: </h5></div>
                                         <div class="col s2"><h5>Longitude</h5></div>
                                         <div class="col s2"><input type="text" id="floatULong"></div>
@@ -401,19 +408,19 @@
                                 </div>
                         </li>
                         <li class="collection-item">
-                                <div class="row" style="margin-bottom: 2px;">
+                                <div class="row" style="margin-bottom: 0px;">
                                         <div class="col s9"><h5>Population:</h5></div>
                                         <div class="col s3"><input type="text" id="floatUPop"></div>
                                 </div>
                         </li>
                         <li class="collection-item">
-                                <div class="row" style="margin-bottom: 2px;">
+                                <div class="row" style="margin-bottom: 0px;">
                                         <div class="col s9"><h5>Growth:</h5></div>
                                         <div class="col s3"><input type="text" id="floatUGrowth"></div>
                                 </div>
                         </li>
                         <li class="collection-item">
-                                <div class="row" style="margin-bottom: 2px;">
+                                <div class="row" style="margin-bottom: 0px;">
                                         <div class="col s9"><h5>Kill Rate:</h5></div>
                                         <div class="col s3"><input type="text" id="floatUKill"></div>
                                 </div>

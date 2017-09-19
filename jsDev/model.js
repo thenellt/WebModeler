@@ -34,6 +34,8 @@ var popLabelFeatures = [];
 var pointVector;
 var canvasImage;
 var imageLayer;
+var addPopFunction;
+
 
 function getRandomInt(min, max) {
   min = Math.ceil(min);
@@ -252,7 +254,8 @@ function runSimulation(curYear){
                 //setVisibleImage(0);
                 //drawHeatMap(geoGrid);
                 generateCanvas(curYear, 1);
-                saveSimToFile(false);
+                //saveSimToFile(false);
+                changeToOutput();
                 //drawHeatMap(geoGrid);
         }
         
@@ -339,8 +342,33 @@ function setupOlInputMap(){
         });
 
         map.addLayer(pointVector);
-
-        map.on('click', function(e){
+        
+        addPopFunction = function(e){
+                var tempFeatures = [];
+                map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
+                        tempFeatures.push(feature);
+                        
+                }, {hitTolerance: 5});
+                console.log("results: " + tempFeatures.length);
+                if(!tempFeatures.length){
+                        showPopEditor(e.coordinate);
+                }
+                else{
+                        var tempName = tempFeatures[0].get('description');
+                        console.log("existing feature clicked" + tempName);
+                        for(var t = 0; t < towns.length; t++){
+                                if(towns[t].name == tempName){
+                                        showPopUpdater(t);
+                                        break;
+                                }
+                        }
+                }
+        };
+        
+        map.getViewport().addEventListener('click', addPopFunction);
+        
+        /*
+        addPopFunction = map.on('click', function(e){
                 var tempFeatures = [];
                 map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
                         tempFeatures.push(feature);
@@ -361,7 +389,7 @@ function setupOlInputMap(){
                         }
                 }
         });
-        
+        */
         map.updateSize();
 }
 
@@ -514,6 +542,17 @@ function generateCanvas(curYear, scale){
                 //}
                 map.addLayer(imageLayer);
         }
+}
+
+function saveMapImage(){
+        var mapCanvas = document.getElementById
+        canvas.toBlob(function(blob) {
+              saveAs(blob, 'map.png');
+            });
+}
+
+function saveCanvasImage(){
+        
 }
 
 function toggleImgLayer(){
