@@ -1,5 +1,7 @@
 var popupEvntFunction;
 var oldName;
+var olmapLocation;
+var simulationRun;
 
 function setupTabs(){
         var tabs = document.getElementsByClassName("tablinks");
@@ -14,6 +16,9 @@ function setupTabs(){
                         changeTab(contentName.substring(0, contentName.length - 3));
                 }
         }
+        
+        olmapLocation = 0;
+        simulationRun = 0;
 }
 
 
@@ -236,19 +241,49 @@ function closePopEditor(clear){
 
 function changeToPopulations(){
         console.log("changed to population page");
+        if(document.getElementById("popSetupTab").disabled){
+                if(checkSettings()){
+                        document.getElementById("popSetupTab").disabled = false;
+                        changeTab('popSetup');
+                }
+                
+                return;
+        }
         
-        if(checkSettings()){
-                document.getElementById("popSetupTab").disabled = false;
+        if(olmapLocation){ //move the map from output page back to pop page
+                document.getElementById("popMapRow").appendChild(document.getElementById("popMapDiv"));
+                olmapLocation = 0;
+                changeTab('popSetup');
+                //var parentDiv = document.getElementById("popMapRow");
+                //map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
+                //map.updateSize();
+                addPopFunction = map.on('click', placePopulation);
+                imageLayer.setVisible(false);
+        }
+        else{
                 changeTab('popSetup');
         }
 }
 
 function changeToOutput(){
         document.getElementById("resultMapDiv").appendChild(document.getElementById("popMapDiv"));
-        map.updateSize();
-        map.getViewport().removeEventListener('click', addPopFunction);
+        olmapLocation = 1;
         document.getElementById("resultsPageTab").disabled = false;
         changeTab('resultsPage');
+        ol.Observable.unByKey(addPopFunction);
+        
+        if(simulationRun){
+                imageLayer.setVisible(true);
+        }
+        else{
+                simulationRun = 1;
+                var parentDiv = document.getElementById("resultMapDiv");
+                console.log("resize map offsetHeight: " + parentDiv.offsetHeight);
+                console.log("resize map clientHeight: " + parentDiv.clientHeight);
+        
+                map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
+                map.updateSize();
+        }
 }
 
 function checkSettings(){

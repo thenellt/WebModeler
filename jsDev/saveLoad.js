@@ -34,6 +34,7 @@ function loadFromFile(fileName){
                 reader.onload = function (e) {
                         parseConfigFile(e.target.result);
                         console.log(e.target.result);
+                        newSimulation();
                 };
                 reader.readAsText(fileName.files[0]);
         }
@@ -104,6 +105,24 @@ function saveSimToFile(saveTowns){
         var outputString = JSON.stringify(saveObject);
         var jsonBlob = new Blob([outputString], {type: "application/json"});
         saveAs(jsonBlob, simName + ".cfg");
+}
+
+function saveImgToFile(type){
+        if(type){ //with map background
+                map.once('postcompose', function(event) {
+                        var tempCanvas = event.context.canvas;
+                  
+                        tempCanvas.toBlob(function(blob) {
+                                saveAs(blob, simName + '_map.png');
+                        });
+                });
+                map.renderSync();
+        }
+        else{
+                canvas.toBlob(function(blob) {
+                        saveAs(blob, simName + '_heatmap.png');
+                });
+        }
 }
 
 checkCompatibility();
