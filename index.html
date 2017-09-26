@@ -61,15 +61,15 @@
                                         </div>
                                         <div class="row">
                                                 <div class="col s6">
-                                                        <h5>Load a cached simulation (TODO):</h5>
+                                                        <h5>Load a cached simulation:</h5>
                                                 </div>
-                                                <!--
-                                                <div class="col s3 offset-s3">
-                                                        <a class="disabled waves-effect waves-light btn" id="loadParams" onclick="loadParamsFromFile()">
-                                                                Load File
-                                                        </a>
+                                                <div class="col s6" id="persistMessage" style="margin-top: 18px;">
+                                                       
                                                 </div>
-                                                -->
+                                                
+                                        </div>
+                                        <div class="row" id="persistDisplay">
+                                                
                                         </div>
                                         
                                         <input id="loadConfigFileButton" type="file" onchange='loadFromFile(this)' style="display: none;">
@@ -355,7 +355,7 @@
                         </div>
                 </div>
         </div>
-        <div id="floatingPopEditor" class="floatingContent card blue-grey lighten-4 scale-transition scale-out">
+        <div id="floatingPopEditor" class="floatingContent card blue-grey lighten-4 scale-transition scale-out" style="max-wdith: 750px;">
                 <div class="card-content black-text">
                         <span class="card-title" id="popEditorTitle">Population Properties</span>
                 </div>
@@ -403,7 +403,7 @@
                         </div>
                 </div>
         </div>
-        <div id="floatingPopUpdater" class="floatingContent card blue-grey lighten-4 scale-transition scale-out">
+        <div id="floatingPopUpdater" class="floatingContent card blue-grey lighten-4 scale-transition scale-out" style="max-wdith: 750px;">
                 <div class="card-content black-text">
                         <span class="card-title" id="popUpdaterTitle">Modify Population</span>
                 </div>

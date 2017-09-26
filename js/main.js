@@ -292,3 +292,4 @@ function checkSettings(){
 }
 
 setupTabs();
+
