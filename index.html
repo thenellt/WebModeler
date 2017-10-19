@@ -42,7 +42,7 @@
                                         
                                         <div class="row">
                                                 <div class="col s6"><h5>Start a new simulation:</h5></div>
-                                                <div class="col s3"><a class="disabled waves-effect waves-light btn red darken-2 hide" id="resetButton" onclick="resetSimulation()">
+                                                <div class="col s3"><a class="waves-effect waves-light btn red darken-2 hide" id="resetButton" onclick="resetSimulation()">
                                                         Reset Simulation
                                                 </a></div>
                                                 <div class="col s3"><a class="waves-effect waves-light btn" id="newSimButton" onclick="newSimulation()">
@@ -72,12 +72,19 @@
                                                 
                                         </div>
                                         
+                                        <div class="row" id="javascriptError">
+                                                <h3 style="color:red;">If you can see this, javascript isn't being allowed to run in your browser and this application won't work.</h3>
+                                        </div>
+                                        
                                         <input id="loadConfigFileButton" type="file" onchange='loadFromFile(this)' style="display: none;">
                                                 
                                 </div>
                                 <div class="tabcontent" id="parameterSetup">
                                         <div class="row">
-                                                <div class="col s12"><h4>Simulation Parameters</h4></div>
+                                                <div class="col s9"><h4>Enter Simulation Parameters</h4></div>
+                                                <div class="col s3" style="margin-top: 16.5px"><a class="waves-effect waves-light btn" onclick="populateDefaultValues()">
+                                                        Use Defaults
+                                                </a></div>
                                         </div>
                                         <div class="row" style="margin-bottom: 8px;">
                                                 <div class="col s8"><h5>Simulation Name:</h5></div>
@@ -325,14 +332,16 @@
                         </li>
                         <li class="collection-item">
                                 <div class="row" style="margin-bottom: 0;">
-                                        <div class="col s8"><h5>Diffusion Samples (alpha):</h5></div>
+                                        <div class="col s7"><h5>Diffusion Samples (alpha):</h5></div>
+                                        <div class="col s1"></div>
                                         <div class="col s3"><input type="text" id="diffSamples" style="margin-bottom: 0;"></div>
                                         <div class="col s1"><a class="btn-floating waves-effect waves-light" id="diffSamplesHelp"><i>?</i></a></div>
                                 </div>
                         </li>
                         <li class="collection-item">
                                 <div class="row" style="margin-bottom: 0;">
-                                        <div class="col s8"><h5>Heatmap base color (Hex):</h5></div>
+                                        <div class="col s7"><h5>Heatmap base color (Hex):</h5></div>
+                                        <div class="col s1"></div>
                                         <div class="col s3"><input type="text" id="paramLowColor" style="margin-bottom: 0;"></div>
                                         <div class="col s1"><a class="btn-floating waves-effect waves-light" id="lowColorHelp"><i>?</i></a></div>
                                 </div>

@@ -25,6 +25,8 @@ var highColorCode;
 
 function checkCompatibility(){
         console.log("checking for browser support...");
+        
+        document.getElementById("javascriptError").style.display = "none";
 }
 
 function loadFromFile(fileName){
@@ -49,6 +51,7 @@ function parseConfigFile(fileString){
                 return;
         }
         
+        simID = loadedObject.simID;
         animalDiffRate = loadedObject.animalDiffRate;
         animalGrowthRate = loadedObject.animalGrowthRate;
         killProb = loadedObject.killProb;
@@ -82,6 +85,7 @@ function parseConfigFile(fileString){
 }
 
 function saveSimToFile(saveTowns){
+        console.log("*********in save sim, name: " + simName);
         var saveObject = generateConfigObject();
         
         //save populations
@@ -96,6 +100,7 @@ function saveSimToFile(saveTowns){
 
 function generateConfigObject(){
         var saveObject = {};
+        saveObject.simID = simID;
         saveObject.simName = simName;
         saveObject.animalDiffRate = animalDiffRate;
         saveObject.animalGrowthRate = animalGrowthRate;
@@ -109,6 +114,7 @@ function generateConfigObject(){
         saveObject.diffusionSamples = diffusionSamples;
         saveObject.lowColorCode = lowColorCode;
         saveObject.highColorCode = highColorCode;
+        saveObject.towns = towns;
         
         return saveObject;
 }
@@ -169,7 +175,7 @@ function updatePersistObject(persistObject, saveTowns){
 function getPersistObjects(){
         var numEntries = localStorage.getItem('numEntries');
         
-        if(numEntries === null){
+        if(numEntries === null || numEntries === 0){
                 console.log("no persistent entries found");
                 return null;
         }
@@ -177,7 +183,7 @@ function getPersistObjects(){
         var entries = [];
         for(var i = 0; i < numEntries; i++){
                 var entry = localStorage.getItem('entry' + i);
-                console.log("entry");
+                console.log("entry" + entry);
                 entries.push(JSON.parse(entry));
         }
         
@@ -187,7 +193,7 @@ function getPersistObjects(){
 function setupPersistConfigs(){
         var entries = getPersistObjects();
         if(!entries){
-                document.getElementById("persistMessage").innerHTML = "No existing saves found";
+                document.getElementById("persistMessage").innerHTML = "No recent saves found";
                 return;
         }
         

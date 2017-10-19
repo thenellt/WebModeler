@@ -39,9 +39,9 @@ var addPopFunction;
 
 
 function getRandomInt(min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min)) + min;
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min)) + min;
 }
 
 function town(long, lat, pop, killRate, name, growth){
@@ -503,6 +503,10 @@ function generateCanvas(curYear, scale){
                 
                 console.log("top corner: " + geoGrid[0][0] + " bot corner: " + tempPoint);
                 console.log("extent: " + [geoGrid[0][0][1], tempPoint[0], tempPoint[1], geoGrid[0][0][0]]);
+                
+                if(imageLayer){
+                        map.removeLayer(imageLayer);
+                }
                 
                 imageLayer = new ol.layer.Image({
                         opacity: 0.8,

@@ -2,6 +2,7 @@ var popupEvntFunction;
 var oldName;
 var olmapLocation;
 var simulationRun;
+var simID;
 
 function setupTabs(){
         var tabs = document.getElementsByClassName("tablinks");
@@ -23,7 +24,9 @@ function setupTabs(){
 
 
 function newSimulation(){
-        console.log("new simulation run");
+        var tempDate = new Date();
+        simID = tempDate.valueOf();
+        console.log("new simulation run. ID: " + simID);
         document.getElementById("parameterSetupTab").disabled = false;
         document.getElementById("resetButton").classList.remove("hide");
         document.getElementById("newSimButton").innerHTML = "Continue";
@@ -38,7 +41,58 @@ function resetSimulationCheck(){
 }
 
 function resetSimulation(){
+        simID = -1;
+        document.getElementById("paramYears").value = "";
+        document.getElementById("paramCarry").value = "";
+        document.getElementById("paramDifRate").value = "";
+        document.getElementById("paramGrowthRate").value = "";
+        document.getElementById("paramEncounterRate").value = "";
+        document.getElementById("paramKillProb").value = "";
+        document.getElementById("paramHphy").value = "";
+        document.getElementById("rangeHphy").value = "";
+        document.getElementById("paramName").value = "";
+        
+        document.getElementById("paramTheta").value = "";
+        document.getElementById("paramLowColor").value = "";
+        document.getElementById("paramHighColor").value = "";
+        document.getElementById("diffSamples").value = "";
+        
+        if(simulationRun){
+                simulationRun = 0;
+                if(olmapLocation){ //move the map from output page back to pop page
+                        document.getElementById("popMapRow").appendChild(document.getElementById("popMapDiv"));
+                        olmapLocation = 0;
+                        //var parentDiv = document.getElementById("popMapRow");
+                        //map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
+                        //map.updateSize();
+                        addPopFunction = map.on('click', placePopulation);
+                        imageLayer.setVisible(false);
+                }
+                
+                var cleanup = document.getElementById("rawHeatmapContainer");
+                while (cleanup.firstChild) {
+                        cleanup.removeChild(cleanup.firstChild);
+                }
+        }
+        
+        for(var k = 0; k < towns.length; k++){
+                deleteRowByName(towns[k].name);
+        }
+        
+        towns = [];
+        points = [];
+        
+        var features = source.getFeatures();
 
+        for(var j = 0; j < features.length; j++){
+                source.removeFeature(features[j]);
+        }
+        
+        document.getElementById("parameterSetupTab").disabled = true;
+        document.getElementById("popSetupTab").disabled = true;
+        document.getElementById("resultsPageTab").disabled = true;
+        document.getElementById("resetButton").classList.add("hide");
+        document.getElementById("newSimButton").innerHTML = "New Simulation";
 }
 
 function showAdvancedSettings(){
@@ -84,6 +138,11 @@ function showPopEditor(position){
                 if(e.keyCode == 27){ //cancel and close if escape key
                         closePopEditor(1);
                 }
+                else if(e.keyCode == 13){
+                        if(checkPopEditor()){
+                                closePopEditor(0);
+                        }
+                }
         };
         
         window.addEventListener('keyup', popupEvntFunction);
@@ -114,6 +173,12 @@ function showPopUpdater(index){
                 e = e || window.event;
                 if(e.keyCode == 27){ //cancel and close if escape key
                         closePopEditor(1);
+                }
+                
+                else if(e.keyCode == 13){
+                        if(checkPopUpdater()){
+                                closePopUpdater(2);
+                        }
                 }
         };
         
@@ -284,6 +349,66 @@ function changeToOutput(){
                 map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
                 map.updateSize();
         }
+}
+
+function populateDefaultValues(){
+        document.getElementById("paramYears").value = "10";
+        document.getElementById("paramCarry").value = "25";
+        document.getElementById("paramDifRate").value = "0.1";
+        document.getElementById("paramGrowthRate").value = "0.07";
+        document.getElementById("paramEncounterRate").value = "0.02043";
+        document.getElementById("paramKillProb").value = "0.1";
+        document.getElementById("paramHphy").value = "40";
+        document.getElementById("rangeHphy").value = "10";
+        
+        document.getElementById("paramTheta").value = "1";
+        document.getElementById("paramLowColor").value = "ffeda0";
+        document.getElementById("paramHighColor").value = "f03b20";
+        document.getElementById("diffSamples").value = "1";
+}
+
+function checkPopEditor(){
+        if(isNaN(parseFloat(document.getElementById("floatLat").value, 10)))
+                return false;
+                
+        if(isNaN(parseFloat(document.getElementById("floatLong").value, 10)))
+                return false;
+        
+        if(document.getElementById("floatPopName").value.length === 0)
+                return false;
+                
+        if(isNaN(parseInt(document.getElementById("floatPop").value)))
+                return false;
+        
+        if(isNaN(parseFloat(document.getElementById("floatKill").value, 10)))
+                return false;
+        
+        if(isNaN(parseFloat(document.getElementById("floatGrowth").value, 10)))
+                return false;
+        
+        return true;
+}
+
+function checkPopUpdater(){
+        if(isNaN(parseFloat(document.getElementById("floatULat").value, 10)))
+                return false;
+                
+        if(isNaN(parseFloat(document.getElementById("floatULong").value, 10)))
+                return false;
+        
+        if(document.getElementById("floatPopUName").value.length === 0)
+                return false;
+                
+        if(isNaN(parseInt(document.getElementById("floatUPop").value)))
+                return false;
+        
+        if(isNaN(parseFloat(document.getElementById("floatUKill").value, 10)))
+                return false;
+        
+        if(isNaN(parseFloat(document.getElementById("floatUGrowth").value, 10)))
+                return false;
+        
+        return true;
 }
 
 function checkSettings(){

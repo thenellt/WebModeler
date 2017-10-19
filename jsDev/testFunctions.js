@@ -1,15 +1,6 @@
 var points = [];
 var geoGrid = [[[]]];
-var counter = 0;
-
-function setupPoints(){
-        points.push([-123.749297, 43.091117]);
-        points.push([-123.754029, 43.092112]);
-        points.push([-123.745553, 43.091909]);
-        points.push([-123.750166, 43.089237]);
-        points.push([-123.754318, 43.092716]);
-        console.log(points);
-}
+//var counter = 0;
 
 function addPoint(position){
         console.log("adding point: " + position);
@@ -81,6 +72,7 @@ function generateBounds(range){
 }
 
 function generategeoGrid(extremePoints){
+        geoGrid = [[[]]];
         geoGrid[0][0] = [extremePoints[0][0], extremePoints[0][1]];
         console.log("grid 0,0: " + geoGrid[0][0]);
         var x = extremePoints[0][1];
@@ -262,24 +254,25 @@ function normalizeLongitude(lon) {
 }
 
 function readUserParameters(){
-        years = parseInt(document.getElementById("paramYears"), 10) || years;
-        carryCapacity = parseInt(document.getElementById("paramCarry"), 10) || carryCapacity;
-        animalDiffRate = parseFloat(document.getElementById("paramDifRate")) || animalDiffRate;
-        animalGrowthRate = parseFloat(document.getElementById("paramGrowthRate")) || animalGrowthRate;
-        encounterRate = parseFloat(document.getElementById("paramEncounterRate")) || encounterRate;
-        killProb = parseFloat(document.getElementById("paramKillProb")) || killProb;
-        HpHy = parseInt(document.getElementById("paramHphy"), 10) || HpHy;
-        var tempLow = document.getElementById("paramLowColor");
+        years = parseInt(document.getElementById("paramYears").value, 10) || years;
+        carryCapacity = parseInt(document.getElementById("paramCarry").value, 10) || carryCapacity;
+        animalDiffRate = parseFloat(document.getElementById("paramDifRate").value) || animalDiffRate;
+        animalGrowthRate = parseFloat(document.getElementById("paramGrowthRate").value) || animalGrowthRate;
+        encounterRate = parseFloat(document.getElementById("paramEncounterRate").value) || encounterRate;
+        killProb = parseFloat(document.getElementById("paramKillProb").value) || killProb;
+        HpHy = parseInt(document.getElementById("paramHphy").value, 10) || HpHy;
+        var tempLow = document.getElementById("paramLowColor").value;
         if(tempLow.length > 0){
                 lowColorCode = tempLow;
         }
         
-        var tempHigh = document.getElementById("paramHighColor");
+        var tempHigh = document.getElementById("paramHighColor").value;
         if(tempHigh.length > 0){
                 highColorCode = tempHigh;
         }
         
-        var tempName = document.getElementById("paramName");
+        var tempName = document.getElementById("paramName").value;
+        console.log("tempname: " + tempName);
         if(tempName.length > 0){
                 simName = tempName;
         }
@@ -313,11 +306,17 @@ function readUserParameters(){
 }
 
 function runTests(){
+        var cleanup = document.getElementById("rawHeatmapContainer");
+        while (cleanup.firstChild) {
+                cleanup.removeChild(cleanup.firstChild);
+        }
+
         if(!towns.length){
                 console.log("no populations found");
                 return;
         }
         
+        points = [];
         for(var g = 0; g < towns.length; g++){
                 points.push([towns[g].long, towns[g].lat]);
         }
