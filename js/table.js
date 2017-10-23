@@ -59,8 +59,10 @@ function addRow(tableId){
 
 function editFinished(cell, x, y, origValue){
         console.log("edit finished: " + x + ", " + y);
+        console.log("cell: " + cell);
         var input = cell.lastChild;
         var value = input.value;
+        console.log("input.value is: " + input.value);
         //TODO check value against origValue for sanity
         updateFromCell(y, x, value, origValue);
         cell.removeChild(input);
@@ -85,12 +87,15 @@ function updateFromCell(row, cell, newValue, oldValue){
                                 break;
                         }
                 }
-                features = source.getFeatures();
-                for(x = 0; x < features.length; x++){
-                        console.log(features[x].get('description'));
-                        if(features[x].get('description') == oldValue){
-                                features[x].set('description', newValue);
-                                break;
+                
+                if(source){
+                        features = source.getFeatures();
+                        for(x = 0; x < features.length; x++){
+                                console.log(features[x].get('description'));
+                                if(features[x].get('description') == oldValue){
+                                        features[x].set('description', newValue);
+                                        break;
+                                }
                         }
                 }
                 
@@ -303,13 +308,15 @@ function deleteRow(tableId, rowId){
         }
         
         //remove population visual from map
-        var features = source.getFeatures();
-        
-        for(var j = 0; j < features.length; j++){
-                console.log(features[j].get('description'));
-                if(features[j].get('description') == name){
-                        source.removeFeature(features[j]);
-                        break;
+        if(source){
+                var features = source.getFeatures();
+                
+                for(var j = 0; j < features.length; j++){
+                        console.log(features[j].get('description'));
+                        if(features[j].get('description') == name){
+                                source.removeFeature(features[j]);
+                                break;
+                        }
                 }
         }
         

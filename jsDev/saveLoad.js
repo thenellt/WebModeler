@@ -68,6 +68,14 @@ function parseConfigFile(fileString){
         highColorCode = loadedObject.highColorCode;
         diffusionSamples = loadedObject.diffusionSamples;
         
+        //addVillage(tempLong, tempLat, tempPop, tempKill, tempName, tempGrowth);
+        //addEntry(tempName, tempLong, tempLat, tempPop, tempGrowth, tempKill);
+        for(let i = 0; i < loadedObject.towns.length; i++){
+                let temp = loadedObject.towns[i];
+                addVillage(temp.long, temp.lat, temp.population, temp.killRate, temp.name, temp.growthRate);
+                addEntry(temp.name, temp.long, temp.lat, temp.population, temp.growthRate, temp.killRate);
+        }
+        
         document.getElementById("paramYears").value = years;
         document.getElementById("paramCarry").value = carryCapacity;
         document.getElementById("paramDifRate").value = animalDiffRate;
@@ -84,14 +92,9 @@ function parseConfigFile(fileString){
         document.getElementById("diffSamples").value = diffusionSamples;
 }
 
-function saveSimToFile(saveTowns){
+function saveSimToFile(){
         console.log("*********in save sim, name: " + simName);
         var saveObject = generateConfigObject();
-        
-        //save populations
-        if(saveTowns){
-                console.log("adding populations to file");
-        }
 
         var outputString = JSON.stringify(saveObject);
         var jsonBlob = new Blob([outputString], {type: "application/json"});
@@ -137,7 +140,7 @@ function saveImgToFile(type){
         }
 }
 
-function generatePersistObject(saveTowns){
+function generatePersistObject(){
         var saveObject = generateConfigObject();
         var persistObject = {};
         
@@ -146,17 +149,10 @@ function generatePersistObject(saveTowns){
         persistObject.modified = saveObject.created;
         persistObject.config = JSON.stringify(saveObject);
         
-        if(saveTowns){
-                saveObject.towns = JSON.stringify(towns);
-        }
-        else{
-                saveObject.towns = "";
-        }
-        
         return persistObject;
 }
 
-function updatePersistObject(persistObject, saveTowns){
+function updatePersistObject(persistObject){
         var saveObject = generateConfigObject();
         if(persistObject.name != saveObject.simName){
                 persistObject.name = saveObject.simName;
@@ -164,10 +160,6 @@ function updatePersistObject(persistObject, saveTowns){
         
         persistObject.modified = rightNow().toLocaleString();
         persistObject.config = JSON.stringify(saveObject);
-        
-        if(saveTowns){
-                saveObject.towns = JSON.stringify(towns);
-        }
         
         return persistObject;
 }

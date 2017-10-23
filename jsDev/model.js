@@ -53,10 +53,7 @@ function town(long, lat, pop, killRate, name, growth){
         this.name = name;
         this.offtake = new Array(years).fill(0.0);
         this.getPop = function (year) {
-                //if(year > 10){
-                        //console.log("returned 0");
-                //        return 0;
-                //}
+                //add population growth function
                 return this.population;
         };
 
@@ -102,9 +99,9 @@ function styleFunction() {
         ];
 }
 
-function addVillage(x, y, pop, kills, name, growth){
+function addVillage(long, lat, pop, kills, name, growth){
         var tempPoint = new ol.geom.Point(
-                [x, y]
+                [long, lat]
         );
         
         var tempFeature = new ol.Feature(tempPoint);
@@ -112,7 +109,7 @@ function addVillage(x, y, pop, kills, name, growth){
         tempFeature.setStyle(styleFunction);
         source.addFeature(tempFeature);
         
-        towns.push(new town(parseFloat(x), parseFloat(y), pop, kills, name, growth));
+        towns.push(new town(parseFloat(long), parseFloat(lat), pop, kills, name, growth));
 }
 
 function setupSim(){
@@ -309,26 +306,26 @@ function setupGradient(){
 }
 
 function placePopulation(e){
-                var tempFeatures = [];
-                map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
-                        tempFeatures.push(feature);
-                        
-                }, {hitTolerance: 5});
-                console.log("results: " + tempFeatures.length);
-                if(!tempFeatures.length){
-                        showPopEditor(e.coordinate);
-                }
-                else{
-                        var tempName = tempFeatures[0].get('description');
-                        console.log("existing feature clicked" + tempName);
-                        for(var t = 0; t < towns.length; t++){
-                                if(towns[t].name == tempName){
-                                        showPopUpdater(t);
-                                        break;
-                                }
+        var tempFeatures = [];
+        map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
+                tempFeatures.push(feature);
+                
+        }, {hitTolerance: 5});
+        console.log("results: " + tempFeatures.length);
+        if(!tempFeatures.length){
+                showPopEditor(e.coordinate);
+        }
+        else{
+                var tempName = tempFeatures[0].get('description');
+                console.log("existing feature clicked" + tempName);
+                for(var t = 0; t < towns.length; t++){
+                        if(towns[t].name == tempName){
+                                showPopUpdater(t);
+                                break;
                         }
                 }
         }
+}
 
 function setupOlInputMap(){
         var drawControls;
