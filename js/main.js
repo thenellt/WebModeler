@@ -26,7 +26,7 @@ function setupTabs(){
 function newSimulation(){
         var tempDate = new Date();
         simID = tempDate.valueOf();
-        console.log("new simulation run. ID: " + simID);
+        console.log("new simulation setup with ID: " + simID);
         document.getElementById("parameterSetupTab").disabled = false;
         document.getElementById("resetButton").classList.remove("hide");
         document.getElementById("newSimButton").innerHTML = "Continue";
@@ -34,9 +34,9 @@ function newSimulation(){
 }
 
 function resetSimulationCheck(){
-        console.log("reset simulation run");
-        var title;
-        var message;
+        console.log("Prompting for reset");
+        var title = "Are you sure want to start over?";
+        var message = "All unsaved work will be lost.";
         createFloatingDialog(title, message, 0, resetSimulation);
 }
 
@@ -365,6 +365,8 @@ function populateDefaultValues(){
         document.getElementById("paramLowColor").value = "ffeda0";
         document.getElementById("paramHighColor").value = "f03b20";
         document.getElementById("diffSamples").value = "1";
+        
+        document.getElementById("paramName").focus();
 }
 
 function checkPopEditor(){

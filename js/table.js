@@ -1,4 +1,5 @@
 var rowCounter = 0;
+var uiData = [];
 
 function removePopulation(id){
         for(var i = 0; i < populations.length; i++){
@@ -7,10 +8,6 @@ function removePopulation(id){
                         break;
                 }
         }
-}
-
-function populateTable(){
-        
 }
 
 function addEntry(name, x, y, pop, growth, kill){
@@ -28,6 +25,9 @@ function addEntry(name, x, y, pop, growth, kill){
 }
 
 function addRow(tableId){
+        var newRowData = {};
+        newRowData.valid = false;
+        uiData.push(newRowData);
         console.log(tableId);
         var cellNum = 0;
         var rowId = "row" + rowCounter++;
