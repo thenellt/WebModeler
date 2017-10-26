@@ -1,5 +1,5 @@
 var popupEvntFunction;
-var oldName;
+var currentId;
 var olmapLocation;
 var simulationRun;
 var simID;
@@ -75,17 +75,20 @@ function resetSimulation(){
                 }
         }
         
-        for(var k = 0; k < towns.length; k++){
-                deleteRowByName(towns[k].name);
+        for(var k = 0; k < uiData.length; k++){
+                deleteTableRowById(uiData[k].id);
         }
         
         towns = [];
+        uiData = [];
         points = [];
         
-        var features = source.getFeatures();
-
-        for(var j = 0; j < features.length; j++){
-                source.removeFeature(features[j]);
+        if(source){
+                var features = source.getFeatures();
+        
+                for(var j = 0; j < features.length; j++){
+                        source.removeFeature(features[j]);
+                }
         }
         
         document.getElementById("parameterSetupTab").disabled = true;
@@ -124,6 +127,9 @@ function showPopEditor(position){
                 document.getElementById("floatLat").value = position[1];
                 document.getElementById("floatLong").value = position[0];
         }
+        else{
+                return;
+        }
         
         otherPopup = 1;
         var changeDiv = document.getElementById('floatingPopEditor');
@@ -154,16 +160,15 @@ function showPopUpdater(index){
         otherPopup = 1;
         var changeDiv = document.getElementById('floatingPopUpdater');
         var hidepage = document.getElementById("hidepage");
-        var village = towns[index];
+        var village = uiData[index];
         
+        currentId = village.id;
         document.getElementById("floatULat").value = village.lat;
         document.getElementById("floatULong").value = village.long;
         document.getElementById("floatPopUName").value = village.name;
         document.getElementById("floatUPop").value = village.population;
         document.getElementById("floatUKill").value = village.killRate;
         document.getElementById("floatUGrowth").value = village.growthRate;
-        
-        oldName = village.name;
         
         fadeIn(hidepage);
         changeDiv.classList.add('scale-in');
@@ -188,68 +193,59 @@ function showPopUpdater(index){
 }
 
 function closePopUpdater(input){
+        if(input === 2 && !checkPopUpdater()){
+                //TODO maybe add an error message
+                return;
+        }
+        
         otherPopup = 0;
         window.removeEventListener('keyup', popupEvntFunction);
         popupEvntFunction = 0;
         
-        if(input == 2){
+        if(input === 2){ //update village
                 var tempLat = document.getElementById("floatULat").value;
                 var tempLong = document.getElementById("floatULong").value;
                 var tempName = document.getElementById("floatPopUName").value;
                 var tempPop = document.getElementById("floatUPop").value;
                 var tempKill = document.getElementById("floatUKill").value;
                 var tempGrowth =  document.getElementById("floatUGrowth").value;
-                console.log(tempName);
-                
-                var townData;
-                for(var i = 0; i < towns.length; i++){
-                        if(towns[i].name == oldName){
-                                townData = towns[i];
+
+                var i;
+                for(i = 0; i < uiData.length; i++){
+                        if(uiData[i].id == currentId){
                                 break;
                         }
                 }
                 
-                townData.lat = parseFloat(tempLat);
-                townData.long = parseFloat(tempLong);
-                townData.name = tempName;
-                townData.population = tempPop;
-                townData.killRate = tempKill;
-                townData.growthRate = tempGrowth;
-                
-                updateTableRow(oldName, tempName);
-                
-                if(tempName != oldName){
+                if(tempName !== uiData[i].name){
                         var features = source.getFeatures();
-        
-                        for(var x = 0; x < features.length; x++){
-                                console.log(features[x].get('description'));
-                                if(features[x].get('description') == oldName){
+                        for(let x = 0; x < features.length; x++){
+                                if(features[x].get('description') == uiData[i].id){
                                         features[x].set('description', tempName);
                                         break;
                                 }
                         }
                 }
+                
+                uiData[i].lat = tempLat;
+                uiData[i].long = tempLong;
+                uiData[i].name = tempName;
+                uiData[i].population = tempPop;
+                uiData[i].killRate = tempKill;
+                uiData[i].growthRate = tempGrowth;
+                
+                updateTableRow(i);
         }
         else if(!input){ //delete village
-                var delName = oldName;
-                for(var k = 0; k < towns.length; k++){
-                        if(towns[k].name == delName){
-                                towns.splice(k, 1);
+                for(let x = 0; x < uiData.length; x++){
+                        if(uiData[x].id == currentId){
+                                uiData.splice(x, 1);
                                 break;
                         }
                 }
                 
-                var features = source.getFeatures();
-        
-                for(var j = 0; j < features.length; j++){
-                        console.log(features[j].get('description'));
-                        if(features[j].get('description') == delName){
-                                source.removeFeature(features[j]);
-                                break;
-                        }
-                }
-                
-                deleteRowByName(delName);
+                removePopFromMapById(currentId);
+                deleteTableRowById(currentId);
         }
         
         //clear dialog
@@ -269,12 +265,17 @@ function closePopUpdater(input){
 }
 
 function closePopEditor(clear){
+        if(!clear && !checkPopEditor()){
+                //TODO added error highlighting
+                return;
+        }
+        
         otherPopup = 0;
         
         window.removeEventListener('keyup', popupEvntFunction);
         popupEvntFunction = 0;
         
-        if(!clear){ //user hit cancel
+        if(!clear){ //user hit add
                 //check parameters
                 var tempLat = document.getElementById("floatLat").value;
                 var tempLong = document.getElementById("floatLong").value;
@@ -282,10 +283,14 @@ function closePopEditor(clear){
                 var tempPop = document.getElementById("floatPop").value;
                 var tempKill = document.getElementById("floatKill").value;
                 var tempGrowth =  document.getElementById("floatGrowth").value;
-                console.log(tempName + " and growth: " + tempGrowth);
-                //add the pop
-                addVillage(tempLong, tempLat, tempPop, tempKill, tempName, tempGrowth);
-                addEntry(tempName, tempLong, tempLat, tempPop, tempGrowth, tempKill);
+                let tempDate = new Date();
+                var tempId = tempDate.valueOf();
+                //add the new population to model
+                //(long, lat, pop, killRate, name, growth, id, validity)
+                var tempRow = new uiRow(tempLong, tempLat, tempPop, tempKill, tempName,
+                                        tempGrowth, tempId, true);
+                addPopToMap(tempId, tempName, parseFloat(tempLong), parseFloat(tempLat));
+                addEntry(tempRow);
                 
         }
         
@@ -372,41 +377,31 @@ function populateDefaultValues(){
 function checkPopEditor(){
         if(isNaN(parseFloat(document.getElementById("floatLat").value, 10)))
                 return false;
-                
         if(isNaN(parseFloat(document.getElementById("floatLong").value, 10)))
                 return false;
-        
         if(document.getElementById("floatPopName").value.length === 0)
                 return false;
-                
         if(isNaN(parseInt(document.getElementById("floatPop").value)))
                 return false;
-        
         if(isNaN(parseFloat(document.getElementById("floatKill").value, 10)))
                 return false;
-        
         if(isNaN(parseFloat(document.getElementById("floatGrowth").value, 10)))
                 return false;
-        
+                
         return true;
 }
 
 function checkPopUpdater(){
         if(isNaN(parseFloat(document.getElementById("floatULat").value, 10)))
                 return false;
-                
         if(isNaN(parseFloat(document.getElementById("floatULong").value, 10)))
                 return false;
-        
         if(document.getElementById("floatPopUName").value.length === 0)
                 return false;
-                
         if(isNaN(parseInt(document.getElementById("floatUPop").value)))
                 return false;
-        
         if(isNaN(parseFloat(document.getElementById("floatUKill").value, 10)))
                 return false;
-        
         if(isNaN(parseFloat(document.getElementById("floatUGrowth").value, 10)))
                 return false;
         

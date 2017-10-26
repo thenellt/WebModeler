@@ -30,12 +30,14 @@ function checkCompatibility(){
 }
 
 function loadFromFile(fileName){
+        //TODO add warning dialog that current changes will be lost
+        //TODO how to reset file select elements
+        resetSimulation();
         var reader = new FileReader();
         
         if(fileName.files && fileName.files[0]) {
                 reader.onload = function (e) {
                         parseConfigFile(e.target.result);
-                        console.log(e.target.result);
                         newSimulation();
                 };
                 reader.readAsText(fileName.files[0]);
@@ -47,6 +49,7 @@ function parseConfigFile(fileString){
         try{
                loadedObject = JSON.parse(fileString);
         } catch (e) {
+                //TODO add error dialog
                 Console.log("problem parsing loaded string");
                 return;
         }
@@ -68,13 +71,16 @@ function parseConfigFile(fileString){
         highColorCode = loadedObject.highColorCode;
         diffusionSamples = loadedObject.diffusionSamples;
         
-        //addVillage(tempLong, tempLat, tempPop, tempKill, tempName, tempGrowth);
-        //addEntry(tempName, tempLong, tempLat, tempPop, tempGrowth, tempKill);
-        for(let i = 0; i < loadedObject.towns.length; i++){
-                let temp = loadedObject.towns[i];
-                addVillage(temp.long, temp.lat, temp.population, temp.killRate, temp.name, temp.growthRate);
-                addEntry(temp.name, temp.long, temp.lat, temp.population, temp.growthRate, temp.killRate);
+        for(let i = 0; i < loadedObject.popData.length; i++){
+                let temp = loadedObject.popData[i];
+                let tempRow = new uiRow(temp.long, temp.lat, temp.population, temp.killRate,
+                                        temp.name, temp.growthRate, temp.id, true);
+                addPopToMap(temp.id, temp.name, parseFloat(temp.long), parseFloat(temp.lat));
+                addEntry(tempRow);
         }
+        
+        //add the default empty row
+        addRow("popTable");
         
         document.getElementById("paramYears").value = years;
         document.getElementById("paramCarry").value = carryCapacity;
@@ -117,7 +123,7 @@ function generateConfigObject(){
         saveObject.diffusionSamples = diffusionSamples;
         saveObject.lowColorCode = lowColorCode;
         saveObject.highColorCode = highColorCode;
-        saveObject.towns = towns;
+        saveObject.popData = uiData;
         
         return saveObject;
 }

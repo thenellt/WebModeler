@@ -261,6 +261,7 @@ function readUserParameters(){
         encounterRate = parseFloat(document.getElementById("paramEncounterRate").value) || encounterRate;
         killProb = parseFloat(document.getElementById("paramKillProb").value) || killProb;
         HpHy = parseInt(document.getElementById("paramHphy").value, 10) || HpHy;
+        huntRange = parseInt(document.getElementById("rangeHphy"), 10) || 10;
         var tempLow = document.getElementById("paramLowColor").value;
         if(tempLow.length > 0){
                 lowColorCode = tempLow;
@@ -272,7 +273,6 @@ function readUserParameters(){
         }
         
         var tempName = document.getElementById("paramName").value;
-        console.log("tempname: " + tempName);
         if(tempName.length > 0){
                 simName = tempName;
         }
@@ -280,6 +280,11 @@ function readUserParameters(){
         theta = parseFloat(document.getElementById("paramTheta")) || theta;
         diffusionSamples = parseInt(document.getElementById("diffSamples"), 10) || diffusionSamples;
         
+        console.log("finished reading user input");
+}
+
+//dependent on readUserParameters
+function allocateMemory(){
         ySize = geoGrid.length;
         xSize = geoGrid[ySize - 1].length;
         
@@ -302,41 +307,41 @@ function readUserParameters(){
                 effort[k] = new Array(xSize).fill(0.0);
         }
         
-        console.log("finished reading user input and allocating memory");
+        console.log("Successfully allocated memory");
 }
 
-function runTests(){
+
+function setupAndRunSimulation(){
+        console.log("----------------starting a new run-------------------");
         var cleanup = document.getElementById("rawHeatmapContainer");
         while (cleanup.firstChild) {
                 cleanup.removeChild(cleanup.firstChild);
         }
 
+        towns = [];
+        for(let i = 0; i < uiData.length; i++){
+                if(uiData[i].valid){
+                        towns.push(buildTownFromData(i));
+                }
+        }
         if(!towns.length){
+                //TODO add error dialog
                 console.log("no populations found");
                 return;
         }
+        console.log("towns: " + towns.length);
         
         points = [];
         for(var g = 0; g < towns.length; g++){
                 points.push([towns[g].long, towns[g].lat]);
         }
 
-        console.log("towns: " + towns.length);
-        console.log("points: " + points.length);
-        
-        huntRange = parseInt(document.getElementById("rangeHphy"), 10) || 10;
-        
-        var bounds = generateBounds(30 + huntRange);
-        generategeoGrid(bounds);
-        
-        setupSim();
+        setupSimDefaults();
         readUserParameters();
-        //drawgeoGrid();
+        let bounds = generateBounds(30 + huntRange);
+        generategeoGrid(bounds);
+        allocateMemory();
         placeLocations(geoGrid, points);
-        
-        //var progressBar = document.getElementById("progressBar");
-        //progressBar.style.display = "none";
-        //progressBar.value = 0;
-        
+        //drawgeoGrid(); //useful for spacial debugging
         runSimulation(0);
 }

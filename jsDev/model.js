@@ -44,14 +44,21 @@ function getRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
 }
 
-function town(long, lat, pop, killRate, name, growth){
+function town(long, lat, pop, killRate, name, growth, id){
+        if(id === 0){
+                let tempDate = new Date();
+                this.id = tempDate.valueOf();
+        }
+        else{
+                this.id = id;
+        }
         this.long = long;
         this.lat = lat;
         this.growthRate = growth;
         this.population = pop;
         this.killRate = killRate;
         this.name = name;
-        this.offtake = new Array(years).fill(0.0);
+        this.offtake = []; //new Array(years).fill(0.0);
         this.getPop = function (year) {
                 //add population growth function
                 return this.population;
@@ -65,6 +72,16 @@ function town(long, lat, pop, killRate, name, growth){
                 console.log("Village: " + name + " offtake: ");
                 console.log(text);
         };
+}
+
+function deleteTownById(townId){
+        for(let i = 0; i < towns.length; i++){
+                if(towns[i].id === townId){
+                        
+                }
+        }
+        
+        return false;
 }
 
 //https://stackoverflow.com/questions/39006597/openlayers-3-add-text-label-to-feature
@@ -84,7 +101,7 @@ function styleFunction() {
                                 stroke: new ol.style.Stroke({
                                         color: '#fff', width: 2
                                 }),
-                                text: this.get('description'),
+                                text: this.get('name'),
                                 offsetY: 13
                         }),
                         image: new ol.style.Circle({
@@ -99,20 +116,36 @@ function styleFunction() {
         ];
 }
 
-function addVillage(long, lat, pop, kills, name, growth){
+function removePopFromMapById(popId){
+        if(!source){
+                return;
+        }
+        
+        var features = source.getFeatures();
+        for(var j = 0; j < features.length; j++){
+                if(features[j].get('description') == popId){
+                        source.removeFeature(features[j]);
+                        break;
+                }
+        }
+}
+
+function addPopToMap(popId, popName, long, lat){
+        if(!source){
+                return;
+        }
         var tempPoint = new ol.geom.Point(
                 [long, lat]
         );
         
         var tempFeature = new ol.Feature(tempPoint);
-        tempFeature.set('description', name);
+        tempFeature.set('description', popId);
+        tempFeature.set('name', popName);
         tempFeature.setStyle(styleFunction);
         source.addFeature(tempFeature);
-        
-        towns.push(new town(parseFloat(long), parseFloat(lat), pop, kills, name, growth));
 }
 
-function setupSim(){
+function setupSimDefaults(){
         curImage = 0;
         animalDiffRate = 0.1;
         animalGrowthRate = 0.07;
@@ -123,29 +156,10 @@ function setupSim(){
         theta = 1;
         years = 10;
         diffusionSamples = 1;
-        huntRange = 10;
+        huntRange = 5;
         lowColorCode = "ffeda0";
         highColorCode = "f03b20";
         simName = "defaultName";
-        /*
-        modelParams.curImage.val = 0;
-        modelParams.animalDiffRate.val = 0.1;
-        modelParams.animalGrowthRate.val = 0.07;
-        modelParams.killProb.val = 0.1;
-        modelParams.HpHy.val = 40;
-        modelParams.encounterRate.val = 0.02043;
-        modelParams.carryCapacity.val = 25;
-        modelParams.theta.val = 1;
-        modelParams.years.val = 10;
-        modelParams.diffusionSamples.val = 1;
-        modelParams.huntRange.val = 10;
-        modelParams.lowColorCode.val = "ffeda0";
-        modelParams.highColorCode.val = "f03b20";
-        
-        for(var key in modelParams){
-                modelParams[key].default = 1;
-        }
-        */
 }
 
 function runSimulation(curYear){
@@ -160,6 +174,7 @@ function runSimulation(curYear){
         var a, b, c, d, e;
         var x, y;
         //d*(n[year,i+1,j]+n[year,i-1,j])+(1-4*d)*n[year,i,j]+d*(n[year,i,j+1]+n[year,i,j-1])
+        //TODO check diffusion sample calculation correctness
         for(var i = 0; i < diffusionSamples; i++){
                 //console.log("running diff sample: " + i);
                 for(y = 0; y < ySize; y++){
@@ -241,18 +256,14 @@ function runSimulation(curYear){
         }
         
         if(curYear + 1 < years){
-                //document.getElementById("progressBar").value = ((curYear + 1) / years) * 100;
-                //console.log(document.getElementById("progressBar").value);
                 //runSimulation(curYear + 1);
                 //generateCanvas(curYear);
                 setTimeout(runSimulation, 10, curYear + 1);
         }
         else{
-                //document.getElementById("progressBar").style.display = "none";
                 //setVisibleImage(0);
                 //drawHeatMap(geoGrid);
                 generateCanvas(curYear, 1);
-                //saveSimToFile(false);
                 changeToOutput();
                 
                 //drawHeatMap(geoGrid);
@@ -283,9 +294,8 @@ function setupGradient(){
         coolColor[1] = parseInt(lowColorCode.substring(2, 4) , 16);
         coolColor[2] = parseInt(lowColorCode.substring(4, 6) , 16);
         
-        console.log(hotColor);
-        console.log(coolColor);
-        
+        console.log("hot color: " + hotColor + " and cool color: " + coolColor);
+
         var redRange = hotColor[0] - coolColor[0];
         var greenRange = hotColor[1] - coolColor[1];
         var blueRange = hotColor[2] - coolColor[2];
@@ -311,15 +321,15 @@ function placePopulation(e){
                 tempFeatures.push(feature);
                 
         }, {hitTolerance: 5});
-        console.log("results: " + tempFeatures.length);
+        
         if(!tempFeatures.length){
                 showPopEditor(e.coordinate);
         }
         else{
-                var tempName = tempFeatures[0].get('description');
-                console.log("existing feature clicked" + tempName);
-                for(var t = 0; t < towns.length; t++){
-                        if(towns[t].name == tempName){
+                var tempId = tempFeatures[0].get('description');
+                console.log("existing feature clicked. Id: " + tempId);
+                for(var t = 0; t < uiData.length; t++){
+                        if(uiData[t].id == tempId){
                                 showPopUpdater(t);
                                 break;
                         }
@@ -461,6 +471,7 @@ function generateCanvas(curYear, scale){
         for(var y = 0; y < ySize; y++) {
                 for(var row = 0; row < scale; row++){
                         for(var x = 0; x < xSize; x++) {
+                                //TODO talk to Taal about using floor vs ceiling
                                 var gradientPosition = Math.ceil(gradientSteps * (1 - (grid[curYear][y][x] / carryCapacity)));
                                 if(gradientPosition < 0 || !gradientPosition){
                                         for(var s = 0; s < scale; s++){
