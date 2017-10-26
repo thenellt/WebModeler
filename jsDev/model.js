@@ -1,6 +1,4 @@
 //simulation parameters
-var modelParams = {};
-
 var xSize;
 var ySize;
 var animalDiffRate;
@@ -16,6 +14,7 @@ var diffusionSamples;
 var lowColorCode = "";
 var highColorCode = "";
 var simName = "";
+var simID;
 
 //model arrays
 var grid;
@@ -72,16 +71,6 @@ function town(long, lat, pop, killRate, name, growth, id){
                 console.log("Village: " + name + " offtake: ");
                 console.log(text);
         };
-}
-
-function deleteTownById(townId){
-        for(let i = 0; i < towns.length; i++){
-                if(towns[i].id === townId){
-                        
-                }
-        }
-        
-        return false;
 }
 
 //https://stackoverflow.com/questions/39006597/openlayers-3-add-text-label-to-feature
@@ -163,16 +152,14 @@ function setupSimDefaults(){
 }
 
 function runSimulation(curYear){
-        //var count;
+        console.log("modeling year number: " + curYear);
         var top, bot, locationValue;
-
+        var a, b, c, d, e;
+        var x, y;
         for(var j = 0; j < ySize; j++){
                 yearlyGrid[j].fill(0.0);
         }
 
-        console.log("modeling year number: " + curYear);
-        var a, b, c, d, e;
-        var x, y;
         //d*(n[year,i+1,j]+n[year,i-1,j])+(1-4*d)*n[year,i,j]+d*(n[year,i,j+1]+n[year,i,j-1])
         //TODO check diffusion sample calculation correctness
         for(var i = 0; i < diffusionSamples; i++){
@@ -262,13 +249,10 @@ function runSimulation(curYear){
         }
         else{
                 //setVisibleImage(0);
-                //drawHeatMap(geoGrid);
                 generateCanvas(curYear, 1);
+                synchPersisObject();
                 changeToOutput();
-                
-                //drawHeatMap(geoGrid);
         }
-        
 }
 
 function printArray(array){
@@ -371,36 +355,9 @@ function setupOlInputMap(){
                         image: new ol.style.Circle({radius: 7, fill: new ol.style.Fill({color: '#ffcc33'})})
                 })
         });
-
         map.addLayer(pointVector);
         
         addPopFunction = map.on('click', placePopulation);
-        
-        //map.getViewport().addEventListener('click', addPopFunction);
-        
-        /*
-        addPopFunction = map.on('click', function(e){
-                var tempFeatures = [];
-                map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
-                        tempFeatures.push(feature);
-                        
-                }, {hitTolerance: 5});
-                console.log("results: " + tempFeatures.length);
-                if(!tempFeatures.length){
-                        showPopEditor(e.coordinate);
-                }
-                else{
-                        var tempName = tempFeatures[0].get('description');
-                        console.log("existing feature clicked" + tempName);
-                        for(var t = 0; t < towns.length; t++){
-                                if(towns[t].name == tempName){
-                                        showPopUpdater(t);
-                                        break;
-                                }
-                        }
-                }
-        });
-        */
         map.updateSize();
 }
 

@@ -2,7 +2,6 @@ var popupEvntFunction;
 var currentId;
 var olmapLocation;
 var simulationRun;
-var simID;
 
 function setupTabs(){
         var tabs = document.getElementsByClassName("tablinks");
@@ -110,16 +109,21 @@ function showAdvancedSettings(){
 }
 
 function closeAdvancedSettings(clear){
-        otherPopup = 0;
-        if(!clear){ //user hit cancel
-                //check parameters
+        if(!clear && !checkAdvancedSettings()){ //tried to save invalid settings
+                return;
         }
-
+        
+        otherPopup = 0;
         var changeDiv = document.getElementById('advancedSettings');
         changeDiv.classList.remove('scale-in');
         changeDiv.classList.add('scale-out');
         var hidepage = document.getElementById("hidepage");
         fadeOut(hidepage);
+}
+
+function checkAdvancedSettings(){
+        //TODO advanced settings check
+        return true;
 }
 
 function showPopEditor(position){
@@ -152,7 +156,6 @@ function showPopEditor(position){
         };
         
         window.addEventListener('keyup', popupEvntFunction);
-        
         document.getElementById("floatPopName").focus();
 }
 
@@ -188,7 +191,6 @@ function showPopUpdater(index){
         };
         
         window.addEventListener('keyup', popupEvntFunction);
-        
         document.getElementById("floatPopUName").focus();
 }
 
@@ -364,7 +366,7 @@ function populateDefaultValues(){
         document.getElementById("paramEncounterRate").value = "0.02043";
         document.getElementById("paramKillProb").value = "0.1";
         document.getElementById("paramHphy").value = "40";
-        document.getElementById("rangeHphy").value = "10";
+        document.getElementById("rangeHphy").value = "5";
         
         document.getElementById("paramTheta").value = "1";
         document.getElementById("paramLowColor").value = "ffeda0";

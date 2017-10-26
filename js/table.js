@@ -143,27 +143,27 @@ function updateUIData(row, cell, newValue){
 function checkRowData(rowIndex){
         var rowData = uiData[rowIndex];
         if(isNaN(parseFloat(rowData.lat))){
-                console.log("check failed at lat: " + rowData.lat);
+                //console.log("check failed at lat: " + rowData.lat);
                 return false;
         }
         if(isNaN(parseFloat(rowData.long))){
-                console.log("check failed at long");
+                //console.log("check failed at long");
                 return false;
         }
         if(rowData.name.length === 0){
-                console.log("check failed at name");
+                //console.log("check failed at name");
                 return false;
         }
         if(isNaN(parseInt(rowData.population))){
-                console.log("check failed at pop");
+                //console.log("check failed at pop");
                 return false;
         }
         if(isNaN(parseFloat(rowData.killRate, 10))){
-                console.log("check failed at killrate");
+                //console.log("check failed at killrate");
                 return false;
         }
         if(isNaN(parseFloat(rowData.growthRate, 10))){
-                console.log("check failed at growthrate");
+                //console.log("check failed at growthrate");
                 return false;
         }
                 
@@ -174,7 +174,7 @@ function checkKey(e){
         //console.log("ran key check");
         switch(e.keyCode){
         case 13: return 3;
-        case 9: e.preventDefault();
+        case  9: e.preventDefault();
                 if(e.shiftKey){
                         return 2
                 }
@@ -183,7 +183,7 @@ function checkKey(e){
                 }
                 break;
         case 37: e.preventDefault();
-                return 4;
+                 return 4;
         case 38: return 5;
         case 39: return 6;
         case 40: return 7;
@@ -209,7 +209,7 @@ function cellClicked(cell){
                 editFinished(cell, cell.cellIndex, cell.parentNode.rowIndex, value);
         });
         input.addEventListener('keydown',function(e){
-                var check = checkKey(e);
+                let check = checkKey(e);
                 if(!check){ //not a key we care about
                         return;
                 }

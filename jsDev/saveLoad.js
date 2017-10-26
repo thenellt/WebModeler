@@ -54,25 +54,29 @@ function parseConfigFile(fileString){
                 return;
         }
         
-        simID = loadedObject.simID;
-        animalDiffRate = loadedObject.animalDiffRate;
-        animalGrowthRate = loadedObject.animalGrowthRate;
-        killProb = loadedObject.killProb;
-        HpHy = loadedObject.HpHy;
-        encounterRate = loadedObject.encounterRate;
-        carryCapacity = loadedObject.carryCapacity;
-        years = loadedObject.years;
-        simName = loadedObject.simName;
-        huntRange = loadedObject.huntRange;
+        loadSimConfig(loadedObject);
+}
+
+function loadSimConfig(config){
+        simID = config.simID;
+        animalDiffRate = config.animalDiffRate;
+        animalGrowthRate = config.animalGrowthRate;
+        killProb = config.killProb;
+        HpHy = config.HpHy;
+        encounterRate = config.encounterRate;
+        carryCapacity = config.carryCapacity;
+        years = config.years;
+        simName = config.simName;
+        huntRange = config.huntRange;
         
         //advanced settings
-        theta = loadedObject.theta;
-        lowColorCode = loadedObject.lowColorCode;
-        highColorCode = loadedObject.highColorCode;
-        diffusionSamples = loadedObject.diffusionSamples;
+        theta = config.theta;
+        lowColorCode = config.lowColorCode;
+        highColorCode = config.highColorCode;
+        diffusionSamples = config.diffusionSamples;
         
-        for(let i = 0; i < loadedObject.popData.length; i++){
-                let temp = loadedObject.popData[i];
+        for(let i = 0; i < config.popData.length; i++){
+                let temp = config.popData[i];
                 let tempRow = new uiRow(temp.long, temp.lat, temp.population, temp.killRate,
                                         temp.name, temp.growthRate, temp.id, true);
                 addPopToMap(temp.id, temp.name, parseFloat(temp.long), parseFloat(temp.lat));
@@ -99,7 +103,6 @@ function parseConfigFile(fileString){
 }
 
 function saveSimToFile(){
-        console.log("*********in save sim, name: " + simName);
         var saveObject = generateConfigObject();
 
         var outputString = JSON.stringify(saveObject);
@@ -150,38 +153,52 @@ function generatePersistObject(){
         var saveObject = generateConfigObject();
         var persistObject = {};
         
+        persistObject.id = simID;
         persistObject.name = saveObject.simName;
-        persistObject.created = rightNow().toLocaleString();
-        persistObject.modified = saveObject.created;
-        persistObject.config = JSON.stringify(saveObject);
+        persistObject.created = new Date();
+        persistObject.modified = persistObject.created;
+        persistObject.config = saveObject;
         
         return persistObject;
 }
 
-function updatePersistObject(persistObject){
-        var saveObject = generateConfigObject();
-        if(persistObject.name != saveObject.simName){
-                persistObject.name = saveObject.simName;
+function synchPersisObject(){
+        var saveObject = generatePersistObject();
+        var currentSaves = getPersistObjects();
+        var found = -1;
+        if(currentSaves !== 'undefined'){
+                for(let i = 0; i < currentSaves.length; i++){
+                        if(currentSaves.id === simId){
+                                found = i;
+                                break;
+                        }
+                }
         }
         
-        persistObject.modified = rightNow().toLocaleString();
-        persistObject.config = JSON.stringify(saveObject);
-        
-        return persistObject;
+        if(found > -1){
+                saveObject.created = currentSaves[found].created;
+                localStorage.setItem('entry' + found, JSON.stringify(saveObject));
+        }
+        else{
+                var numEntries = parseInt(localStorage.getItem('numEntries'));
+                localStorage.setItem('entry' + numEntries, JSON.stringify(saveObject));
+                localStorage.setItem('numEntries', numEntries + 1);
+        }
 }
 
 function getPersistObjects(){
         var numEntries = localStorage.getItem('numEntries');
         
-        if(numEntries === null || numEntries === 0){
+        if(numEntries === null || parseInt(numEntries) === 0){
                 console.log("no persistent entries found");
                 return null;
         }
+        numEntries = parseInt(numEntries);
         
         var entries = [];
         for(var i = 0; i < numEntries; i++){
                 var entry = localStorage.getItem('entry' + i);
-                console.log("entry" + entry);
+                console.log(entry);
                 entries.push(JSON.parse(entry));
         }
         
@@ -189,13 +206,37 @@ function getPersistObjects(){
 }
 
 function setupPersistConfigs(){
-        var entries = getPersistObjects();
+        var entries = localStorage.getItem('numEntries');
+        console.log(entries);
         if(!entries){
                 document.getElementById("persistMessage").innerHTML = "No recent saves found";
+                localStorage.setItem('numEntries', 0);
                 return;
         }
         
-        document.getElementById("persistMessage").innerHTML = "Found " + entries.length + " saved simulation(s).";
+        document.getElementById("persistMessage").innerHTML = "Found " + parseInt(entries) + " saved simulation(s).";
+        
+}
+
+//persist test function
+function loadMostRecentConfig(){
+        console.log("load most recent config");
+        var entries = getPersistObjects();
+        for(let i = 0; i < entries.length; i++){
+                console.log(entries[i]);
+        }
+        
+        loadSimConfig(entries[entries.length - 1].config);
+}
+
+//persist test function
+function deleteLastConfig(){
+        console.log("delete last persist called");
+        var numEntries = parseInt(localStorage.getItem('numEntries'));
+        if(numEntries > 0){
+                localStorage.setItem('numEntries', parseInt(numEntries) - 1);
+                localStorage.removeItem('entry' + numEntries - 1);
+        }
 }
 
 checkCompatibility();
