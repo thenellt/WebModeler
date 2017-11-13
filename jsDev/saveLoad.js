@@ -25,7 +25,7 @@ var highColorCode;
 
 function checkCompatibility(){
         console.log("checking for browser support...");
-        
+
         document.getElementById("javascriptError").style.display = "none";
 }
 
@@ -34,7 +34,7 @@ function loadFromFile(fileName){
         //TODO how to reset file select elements
         resetSimulation();
         var reader = new FileReader();
-        
+
         if(fileName.files && fileName.files[0]) {
                 reader.onload = function (e) {
                         parseConfigFile(e.target.result);
@@ -53,11 +53,12 @@ function parseConfigFile(fileString){
                 Console.log("problem parsing loaded string");
                 return;
         }
-        
+
         loadSimConfig(loadedObject);
 }
 
 function loadSimConfig(config){
+        changeToPopulations();
         simID = config.simID;
         animalDiffRate = config.animalDiffRate;
         animalGrowthRate = config.animalGrowthRate;
@@ -68,13 +69,13 @@ function loadSimConfig(config){
         years = config.years;
         simName = config.simName;
         huntRange = config.huntRange;
-        
+
         //advanced settings
         theta = config.theta;
         lowColorCode = config.lowColorCode;
         highColorCode = config.highColorCode;
         diffusionSamples = config.diffusionSamples;
-        
+
         for(let i = 0; i < config.popData.length; i++){
                 let temp = config.popData[i];
                 let tempRow = new uiRow(temp.long, temp.lat, temp.population, temp.killRate,
@@ -82,10 +83,10 @@ function loadSimConfig(config){
                 addPopToMap(temp.id, temp.name, parseFloat(temp.long), parseFloat(temp.lat));
                 addEntry(tempRow);
         }
-        
+
         //add the default empty row
         addRow("popTable");
-        
+
         document.getElementById("paramYears").value = years;
         document.getElementById("paramCarry").value = carryCapacity;
         document.getElementById("paramDifRate").value = animalDiffRate;
@@ -95,7 +96,7 @@ function loadSimConfig(config){
         document.getElementById("paramHphy").value = HpHy;
         document.getElementById("rangeHphy").value = huntRange;
         document.getElementById("paramName").value = simName;
-        
+
         document.getElementById("paramTheta").value = theta;
         document.getElementById("paramLowColor").value = lowColorCode;
         document.getElementById("paramHighColor").value = highColorCode;
@@ -127,7 +128,7 @@ function generateConfigObject(){
         saveObject.lowColorCode = lowColorCode;
         saveObject.highColorCode = highColorCode;
         saveObject.popData = uiData;
-        
+
         return saveObject;
 }
 
@@ -135,7 +136,7 @@ function saveImgToFile(type){
         if(type){ //with map background
                 map.once('postcompose', function(event) {
                         var tempCanvas = event.context.canvas;
-                  
+
                         tempCanvas.toBlob(function(blob) {
                                 saveAs(blob, simName + '_map.png');
                         });
@@ -152,32 +153,33 @@ function saveImgToFile(type){
 function generatePersistObject(){
         var saveObject = generateConfigObject();
         var persistObject = {};
-        
+
         persistObject.id = simID;
         persistObject.name = saveObject.simName;
         persistObject.created = new Date();
         persistObject.modified = persistObject.created;
         persistObject.config = saveObject;
-        
+
         return persistObject;
 }
 
 function synchPersisObject(){
         var saveObject = generatePersistObject();
         var currentSaves = getPersistObjects();
-        var found = -1;
-        if(currentSaves !== 'undefined'){
-                for(let i = 0; i < currentSaves.length; i++){
-                        if(currentSaves.id === simId){
-                                found = i;
+        console.log("currentSave length: " + currentSaves.length);
+        var i = -1;
+        if(currentSaves){
+                for(i = 0; i < currentSaves.length; i++){
+                        console.log("currenSave id: " + currentSaves.id + " simId: " + simID);
+                        if(currentSaves[i].id == simID){
                                 break;
                         }
                 }
         }
-        
-        if(found > -1){
-                saveObject.created = currentSaves[found].created;
-                localStorage.setItem('entry' + found, JSON.stringify(saveObject));
+
+        if(i > -1){
+                saveObject.created = currentSaves[i].created;
+                localStorage.setItem('entry' + i, JSON.stringify(saveObject));
         }
         else{
                 var numEntries = parseInt(localStorage.getItem('numEntries'));
@@ -188,20 +190,20 @@ function synchPersisObject(){
 
 function getPersistObjects(){
         var numEntries = localStorage.getItem('numEntries');
-        
+
         if(numEntries === null || parseInt(numEntries) === 0){
                 console.log("no persistent entries found");
                 return null;
         }
         numEntries = parseInt(numEntries);
-        
+
         var entries = [];
         for(var i = 0; i < numEntries; i++){
                 var entry = localStorage.getItem('entry' + i);
                 console.log(entry);
                 entries.push(JSON.parse(entry));
         }
-        
+
         return entries;
 }
 
@@ -213,9 +215,9 @@ function setupPersistConfigs(){
                 localStorage.setItem('numEntries', 0);
                 return;
         }
-        
+
         document.getElementById("persistMessage").innerHTML = "Found " + parseInt(entries) + " saved simulation(s).";
-        
+
 }
 
 //persist test function
@@ -225,8 +227,12 @@ function loadMostRecentConfig(){
         for(let i = 0; i < entries.length; i++){
                 console.log(entries[i]);
         }
-        
+
         loadSimConfig(entries[entries.length - 1].config);
+        document.getElementById("parameterSetupTab").disabled = false;
+        document.getElementById("resetButton").classList.remove("hide");
+        document.getElementById("newSimButton").innerHTML = "Continue";
+        //changeTab("parameterSetup");
 }
 
 //persist test function

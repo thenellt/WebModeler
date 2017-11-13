@@ -15,7 +15,7 @@ function uiRow(long, lat, pop, kill, name, growth, id, validity){
         this.name = name;
         this.growthRate = growth;
         this.valid = validity;
-        
+
 }
 
 //temp row is a uiRow object
@@ -23,7 +23,7 @@ function addEntry(tempRow){
         addRow("popTable");
         var table = document.getElementById("popTable");
         var row = table.rows[table.rows.length - 1];
-        
+
         row.id = tempRow.id;
         row.cells[0].innerHTML = tempRow.name;
         row.cells[1].innerHTML = tempRow.long;
@@ -31,7 +31,7 @@ function addEntry(tempRow){
         row.cells[3].innerHTML = tempRow.population;
         row.cells[4].innerHTML = tempRow.growthRate;
         row.cells[5].innerHTML = tempRow.killRate;
-        
+
         uiData[uiData.length - 1] = tempRow;
 }
 
@@ -58,14 +58,14 @@ function addRow(tableId){
         var growthCell = row.insertCell(cellNum++);
         var killCell = row.insertCell(cellNum++);
         var deleteCell = row.insertCell(cellNum++);
-        
+
         var delButton = document.createElement('input');
         delButton.type = "button";
         delButton.className = "tableDelButton";
         delButton.value = "Delete";
         delButton.onclick = (function () {removeRow(tableId, tempId);});
         deleteCell.appendChild(delButton);
-        
+
         for(var i = 0; i < row.cells.length; i++){
                 row.cells[i].ondblclick =(function() {
                         cellClicked(this);
@@ -83,7 +83,7 @@ function editFinished(cell, x, y, origValue){
         if(value.length > 0){
                 cell.innerHTML = value;
         }
-        
+
         console.log("edit finished: " + x + ", " + y);
 }
 
@@ -97,12 +97,12 @@ function updateUIData(row, cell, newValue){
                         break;
                 }
         }
-        
+
         if(i === uiData.length){
                 console.log("couldn't find row");
                 return;
         }
-        
+
         switch(cell){
                 case 0: uiData[i].name = newValue;
                         break;
@@ -116,7 +116,7 @@ function updateUIData(row, cell, newValue){
                         break;
                 case 5: uiData[i].killRate = newValue;
         }
-        
+
         let status = checkRowData(i);
         if(status && !uiData[i].valid){
                 //data point has become complete -> add it to map and towns
@@ -166,7 +166,7 @@ function checkRowData(rowIndex){
                 //console.log("check failed at growthrate");
                 return false;
         }
-                
+
         return true;
 }
 
@@ -198,7 +198,7 @@ function cellClicked(cell){
         cell.innerHTML = "";
         var input = document.createElement('input');
         input.value = value;
-        
+
         input.addEventListener("dblclick", function(e){ //otherwise cellClicked fires twice
                 if (e.stopPropagation)
                         e.stopPropagation();
@@ -213,7 +213,7 @@ function cellClicked(cell){
                 if(!check){ //not a key we care about
                         return;
                 }
-                
+
                 if(check === 3){
                         this.blur();
                 }
@@ -228,10 +228,10 @@ function cellClicked(cell){
                                         addRow("popTable");
                                         nextRow = cell.parentNode.nextElementSibling;
                                 }
-                                
+
                                 cellClicked(nextRow.firstChild);
                         }
-                        
+
                 }
                 else if(check === 2){
                         this.blur();
@@ -272,7 +272,7 @@ function cellClicked(cell){
                         }
                 }
         });
-        
+
         cell.appendChild(input);
         input.focus();
 }
@@ -288,7 +288,7 @@ function removeRow(tableId, rowId){
                         break;
                 }
         }
-        
+
         //remove from ui and data storage
         for(let k = 0; k < uiData.length; k++){
                 if(uiData[k].id === rowId){
@@ -299,7 +299,7 @@ function removeRow(tableId, rowId){
                         break;
                 }
         }
-        
+
         //remove from table
         table.deleteRow(tablePosition);
 }
@@ -308,7 +308,7 @@ function removeRowData(dataId){
         //remove population visual from map
         if(source){
                 var features = source.getFeatures();
-                
+
                 for(var j = 0; j < features.length; j++){
                         console.log(features[j].get('description'));
                         if(features[j].get('description') == dataId){
@@ -341,7 +341,7 @@ function updateTableRow(row){
                         break;
                 }
         }
-        
+
         row.cells[0].innerHTML = villageData.name;
         row.cells[1].innerHTML = villageData.long;
         row.cells[2].innerHTML = villageData.lat;
@@ -358,11 +358,8 @@ function buildTownFromData(pos){
         let tempPop = parseFloat(data.population);
         let tempKill = parseFloat(data.killRate);
         let tempGrowth = parseFloat(data.growthRate);
-        
+
         let temp = new town(tempLong, tempLat, tempPop, tempKill,
                             data.name, tempGrowth, data.id);
         return temp;
 }
-
-//start the simulation with a clean row
-addRow("popTable");
