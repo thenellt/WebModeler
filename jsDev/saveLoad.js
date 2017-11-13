@@ -23,6 +23,8 @@ var lowColorCode;
 var highColorCode;
 */
 
+var appCache = window.applicationCache;
+
 function checkCompatibility(){
         console.log("checking for browser support...");
 
@@ -30,15 +32,13 @@ function checkCompatibility(){
 }
 
 //based on: https://www.html5rocks.com/en/tutorials/appcache/beginner/
-window.addEventListener('load', function(e) {
-        window.applicationCache.addEventListener('updateready', function(e) {
-                if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
-                        alert('An update to the app is avaliable, the page will now reload.');
-                        window.location.reload();
-                }
-        }, false);
-}, false);
+appCache.addEventListener('updateready', updateApp, false);
 
+function updateApp(){
+        console.log("update app triggered");
+        alert('An update to the app is avaliable, the page will now reload.');
+        window.location.reload();
+}
 
 function loadFromFile(fileName){
         //TODO add warning dialog that current changes will be lost
