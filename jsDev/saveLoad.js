@@ -29,6 +29,17 @@ function checkCompatibility(){
         document.getElementById("javascriptError").style.display = "none";
 }
 
+//based on: https://www.html5rocks.com/en/tutorials/appcache/beginner/
+window.addEventListener('load', function(e) {
+        window.applicationCache.addEventListener('updateready', function(e) {
+                if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
+                        alert('An update to the app is avaliable, the page will now reload.');
+                        window.location.reload();
+                }
+        }, false);
+}, false);
+
+
 function loadFromFile(fileName){
         //TODO add warning dialog that current changes will be lost
         //TODO how to reset file select elements
