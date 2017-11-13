@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" manifest="manifest.appcache">
 <head>
         <link rel="stylesheet" href="https://openlayers.org/en/v4.2.0/css/ol.css" type="text/css">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -39,7 +39,7 @@
                                 <div class="tabcontent" id="getStarted">
                                         <h4 class="header">Start or Continue a Simulation</h4>
                                         <div class="divider" style="margin-bottom: 10px;"></div>
-                                        
+
                                         <div class="row">
                                                 <div class="col s6"><h5>Start a new simulation:</h5></div>
                                                 <div class="col s3"><a class="waves-effect waves-light btn red darken-2 hide" id="resetButton" onclick="resetSimulation()">
@@ -64,9 +64,9 @@
                                                         <h5>Load a cached simulation:</h5>
                                                 </div>
                                                 <div class="col s6" id="persistMessage" style="margin-top: 18px;">
-                                                       
+
                                                 </div>
-                                                
+
                                         </div>
                                         <div class="row" id="persistDisplay">
                                                 <div class ="col s6">
@@ -80,13 +80,13 @@
                                                 </a>
                                                 </div>
                                         </div>
-                                        
+
                                         <div class="row" id="javascriptError">
                                                 <h3 style="color:red;">If you can see this, javascript isn't being allowed to run in your browser and this application won't work.</h3>
                                         </div>
-                                        
+
                                         <input id="loadConfigFileButton" type="file" onchange='loadFromFile(this)' style="display: none;">
-                                                
+
                                 </div>
                                 <div class="tabcontent" id="parameterSetup">
                                         <div class="row">
@@ -178,7 +178,7 @@
                                                                 <li><a href="#!" onclick="togglePopulationView(1)">Table View</a></li>
                                                         </ul>
                                                 </div>
-                                                
+
                                         </div>
                                         <div id="popMapContent" class="hide" style="height: 80%; width 100%;">
                                                 <div class="divider" style="margin-bottom: 4px;"></div>
