@@ -337,6 +337,22 @@ function changeToPopulations(){
                 changeTab('popSetup');
         }
 }
+function changeToGetStarted(){
+        let contentDiv = document.getElementById("getStarted");
+        console.log("display: " + contentDiv.style.display);
+        if(contentDiv.style.display == "none"){
+                console.log("updating persist saves");
+                var saveContainer = document.getElementById("persistSaveContainer");
+                while (saveContainer.firstChild) {
+                        saveContainer.removeChild(saveContainer.firstChild);
+                }
+
+                setupPersistConfigs();
+                populatePersistSaves();
+                changeTab('getStarted');
+        }
+}
+
 
 function changeToOutput(){
         document.getElementById("resultMapDiv").appendChild(document.getElementById("popMapDiv"));

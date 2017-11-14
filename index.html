@@ -27,7 +27,7 @@
                 <tr>
                         <td class="tab">
                                 <div class="tab">
-                                        <button id="getStartedTab" class="tablinks waves-effect waves-light defaultOpen" onclick="changeTab('getStarted')">Get Started</button>
+                                        <button id="getStartedTab" class="tablinks waves-effect waves-light defaultOpen" onclick="changeToGetStarted()">Get Started</button>
                                         <button id="parameterSetupTab" class="tablinks waves-effect waves-light" onclick="changeTab('parameterSetup')">Simulation Parameters</button>
                                         <button id="popSetupTab" class="tablinks waves-effect waves-light" onclick="changeToPopulations()">Setup Populations</button>
                                         <button id="tab4" class="tablinks waves-effect waves-light" onclick="changeTab('page2')">Simulation Overview</button>
@@ -66,24 +66,8 @@
                                                 <div class="col s6" id="persistMessage" style="margin-top: 18px;">
 
                                                 </div>
-
                                         </div>
-                                        <div class="row" id="persistSaveContainer">
-                                                
-                                        </div>
-                                        <div class="row" id="persistDisplay">
-                                                <div class ="col s6">
-                                                <a class="waves-effect waves-light btn" id="addRowButton" onclick='loadMostRecentConfig()'>
-                                                        Load Recent Config
-                                                </a>
-                                                </div>
-                                                <div class ="col s6">
-                                                <a class="waves-effect waves-light btn" id="addRowButton" onclick='deleteLastConfig()'>
-                                                        Delete Last Config
-                                                </a>
-                                                </div>
-                                        </div>
-
+                                        <div class="row" id="persistSaveContainer"></div>
                                         <div class="row" id="javascriptError">
                                                 <h3 style="color:red;">If you can see this, javascript isn't being allowed to run in your browser and this application won't work.</h3>
                                         </div>
@@ -103,18 +87,6 @@
                                                 <div class="col s3"><input type="text" id="paramName"></div>
                                         </div>
                                         <div class="divider" style="margin-bottom: 8px;"></div>
-                                        <!--
-                                        //var animalDiffRate;
-                                        //var animalGrowthRate;
-                                        //var killProb;
-                                        //var HpHy;
-                                        //var encounterRate;
-                                        //var huntRange;
-                                        var theta;
-                                        //var carryCapacity;
-                                        //var years;
-                                        var diffusionSamples;
-                                        -->
                                         <div class="row" style="margin-bottom: 8px;">
                                                 <div class="col s8"><h5>Duration (Years):</h5></div>
                                                 <div class="col s3"><input type="text" id="paramYears"></div>

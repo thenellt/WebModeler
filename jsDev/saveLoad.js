@@ -24,11 +24,12 @@ var highColorCode;
 */
 
 var appCache = window.applicationCache;
+var persistCompatibility = false;
 
 function checkCompatibility(){
         console.log("checking for browser support...");
-
         document.getElementById("javascriptError").style.display = "none";
+        persistCompatibility = true;
 }
 
 //based on: https://www.html5rocks.com/en/tutorials/appcache/beginner/
@@ -50,6 +51,7 @@ function loadFromFile(fileName){
                 reader.onload = function (e) {
                         parseConfigFile(e.target.result);
                         newSimulation();
+                        synchPersisObject();
                 };
                 reader.readAsText(fileName.files[0]);
         }
@@ -61,15 +63,15 @@ function parseConfigFile(fileString){
                loadedObject = JSON.parse(fileString);
         } catch (e) {
                 //TODO add error dialog
-                Console.log("problem parsing loaded string");
+                console.log("problem parsing loaded string");
                 return;
         }
 
         loadSimConfig(loadedObject);
 }
 
-function loadSimConfig(config){
-        changeToPopulations();
+function loadSimConfig(fileData){
+        let config = fileData.config;
         simID = config.simID;
         animalDiffRate = config.animalDiffRate;
         animalGrowthRate = config.animalGrowthRate;
@@ -87,6 +89,7 @@ function loadSimConfig(config){
         highColorCode = config.highColorCode;
         diffusionSamples = config.diffusionSamples;
 
+        emptyTable();
         for(let i = 0; i < config.popData.length; i++){
                 let temp = config.popData[i];
                 let tempRow = new uiRow(temp.long, temp.lat, temp.population, temp.killRate,
@@ -94,9 +97,6 @@ function loadSimConfig(config){
                 addPopToMap(temp.id, temp.name, parseFloat(temp.long), parseFloat(temp.lat));
                 addEntry(tempRow);
         }
-
-        //add the default empty row
-        addRow("popTable");
 
         document.getElementById("paramYears").value = years;
         document.getElementById("paramCarry").value = carryCapacity;
@@ -122,6 +122,24 @@ function saveSimToFile(){
         saveAs(jsonBlob, simName + ".cfg");
 }
 
+function savePersistConfig(persistID){
+        let entries = getPersistObjects();
+        var pos = -1;
+        if(entries.length){
+                for(let i = 0; i < entries.length; i++){
+                        if(entries[i].id == persistID){
+                                pos = i;
+                                break;
+                        }
+                }
+        }
+        if(pos != -1){
+                var outputString = JSON.stringify(entries[pos]);
+                var jsonBlob = new Blob([outputString], {type: "application/json"});
+                saveAs(jsonBlob, entries[pos].name + ".cfg");
+        }
+}
+
 function generateConfigObject(){
         var saveObject = {};
         saveObject.simID = simID;
@@ -138,7 +156,13 @@ function generateConfigObject(){
         saveObject.diffusionSamples = diffusionSamples;
         saveObject.lowColorCode = lowColorCode;
         saveObject.highColorCode = highColorCode;
-        saveObject.popData = uiData;
+        saveObject.popData = [];
+
+        for(let i = 0; i < uiData.length; i++){
+                if(uiData[i].valid){
+                        saveObject.popData.push(uiData[i]);
+                }
+        }
 
         return saveObject;
 }
@@ -177,21 +201,21 @@ function generatePersistObject(){
 function synchPersisObject(){
         var saveObject = generatePersistObject();
         var currentSaves = getPersistObjects();
-        var i = -1;
+        var pos = -1;
         if(currentSaves){
                 console.log("currentSave length: " + currentSaves.length);
-                for(i = 0; i < currentSaves.length; i++){
-                        console.log("currenSave id: " + currentSaves.id + " simId: " + simID);
+                for(let i = 0; i < currentSaves.length; i++){
+                        console.log("currentSave id: " + currentSaves[i].id + " simId: " + simID);
                         if(currentSaves[i].id == simID){
+                                pos = i;
                                 break;
                         }
                 }
         }
 
-        if(i > -1){
-                //TODO check this logic
-                saveObject.created = currentSaves[i].created;
-                localStorage.setItem('entry' + i, JSON.stringify(saveObject));
+        if(pos > -1){
+                saveObject.created = currentSaves[pos].created;
+                localStorage.setItem('entry' + pos, JSON.stringify(saveObject));
         }
         else{
                 var numEntries = parseInt(localStorage.getItem('numEntries'));
@@ -222,18 +246,16 @@ function getPersistObjects(){
 function setupPersistConfigs(){
         var entries = localStorage.getItem('numEntries');
         console.log(entries);
+        let container = document.getElementById("persistSaveContainer");
+
         if(!entries || entries == 0){
                 document.getElementById("persistMessage").innerHTML = "No recent saves found";
                 localStorage.setItem('numEntries', 0);
-                
-                let container = document.getElementById("persistSaveContainer");
                 container.className += " hide";
-                
-                let controls = document.getElementById("persistDisplay");
-                controls.className += " hide";
         }
         else{
                 document.getElementById("persistMessage").innerHTML = "Found " + parseInt(entries) + " saved simulation(s).";
+                container.classList.remove("hide");
         }
 }
 
@@ -252,13 +274,37 @@ function loadMostRecentConfig(){
         //changeTab("parameterSetup");
 }
 
-//persist test function
-function deleteLastConfig(){
-        console.log("delete last persist called");
-        var numEntries = parseInt(localStorage.getItem('numEntries'));
-        if(numEntries > 0){
-                localStorage.setItem('numEntries', parseInt(numEntries) - 1);
-                localStorage.removeItem('entry' + numEntries - 1);
+function deleteConfigByID(persistID){
+        console.log("delete config called with id: " + persistID);
+        let entries = getPersistObjects();
+        var pos = -1;
+        if(entries.length){
+                console.log("length: " + entries.length);
+                for(let i = 0; i < entries.length; i++){
+                        if(entries[i].id == persistID){
+                                console.log("found config at pos: " + i);
+                                pos = i;
+                                break;
+                        }
+                }
+        }
+        if(pos !== -1){
+                console.log("delete triggered");
+                var numEntries = parseInt(localStorage.getItem('numEntries'));
+                localStorage.removeItem('entry' + pos);
+                localStorage.setItem('numEntries', (numEntries - 1));
+                if(numEntries > 1 || pos !== (numEntries - 1)){
+                        localStorage.removeItem('entry' + (numEntries - 1))
+                        localStorage.setItem('entry' + pos, JSON.stringify(entries[numEntries - 1]));
+                }
+
+                var saveContainer = document.getElementById("persistSaveContainer");
+                while (saveContainer.firstChild) {
+                        saveContainer.removeChild(saveContainer.firstChild);
+                }
+
+                setupPersistConfigs();
+                populatePersistSaves();
         }
 }
 
@@ -266,7 +312,7 @@ function buildHTMLSaveEntry(entry){
         var containerDiv = document.createElement('div');
         containerDiv.className = "row persistSave";
         containerDiv.id = entry.id;
-        
+
         var topRow = document.createElement('div');
         topRow.className = "row";
         var saveName = document.createElement('div');
@@ -274,74 +320,117 @@ function buildHTMLSaveEntry(entry){
         var nameText = document.createElement('h5');
         nameText.innerHTML = entry.name;
         saveName.appendChild(nameText);
-        var deleteContainer = document.createElement('div');
-        deleteContainer.className = "col s2 offset-s2 saveButton";
+
+        var fileContainer = document.createElement('div');
+        fileContainer.className = "col s4 saveButton";
+        var fileButton = document.createElement('a');
+        fileButton.className = "waves-effect waves-light btn teal darken-3";
+        fileButton.innerHTML = "Save Config File";
+        fileButton.onclick = function() {savePersistConfig(entry.id);};
+        fileContainer.appendChild(fileButton);
+
         var copyContainer = document.createElement('div');
         copyContainer.className = "col s2 saveButton";
-        var loadContainer = document.createElement('div');
-        loadContainer.className = "col s2 saveButton";
-        
-        var deleteButton = document.createElement('a');
-        deleteButton.className = "waves-effect waves-light btn red darken-2";
-        deleteButton.innerHTML = "Delete";
-        deleteButton.onclick = function() { deleteSaveEntry(entry.id);};
-        deleteContainer.appendChild(deleteButton);
-        
         var copyButton = document.createElement('a');
         copyButton.className = "waves-effect waves-light btn";
         copyButton.innerHTML = "Copy";
-        copyButton.onclick = function() { newFromEntry(entry.id);};
+        copyButton.onclick = function() {newFromEntry(entry.id);};
         copyContainer.appendChild(copyButton);
-        
+
+        var loadContainer = document.createElement('div');
+        loadContainer.className = "col s2 saveButton";
         var loadButton = document.createElement('a');
+        //loadButton.style.marginLeft = "2px";
         loadButton.className = "waves-effect waves-light btn";
         loadButton.innerHTML = "Load";
-        loadButton.onclick = function() { loadConfigByID(entry.id);};
+        loadButton.onclick = function() {loadConfigByID(entry.id);};
         loadContainer.appendChild(loadButton);
-        
+
         topRow.appendChild(saveName);
-        topRow.appendChild(deleteContainer);
+        topRow.appendChild(fileContainer);
         topRow.appendChild(copyContainer);
         topRow.appendChild(loadContainer);
-        
+
         var botRow = document.createElement('div');
         botRow.className = "row";
+
+        var deleteContainer = document.createElement('div');
+        deleteContainer.className = "col s2 offset-s1";
+        var deleteButton = document.createElement('a');
+        deleteButton.className = "waves-effect waves-light btn red darken-2";
+        deleteButton.innerHTML = "Delete";
+        deleteButton.onclick = function() {deleteConfigByID(entry.id);};
+        deleteContainer.appendChild(deleteButton);
+
         var createdContainer = document.createElement('div');
-        createdContainer.className = "col s3";
+        createdContainer.className = "col s3 saveText";
         var created = new Date(entry.created);
         createdContainer.innerHTML = "<strong> Created: </strong>" + created.toLocaleTimeString() + " " + created.toLocaleDateString();
-        
+
         var modifiedContainer = document.createElement('div');
-        modifiedContainer.className = "col s3";
+        modifiedContainer.className = "col s3 saveText";
         var modified = new Date(entry.modified);
         modifiedContainer.innerHTML = "<strong> Modified: </strong>" + modified.toLocaleTimeString() + " " + modified.toLocaleDateString();
-        
+
         var popContainer = document.createElement('div');
-        popContainer.className = "col s3";
+        popContainer.className = "col s3 saveText";
         popContainer.innerHTML = "<strong> Populations: </strong>" + entry.config.popData.length;
-        
+
         botRow.appendChild(createdContainer);
         botRow.appendChild(modifiedContainer);
         botRow.appendChild(popContainer);
-        
+        botRow.appendChild(deleteContainer);
+
         var divider = document.createElement('div');
         divider.className = "divider";
         divider.style.marginBottom = "2px";
-        
+
         containerDiv.appendChild(topRow);
         containerDiv.appendChild(botRow);
         containerDiv.appendChild(divider);
-        
+
         return containerDiv;
 }
 
-function testLoadConfig(){
+function loadConfigByID(persistID){
+        console.log("load config called with id: " + persistID);
+        let entries = getPersistObjects();
+        var pos = -1;
+        if(entries.length){
+                for(let i = 0; i < entries.length; i++){
+                        if(entries[i].id == persistID){
+                                console.log("found config at pos: " + i);
+                                pos = i;
+                                break;
+                        }
+                }
+        }
+        if(pos !== -1){
+                loadSimConfig(entries[pos]);
+                newSimulation();
+                addRow("popTable");
+                console.log("new simulation setup with ID: " + simID);
+                document.getElementById("parameterSetupTab").disabled = false;
+                document.getElementById("resetButton").classList.remove("hide");
+                document.getElementById("newSimButton").innerHTML = "Continue";
+                changeTab("parameterSetup");
+                synchPersisObject();
+        }
+}
+
+function populatePersistSaves(){
         var saveContainer = document.getElementById("persistSaveContainer");
         var saves = getPersistObjects();
-        
+        if(saves && saves.length > 1){
+                saves.sort(function (a, b) {
+                        return a.modified - b.modified;
+                });
+                saves.reverse();
+        }
+
         if(saves){
                 for(let i = 0; i < saves.length; i++){
-                        let element = buildHTMLSaveEntry(saves[0]);
+                        let element = buildHTMLSaveEntry(saves[i]);
                         saveContainer.appendChild(element);
                 }
         }
@@ -349,4 +438,4 @@ function testLoadConfig(){
 
 checkCompatibility();
 setupPersistConfigs();
-testLoadConfig();
+populatePersistSaves();

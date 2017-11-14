@@ -277,6 +277,14 @@ function cellClicked(cell){
         input.focus();
 }
 
+function emptyTable(){
+        var table = document.getElementById("popTable");
+        let body = table.getElementsByTagName("tbody")[0];
+        while(body.length){
+                body.removeChild(body.lastChild);
+        }
+}
+
 function removeRow(tableId, rowId){
         console.log("delete row called. RowId: " + rowId);
         var table = document.getElementById(tableId);
