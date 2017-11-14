@@ -177,9 +177,9 @@ function generatePersistObject(){
 function synchPersisObject(){
         var saveObject = generatePersistObject();
         var currentSaves = getPersistObjects();
-        console.log("currentSave length: " + currentSaves.length);
         var i = -1;
         if(currentSaves){
+                console.log("currentSave length: " + currentSaves.length);
                 for(i = 0; i < currentSaves.length; i++){
                         console.log("currenSave id: " + currentSaves.id + " simId: " + simID);
                         if(currentSaves[i].id == simID){
@@ -189,6 +189,7 @@ function synchPersisObject(){
         }
 
         if(i > -1){
+                //TODO check this logic
                 saveObject.created = currentSaves[i].created;
                 localStorage.setItem('entry' + i, JSON.stringify(saveObject));
         }
@@ -210,9 +211,9 @@ function getPersistObjects(){
 
         var entries = [];
         for(var i = 0; i < numEntries; i++){
-                var entry = localStorage.getItem('entry' + i);
+                var entry = JSON.parse(localStorage.getItem('entry' + i));
                 console.log(entry);
-                entries.push(JSON.parse(entry));
+                entries.push(entry);
         }
 
         return entries;
@@ -221,14 +222,19 @@ function getPersistObjects(){
 function setupPersistConfigs(){
         var entries = localStorage.getItem('numEntries');
         console.log(entries);
-        if(!entries){
+        if(!entries || entries == 0){
                 document.getElementById("persistMessage").innerHTML = "No recent saves found";
                 localStorage.setItem('numEntries', 0);
-                return;
+                
+                let container = document.getElementById("persistSaveContainer");
+                container.className += " hide";
+                
+                let controls = document.getElementById("persistDisplay");
+                controls.className += " hide";
         }
-
-        document.getElementById("persistMessage").innerHTML = "Found " + parseInt(entries) + " saved simulation(s).";
-
+        else{
+                document.getElementById("persistMessage").innerHTML = "Found " + parseInt(entries) + " saved simulation(s).";
+        }
 }
 
 //persist test function
@@ -256,5 +262,91 @@ function deleteLastConfig(){
         }
 }
 
+function buildHTMLSaveEntry(entry){
+        var containerDiv = document.createElement('div');
+        containerDiv.className = "row persistSave";
+        containerDiv.id = entry.id;
+        
+        var topRow = document.createElement('div');
+        topRow.className = "row";
+        var saveName = document.createElement('div');
+        saveName.className = "col s4 saveName";
+        var nameText = document.createElement('h5');
+        nameText.innerHTML = entry.name;
+        saveName.appendChild(nameText);
+        var deleteContainer = document.createElement('div');
+        deleteContainer.className = "col s2 offset-s2 saveButton";
+        var copyContainer = document.createElement('div');
+        copyContainer.className = "col s2 saveButton";
+        var loadContainer = document.createElement('div');
+        loadContainer.className = "col s2 saveButton";
+        
+        var deleteButton = document.createElement('a');
+        deleteButton.className = "waves-effect waves-light btn red darken-2";
+        deleteButton.innerHTML = "Delete";
+        deleteButton.onclick = function() { deleteSaveEntry(entry.id);};
+        deleteContainer.appendChild(deleteButton);
+        
+        var copyButton = document.createElement('a');
+        copyButton.className = "waves-effect waves-light btn";
+        copyButton.innerHTML = "Copy";
+        copyButton.onclick = function() { newFromEntry(entry.id);};
+        copyContainer.appendChild(copyButton);
+        
+        var loadButton = document.createElement('a');
+        loadButton.className = "waves-effect waves-light btn";
+        loadButton.innerHTML = "Load";
+        loadButton.onclick = function() { loadConfigByID(entry.id);};
+        loadContainer.appendChild(loadButton);
+        
+        topRow.appendChild(saveName);
+        topRow.appendChild(deleteContainer);
+        topRow.appendChild(copyContainer);
+        topRow.appendChild(loadContainer);
+        
+        var botRow = document.createElement('div');
+        botRow.className = "row";
+        var createdContainer = document.createElement('div');
+        createdContainer.className = "col s3";
+        var created = new Date(entry.created);
+        createdContainer.innerHTML = "<strong> Created: </strong>" + created.toLocaleTimeString() + " " + created.toLocaleDateString();
+        
+        var modifiedContainer = document.createElement('div');
+        modifiedContainer.className = "col s3";
+        var modified = new Date(entry.modified);
+        modifiedContainer.innerHTML = "<strong> Modified: </strong>" + modified.toLocaleTimeString() + " " + modified.toLocaleDateString();
+        
+        var popContainer = document.createElement('div');
+        popContainer.className = "col s3";
+        popContainer.innerHTML = "<strong> Populations: </strong>" + entry.config.popData.length;
+        
+        botRow.appendChild(createdContainer);
+        botRow.appendChild(modifiedContainer);
+        botRow.appendChild(popContainer);
+        
+        var divider = document.createElement('div');
+        divider.className = "divider";
+        divider.style.marginBottom = "2px";
+        
+        containerDiv.appendChild(topRow);
+        containerDiv.appendChild(botRow);
+        containerDiv.appendChild(divider);
+        
+        return containerDiv;
+}
+
+function testLoadConfig(){
+        var saveContainer = document.getElementById("persistSaveContainer");
+        var saves = getPersistObjects();
+        
+        if(saves){
+                for(let i = 0; i < saves.length; i++){
+                        let element = buildHTMLSaveEntry(saves[0]);
+                        saveContainer.appendChild(element);
+                }
+        }
+}
+
 checkCompatibility();
 setupPersistConfigs();
+testLoadConfig();
