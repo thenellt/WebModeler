@@ -48,6 +48,9 @@
                                                 <div class="col s3"><a class="waves-effect waves-light btn" id="newSimButton" onclick="newSimulation()">
                                                         New Simulation
                                                 </a></div>
+                                                <div class="col s3 hide"><a class="waves-effect waves-light btn" id="continueSimButton" onclick="changeTab('getStarted');">
+                                                        Continue
+                                                </a></div>
                                         </div>
                                         <div class="row">
                                                 <div class="col s6">
@@ -177,7 +180,7 @@
                                                                         <th>Kill Rate</th>
                                                                 </tr>
                                                         </thead>
-                                                        <tbody></tbody>
+                                                        <tbody id="popTableBody"></tbody>
                                                 </table>
                                                 <div class="row">
                                                         <div class="col s3 offset-s9">

@@ -6,7 +6,7 @@ function uiRow(long, lat, pop, kill, name, growth, id, validity){
                 this.id = tempDate.valueOf();
         }
         else{
-                this.id = id;
+                this.id = parseInt(id);
         }
         this.long = long;
         this.lat = lat;
@@ -20,11 +20,12 @@ function uiRow(long, lat, pop, kill, name, growth, id, validity){
 
 //temp row is a uiRow object
 function addEntry(tempRow){
-        addRow("popTable");
+        console.log(JSON.stringify(tempRow));
+        console.log("tempRow id: " + tempRow.id);
+        addRow("popTable", tempRow.id);
         var table = document.getElementById("popTable");
         var row = table.rows[table.rows.length - 1];
 
-        row.id = tempRow.id;
         row.cells[0].innerHTML = tempRow.name;
         row.cells[1].innerHTML = tempRow.long;
         row.cells[2].innerHTML = tempRow.lat;
@@ -35,10 +36,13 @@ function addEntry(tempRow){
         uiData[uiData.length - 1] = tempRow;
 }
 
-function addRow(tableId){
+function addRow(tableId, rowId){
         //generate a new id
-        let tempDate = new Date();
-        let tempId = tempDate.valueOf();
+        let tempId = rowId;
+        if(rowId === -1){
+                let tempDate = new Date();
+                tempId = tempDate.valueOf();
+        }
         //add space for data storage
         var newRowData = {};
         newRowData.valid = false;
@@ -225,7 +229,7 @@ function cellClicked(cell){
                         else{
                                 var nextRow = cell.parentNode.nextElementSibling;
                                 if(!nextRow){
-                                        addRow("popTable");
+                                        addRow("popTable", -1);
                                         nextRow = cell.parentNode.nextElementSibling;
                                 }
 
@@ -278,21 +282,18 @@ function cellClicked(cell){
 }
 
 function emptyTable(){
-        var table = document.getElementById("popTable");
-        let body = table.getElementsByTagName("tbody")[0];
-        while(body.length){
-                body.removeChild(body.lastChild);
-        }
+        console.log("clearing table");
+        var table = document.getElementById("popTableBody");
+        table.innerHTML = '';
+        uiData = [];
 }
 
 function removeRow(tableId, rowId){
-        console.log("delete row called. RowId: " + rowId);
         var table = document.getElementById(tableId);
-        var tablePosition;
-        for(let i = 0; i < table.rows.length; i++){
+        for(let i = 1; i < table.rows.length; i++){
                 let row = table.rows[i];
                 if(!row.id.localeCompare(rowId)){
-                        tablePosition = i;
+                        table.deleteRow(i);
                         break;
                 }
         }
@@ -309,7 +310,6 @@ function removeRow(tableId, rowId){
         }
 
         //remove from table
-        table.deleteRow(tablePosition);
 }
 
 function removeRowData(dataId){

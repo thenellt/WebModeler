@@ -51,6 +51,7 @@ function loadFromFile(fileName){
                 reader.onload = function (e) {
                         parseConfigFile(e.target.result);
                         newSimulation();
+                        document.getElementById("popSetupTab").disabled = false;
                         synchPersisObject();
                 };
                 reader.readAsText(fileName.files[0]);
@@ -91,6 +92,7 @@ function loadSimConfig(fileData){
 
         emptyTable();
         for(let i = 0; i < config.popData.length; i++){
+                console.log("Adding pop name: " + config.popData[i]);
                 let temp = config.popData[i];
                 let tempRow = new uiRow(temp.long, temp.lat, temp.population, temp.killRate,
                                         temp.name, temp.growthRate, temp.id, true);
@@ -159,11 +161,14 @@ function generateConfigObject(){
         saveObject.popData = [];
 
         for(let i = 0; i < uiData.length; i++){
+                console.log(uiData[i].valid);
+                console.log(JSON.stringify(uiData[i]));
                 if(uiData[i].valid){
                         saveObject.popData.push(uiData[i]);
                 }
         }
-
+        
+        console.log("found " + saveObject.popData.length + " valid populations");
         return saveObject;
 }
 
@@ -203,9 +208,7 @@ function synchPersisObject(){
         var currentSaves = getPersistObjects();
         var pos = -1;
         if(currentSaves){
-                console.log("currentSave length: " + currentSaves.length);
                 for(let i = 0; i < currentSaves.length; i++){
-                        console.log("currentSave id: " + currentSaves[i].id + " simId: " + simID);
                         if(currentSaves[i].id == simID){
                                 pos = i;
                                 break;
@@ -236,7 +239,6 @@ function getPersistObjects(){
         var entries = [];
         for(var i = 0; i < numEntries; i++){
                 var entry = JSON.parse(localStorage.getItem('entry' + i));
-                console.log(entry);
                 entries.push(entry);
         }
 
@@ -245,7 +247,6 @@ function getPersistObjects(){
 
 function setupPersistConfigs(){
         var entries = localStorage.getItem('numEntries');
-        console.log(entries);
         let container = document.getElementById("persistSaveContainer");
 
         if(!entries || entries == 0){
@@ -334,7 +335,7 @@ function buildHTMLSaveEntry(entry){
         var copyButton = document.createElement('a');
         copyButton.className = "waves-effect waves-light btn";
         copyButton.innerHTML = "Copy";
-        copyButton.onclick = function() {newFromEntry(entry.id);};
+        copyButton.onclick = function() {loadConfigByID(entry.id, true);};
         copyContainer.appendChild(copyButton);
 
         var loadContainer = document.createElement('div');
@@ -343,7 +344,7 @@ function buildHTMLSaveEntry(entry){
         //loadButton.style.marginLeft = "2px";
         loadButton.className = "waves-effect waves-light btn";
         loadButton.innerHTML = "Load";
-        loadButton.onclick = function() {loadConfigByID(entry.id);};
+        loadButton.onclick = function() {loadConfigByID(entry.id, false);};
         loadContainer.appendChild(loadButton);
 
         topRow.appendChild(saveName);
@@ -392,7 +393,7 @@ function buildHTMLSaveEntry(entry){
         return containerDiv;
 }
 
-function loadConfigByID(persistID){
+function loadConfigByID(persistID, isCopy){
         console.log("load config called with id: " + persistID);
         let entries = getPersistObjects();
         var pos = -1;
@@ -406,15 +407,20 @@ function loadConfigByID(persistID){
                 }
         }
         if(pos !== -1){
+                resetSimulation();
                 loadSimConfig(entries[pos]);
-                newSimulation();
-                addRow("popTable");
-                console.log("new simulation setup with ID: " + simID);
-                document.getElementById("parameterSetupTab").disabled = false;
-                document.getElementById("resetButton").classList.remove("hide");
-                document.getElementById("newSimButton").innerHTML = "Continue";
-                changeTab("parameterSetup");
-                synchPersisObject();
+                document.getElementById("popSetupTab").disabled = false;
+                if(isCopy){
+                        newSimulation();
+                        synchPersisObject();
+                }
+                else{
+                        addRow("popTable", -1);
+                        document.getElementById("parameterSetupTab").disabled = false;
+                        document.getElementById("resetButton").classList.remove("hide");
+                        document.getElementById("newSimButton").innerHTML = "Continue";
+                        changeTab("parameterSetup");
+                }
         }
 }
 

@@ -25,11 +25,14 @@ function setupTabs(){
 function newSimulation(){
         var tempDate = new Date();
         simID = tempDate.valueOf();
-        addRow("popTable");
+        addRow("popTable", -1);
         console.log("new simulation setup with ID: " + simID);
         document.getElementById("parameterSetupTab").disabled = false;
         document.getElementById("resetButton").classList.remove("hide");
-        document.getElementById("newSimButton").innerHTML = "Continue";
+        var newSimButton = document.getElementById("newSimButton")
+        newSimButton.innerHTML = "Continue";
+        newSimButton.onclick = function() {changeTab("parameterSetup");};
+        
         changeTab("parameterSetup");
 }
 
@@ -95,7 +98,11 @@ function resetSimulation(){
         document.getElementById("popSetupTab").disabled = true;
         document.getElementById("resultsPageTab").disabled = true;
         document.getElementById("resetButton").classList.add("hide");
-        document.getElementById("newSimButton").innerHTML = "New Simulation";
+        var newSimButton = document.getElementById("newSimButton")
+        newSimButton.innerHTML = "New Simulation";
+        newSimButton.onclick = newSimulation;
+        
+        emptyTable();
 }
 
 function showAdvancedSettings(){
@@ -339,8 +346,8 @@ function changeToPopulations(){
 }
 function changeToGetStarted(){
         let contentDiv = document.getElementById("getStarted");
-        console.log("display: " + contentDiv.style.display);
         if(contentDiv.style.display == "none"){
+                synchPersisObject();
                 console.log("updating persist saves");
                 var saveContainer = document.getElementById("persistSaveContainer");
                 while (saveContainer.firstChild) {
