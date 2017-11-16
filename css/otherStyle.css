@@ -141,3 +141,13 @@ div.tab button.active {
 .saveText {
         margin-top: 6px;
 }
+
+.notification {
+        position: fixed;
+        bottom: 40px;
+        left: 15px;
+        margin: 0 auto;
+        width: 350px;
+        height: 80px;
+        z-index: 25;
+}

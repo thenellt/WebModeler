@@ -161,13 +161,13 @@ function generateConfigObject(){
         saveObject.popData = [];
 
         for(let i = 0; i < uiData.length; i++){
-                console.log(uiData[i].valid);
-                console.log(JSON.stringify(uiData[i]));
+                //console.log(uiData[i].valid);
+                //console.log(JSON.stringify(uiData[i]));
                 if(uiData[i].valid){
                         saveObject.popData.push(uiData[i]);
                 }
         }
-        
+
         console.log("found " + saveObject.popData.length + " valid populations");
         return saveObject;
 }
@@ -219,11 +219,13 @@ function synchPersisObject(){
         if(pos > -1){
                 saveObject.created = currentSaves[pos].created;
                 localStorage.setItem('entry' + pos, JSON.stringify(saveObject));
+                notifyMessage("Project autosave updated", 3);
         }
         else{
                 var numEntries = parseInt(localStorage.getItem('numEntries'));
                 localStorage.setItem('entry' + numEntries, JSON.stringify(saveObject));
                 localStorage.setItem('numEntries', numEntries + 1);
+                notifyMessage("Project autosave created", 5);
         }
 }
 
@@ -258,21 +260,6 @@ function setupPersistConfigs(){
                 document.getElementById("persistMessage").innerHTML = "Found " + parseInt(entries) + " saved simulation(s).";
                 container.classList.remove("hide");
         }
-}
-
-//persist test function
-function loadMostRecentConfig(){
-        console.log("load most recent config");
-        var entries = getPersistObjects();
-        for(let i = 0; i < entries.length; i++){
-                console.log(entries[i]);
-        }
-
-        loadSimConfig(entries[entries.length - 1].config);
-        document.getElementById("parameterSetupTab").disabled = false;
-        document.getElementById("resetButton").classList.remove("hide");
-        document.getElementById("newSimButton").innerHTML = "Continue";
-        //changeTab("parameterSetup");
 }
 
 function deleteConfigByID(persistID){
@@ -415,10 +402,12 @@ function loadConfigByID(persistID, isCopy){
                         synchPersisObject();
                 }
                 else{
+                        console.log("*****loadConfigbyid addrow called");
                         addRow("popTable", -1);
                         document.getElementById("parameterSetupTab").disabled = false;
                         document.getElementById("resetButton").classList.remove("hide");
-                        document.getElementById("newSimButton").innerHTML = "Continue";
+                        document.getElementById("continueSimButton").classList.remove("hide");
+                        document.getElementById("newSimButton").classList.add("hide");
                         changeTab("parameterSetup");
                 }
         }

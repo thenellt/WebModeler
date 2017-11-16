@@ -1,3 +1,4 @@
+11/15/17 v17 - Autosave system is working and has an interface. Last major feature to work on is the output page. \n
 10/26/17 v16a - More cleanup and a few tests for the persistent storage system. \n
 10/25/17 v16 - Massive backend changes to how all population data is stored and move around. Fixes using the table, allows the simulation to run offline, save/load system is much more functional and other backend cleanup. \n
 10/23/17 v15 - Many ui improvements: reset button, default parameters button, rerunable simulations, populations in save files, and many bugfixes. \n

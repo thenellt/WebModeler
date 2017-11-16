@@ -29,10 +29,9 @@ function newSimulation(){
         console.log("new simulation setup with ID: " + simID);
         document.getElementById("parameterSetupTab").disabled = false;
         document.getElementById("resetButton").classList.remove("hide");
-        var newSimButton = document.getElementById("newSimButton")
-        newSimButton.innerHTML = "Continue";
-        newSimButton.onclick = function() {changeTab("parameterSetup");};
-        
+        document.getElementById("newSimButton").classList.add("hide");
+        document.getElementById("continueSimButton").classList.remove("hide");
+
         changeTab("parameterSetup");
 }
 
@@ -98,10 +97,9 @@ function resetSimulation(){
         document.getElementById("popSetupTab").disabled = true;
         document.getElementById("resultsPageTab").disabled = true;
         document.getElementById("resetButton").classList.add("hide");
-        var newSimButton = document.getElementById("newSimButton")
-        newSimButton.innerHTML = "New Simulation";
-        newSimButton.onclick = newSimulation;
-        
+        document.getElementById("continueSimButton").classList.add("hide");
+        document.getElementById("newSimButton").classList.remove("hide");
+
         emptyTable();
 }
 
@@ -344,11 +342,12 @@ function changeToPopulations(){
                 changeTab('popSetup');
         }
 }
+
 function changeToGetStarted(){
         let contentDiv = document.getElementById("getStarted");
+        let outputDiv = document.getElementById("resultsPage");
         if(contentDiv.style.display == "none"){
-                synchPersisObject();
-                console.log("updating persist saves");
+                console.log("updating persist display");
                 var saveContainer = document.getElementById("persistSaveContainer");
                 while (saveContainer.firstChild) {
                         saveContainer.removeChild(saveContainer.firstChild);
@@ -359,7 +358,6 @@ function changeToGetStarted(){
                 changeTab('getStarted');
         }
 }
-
 
 function changeToOutput(){
         document.getElementById("resultMapDiv").appendChild(document.getElementById("popMapDiv"));
@@ -380,6 +378,20 @@ function changeToOutput(){
                 map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
                 map.updateSize();
         }
+}
+
+function notifyMessage(text, time){
+        document.getElementById("notificationText").innerHTML = text;
+        let element = document.getElementById("notificationContainer");
+        element.classList.add("scale-int")
+        element.classList.remove("scale-out");
+        window.setTimeout(closeNotifyMessage, time * 1000);
+}
+
+function closeNotifyMessage(){
+        let element = document.getElementById("notificationContainer");
+        element.classList.add("scale-out")
+        element.classList.remove("scale-in");
 }
 
 function populateDefaultValues(){
