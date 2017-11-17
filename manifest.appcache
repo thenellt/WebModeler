@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# manifest v5
+# manifest v6
 
 CACHE:
 index.html
@@ -9,16 +9,19 @@ jsDev/model.js
 jsDev/testFunctions.js
 jsDev/saveLoad.js
 jsDev/FileSaver.min.js
+jsDev/stats.js
 
 js/floatingContent.js
 js/main.js
 js/materialize.min.js
 js/table.js
 js/tabs.js
+js/chartist.min.js
 
 css/materialize.min.css
 css/otherStyle.css
 css/table.css
+css/chartist.min.css
 
 
 NETWORK:

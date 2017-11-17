@@ -109,7 +109,7 @@ function removePopFromMapById(popId){
         if(!source){
                 return;
         }
-        
+
         var features = source.getFeatures();
         for(var j = 0; j < features.length; j++){
                 if(features[j].get('description') == popId){
@@ -126,7 +126,7 @@ function addPopToMap(popId, popName, long, lat){
         var tempPoint = new ol.geom.Point(
                 [long, lat]
         );
-        
+
         var tempFeature = new ol.Feature(tempPoint);
         tempFeature.set('description', popId);
         tempFeature.set('name', popName);
@@ -241,7 +241,7 @@ function runSimulation(curYear){
                         }
                 }
         }
-        
+
         if(curYear + 1 < years){
                 //runSimulation(curYear + 1);
                 //generateCanvas(curYear);
@@ -252,6 +252,7 @@ function runSimulation(curYear){
                 generateCanvas(curYear, 1);
                 synchPersisObject();
                 changeToOutput();
+                createTestChart();
         }
 }
 
@@ -272,20 +273,20 @@ function setupGradient(){
         hotColor[0] = parseInt(highColorCode.substring(0, 2) , 16);
         hotColor[1] = parseInt(highColorCode.substring(2, 4) , 16);
         hotColor[2] = parseInt(highColorCode.substring(4, 6) , 16);
-        
+
         var coolColor = [];
         coolColor[0] = parseInt(lowColorCode.substring(0, 2) , 16);
         coolColor[1] = parseInt(lowColorCode.substring(2, 4) , 16);
         coolColor[2] = parseInt(lowColorCode.substring(4, 6) , 16);
-        
+
         console.log("hot color: " + hotColor + " and cool color: " + coolColor);
 
         var redRange = hotColor[0] - coolColor[0];
         var greenRange = hotColor[1] - coolColor[1];
         var blueRange = hotColor[2] - coolColor[2];
-        
+
         var gradientSteps = carryCapacity - 1;
-        
+
         for(var i = 0; i <= gradientSteps; i++){
                 var colorOffset = i / (gradientSteps);
                 var tempColor = [];
@@ -294,7 +295,7 @@ function setupGradient(){
                 tempColor[2] = Math.round(blueRange * colorOffset) + coolColor[2];
                 gradient.push(tempColor.slice());
         }
-        
+
         console.log(gradient);
         return gradient;
 }
@@ -303,9 +304,9 @@ function placePopulation(e){
         var tempFeatures = [];
         map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
                 tempFeatures.push(feature);
-                
+
         }, {hitTolerance: 5});
-        
+
         if(!tempFeatures.length){
                 showPopEditor(e.coordinate);
         }
@@ -327,7 +328,7 @@ function setupOlInputMap(){
                 fill: new ol.style.Fill({ color: [0, 255, 0, 0.3]})
         });
         features = new ol.source.Vector();
-        
+
         map = new ol.Map({
                 target: 'popMapDiv', //'map_canvas',
                 layers: [
@@ -346,7 +347,7 @@ function setupOlInputMap(){
                 }),
                 controls: []
         });
-        
+
         pointVector = new ol.layer.Vector({
                 source: source,
                 style: new ol.style.Style({
@@ -356,17 +357,17 @@ function setupOlInputMap(){
                 })
         });
         map.addLayer(pointVector);
-        
+
         addPopFunction = map.on('click', placePopulation);
         map.updateSize();
 }
 
 function drawHeatMap(matrix){
         console.log("starting drawHeatMap: ");
-        
+
         var gradient = setupGradient();
         var gradientSteps = carryCapacity - 1;
-        
+
         for(var y = 0; y < ySize - 1; y++){
                 console.log("starting row: " + y);
                 for(var x = 0; x < xSize - 1; x++){
@@ -382,7 +383,7 @@ function drawHeatMap(matrix){
                                 name: ("pos" + x + "," + y),
                                 geometry: tempPolygon
                         });
-                        
+
                         var gradientPosition = Math.ceil(gradientSteps * (1 - (grid[years][y][x] / carryCapacity)));
                         if(gradientPosition < 0 || !gradientPosition){
                                 gradientPosition = 0;
@@ -395,7 +396,7 @@ function drawHeatMap(matrix){
                         features.addFeature(tempFeature);
                 }
         }
-        
+
         pointVector.setVisible(false);
 }
 
@@ -414,7 +415,7 @@ function generateCanvas(curYear, scale){
         //towns[0].printOfftake();
         var gradient = setupGradient();
         var gradientSteps = carryCapacity - 1;
-        
+
         canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
 
@@ -457,22 +458,22 @@ function generateCanvas(curYear, scale){
         canvasImage.id = 'image' + curYear;
 
         canvasImage.src = canvas.toDataURL();
-        
+
         canvasImage.onload = function(){
                 console.log("picture: " + canvasImage.naturalHeight);
                 console.log("picture: " + canvasImage.naturalWidth);
                 document.getElementById("rawHeatmapContainer").appendChild(canvasImage);
-                
+
                 var tempLength = geoGrid.length - 1;
                 var tempPoint = geoGrid[tempLength][geoGrid[tempLength].length - 1]
-                
+
                 console.log("top corner: " + geoGrid[0][0] + " bot corner: " + tempPoint);
                 console.log("extent: " + [geoGrid[0][0][1], tempPoint[0], tempPoint[1], geoGrid[0][0][0]]);
-                
+
                 if(imageLayer){
                         map.removeLayer(imageLayer);
                 }
-                
+
                 imageLayer = new ol.layer.Image({
                         opacity: 0.8,
                         source: new ol.source.ImageStatic({
@@ -482,14 +483,14 @@ function generateCanvas(curYear, scale){
                             imageExtent: [geoGrid[0][0][1], tempPoint[0], tempPoint[1], geoGrid[0][0][0]]
                         })
                 });
-                
+
                 imageLayer.set('name', 'imgLayer');
-                
+
                 /*
                 var projection = new ol.proj.Projection({
                         projection: 'EPSG:4326'
                 });
-                
+
                 var map2 = new ol.Map({
                         layers: [
                           new ol.layer.Image({
