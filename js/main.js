@@ -93,6 +93,7 @@ function resetSimulation(){
                 }
         }
 
+        document.getElementById("statsPageTab").disabled = true;
         document.getElementById("parameterSetupTab").disabled = true;
         document.getElementById("popSetupTab").disabled = true;
         document.getElementById("resultsPageTab").disabled = true;
@@ -363,6 +364,7 @@ function changeToOutput(){
         document.getElementById("resultMapDiv").appendChild(document.getElementById("popMapDiv"));
         olmapLocation = 1;
         document.getElementById("resultsPageTab").disabled = false;
+        document.getElementById("statsPageTab").disabled = false;
         changeTab('resultsPage');
         ol.Observable.unByKey(addPopFunction);
 

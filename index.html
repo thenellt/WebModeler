@@ -29,9 +29,9 @@
                                 <div class="tab">
                                         <button id="getStartedTab" class="tablinks waves-effect waves-light defaultOpen" onclick="changeToGetStarted()">Get Started</button>
                                         <button id="parameterSetupTab" class="tablinks waves-effect waves-light" onclick="changeTab('parameterSetup')">Simulation Parameters</button>
-                                        <button id="popSetupTab" class="tablinks waves-effect waves-light" onclick="changeToPopulations()">Setup Populations</button>
-                                        <button id="tab4" class="tablinks waves-effect waves-light" onclick="changeTab('page2')">Simulation Overview</button>
-                                        <button id="resultsPageTab" class="tablinks waves-effect waves-light" onclick="changeToOutput()">Results</button>
+                                        <button id="popSetupTab" class="tablinks waves-effect waves-light" onclick="changeToPopulations()" style=" border-bottom: 1px solid LightGrey;">Setup Populations</button>
+                                        <button id="resultsPageTab" class="tablinks waves-effect waves-light" onclick="changeToOutput()">Visual Results</button>
+                                        <button id="statsPageTab" class="tablinks waves-effect waves-light" onclick="changeTab('statsPage')">Statistical Results</button>
                                         <div class="fillertab"></div>
                                 </div>
                         </td>
@@ -259,6 +259,9 @@
                                                         <a class="waves-effect waves-light btn" onclick="saveImgToFile(1);">Save Map Image</a>
                                                 </div>
                                         </div>
+                                </div>
+                                <div class="tabcontent" id="statsPage">
+                                        
                                 </div>
                         </td>
                 </tr>
