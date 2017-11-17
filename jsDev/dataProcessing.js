@@ -1,11 +1,46 @@
 
-function createTestChart(){
+function generateCDFBins(year){
+        var numCells = 0;
+        var dataValues = new Array(11);
+        for(let i = 0; i < dataValues.length; i++){
+                dataValues[i] = 0;
+        }
+
+        console.log("dataValues starting: " + dataValues);
+
+        grid[year].forEach(function(element){
+                element.forEach(function(ele){
+                        numCells++;
+                        let temp = ele / (1.0 * carryCapacity);
+                        if(temp > .99){
+                                dataValues[10]++;
+                        }
+                        else{
+                                dataValues[Math.floor(temp * 10)]++;
+                        }
+                });
+        });
+
+        console.log("num cells counted: " + numCells);
+        console.log("cell values: " + dataValues);
+        for(let i = 0; i < dataValues.length; i++){
+                dataValues[i] = parseFloat(dataValues[i] / (1.0 *numCells));
+        }
+
+        console.log("cell post normalize: " + dataValues);
+
+        return dataValues;
+}
+
+function createCDFChart(){
+        let densities = generateCDFBins(years);
+
         var data = {
           // A labels array that can contain any sort of values
-          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+          labels: ['K0', 'K1','K2','K3','K4','K5','K6','K7','K8','K9','k10'],
           // Our series array that contains series objects or in this case series data arrays
           series: [
-            [5, 2, 4, 2, 0]
+            densities
           ]
         };
         var options = {
@@ -13,11 +48,23 @@ function createTestChart(){
                 height: 300
         };
 
-        new Chartist.Line('.ct-chart', data, options);
+        new Chartist.Bar('.ct-chart', data, options);
+}
+
+function rawHMYearInput(value){
+        console.log("raw heatmap year changed: " + value);
+        document.getElementById("previewYearText").innerHTML = value;
+        //TODO change preview image
+}
+
+function rawHWScaleInput(value){
+
 }
 
 function setupOutputRanges(){
-
+        document.getElementById("heatmapYear").max = years;
+        document.getElementById("overlayYear").max = years;
+        document.getElementById("csvNumberInput").max = years;
 }
 
 function generateCSV(yearNum){
@@ -51,5 +98,3 @@ function csvAllYears(){
                 saveAs(content, simName + "_csvData.zip");
         });
 }
-
-console.log("hello from the stats file :)");

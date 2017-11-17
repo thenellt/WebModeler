@@ -252,7 +252,8 @@ function runSimulation(curYear){
                 generateCanvas(curYear, 1);
                 synchPersisObject();
                 changeToOutput();
-                createTestChart();
+                setupOutputRanges();
+                createCDFChart();
         }
 }
 

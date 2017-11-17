@@ -163,7 +163,7 @@
                                         <div id="popMapContent" class="hide" style="height: 80%; width 100%;">
                                                 <div class="divider" style="margin-bottom: 4px;"></div>
                                                 <div class="row" id="popMapRow">
-                                                        <div id="popMapDiv" class="map" style="min-height: 500px; min-width: 600px;"></div>
+                                                        <div id="popMapDiv" class="map" style="height: 500px; min-width: 600px;"></div>
                                                 </div>
                                                 <div class="divider" style="margin-top: 4px; margin-bottom: 8px;"></div>
                                                 <div class="row">
@@ -246,35 +246,98 @@
                                         </div>
                                         <div class="divider" style="margin-bottom: 4px;"></div>
                                         <div class="row">
+                                                <div class="col s12">
+                                                        The saved image will look exactly as you see it below. Zoom or pan the map preview to select the area to save.
+                                                </div>
+                                        </div>
+                                        <div class="row" style="margin-bottom: 0px;">
+                                                <div class="col s2 offset-s6">
+                                                         Heatmap Year:
+                                                </div>
+                                                <div class="col s1">
+                                                        <input type="number" min="0" step="1" value="0" id="overlayYear">
+                                                </div>
+                                                <div class="col s3">
+                                                        <a class="waves-effect waves-light btn saveButton" onclick="saveImgToFile(1);">Save Image</a>
+                                                </div>
+                                        </div>
+                                        <div class="row">
                                                 <div id="resultMapDiv"></div>
                                         </div>
                                         <div class="divider" style="margin-bottom: 4px;"></div>
-                                        <div class="row" id="rawHeatmapContainer"></div>
                                         <div class="row">
-                                                <div class="col s3 offset-s3">
-                                                        <a class="waves-effect waves-light btn" onclick="saveSimToFile();">Save Parameters</a>
+                                                <div class="col s6">
+                                                        <h5>Save standalone heatmaps:</h5>
                                                 </div>
-                                                <div class="col s3">
-                                                        <a class="waves-effect waves-light btn" onclick="saveImgToFile(0);">Save Raw Image</a>
+                                        </div>
+                                        <div class="row">
+                                                <div class="col s4">
+                                                        <div id="rawHeatmapContainer"></div>
                                                 </div>
-                                                <div class="col s3">
+                                                <div class="col s6">
+                                                        <div class="row">
+                                                                <div class="col s6" style="margin-top: 10px;">
+                                                                        Set heatmap scale (1 is 100%):
+                                                                </div>
+                                                                <div class="col s4">
+                                                                        <div id="rawHeatmapPixelSize"></div>
+                                                                </div>
+                                                                <div class="col s2">
+                                                                        <input type="number" min="1" max="8" step="1" value="1" id="heatmapScale" style="margin-bottom: 0px;" onchange="rawHWScaleInput(this.value)">
+                                                                </div>
+                                                        </div>
+                                                        <div class="row">
+                                                                <div class="col s3" style="margin-top: 10px;">
+                                                                        Year:
+                                                                </div>
+                                                                <div class="col s2">
+                                                                        <input type="number" min="0" step="1" value="0" id="heatmapYear" style="margin-bottom: 0px;" onchange="rawHMYearInput(this.value)">
+                                                                </div>
+                                                                <div class="col s6 offset-s1">
+                                                                        <a class="waves-effect waves-light btn" onclick="saveImgToFile(0);">Save Single Year</a>
+                                                                </div>
+                                                        </div>
+                                                        <div class="row">
+                                                                <div class="col s6 offset-s6">
+                                                                        <a class="waves-effect waves-light btn" onclick="saveImgToFile(0);">Save All Years</a>
+                                                                </div>
+                                                        </div>
+                                                </div>
+                                                <!--<div class="col s3">
                                                         <a class="waves-effect waves-light btn" onclick="saveImgToFile(1);">Save Map Image</a>
+                                                </div> -->
+                                        </div>
+                                        <div class="row">
+                                                <div class="col s2">
+                                                        Preview of year:
+                                                </div>
+                                                <div class="col s1" id="previewYearText">
+                                                        0
                                                 </div>
                                         </div>
                                 </div>
                                 <div class="tabcontent" id="statsPage">
-                                        Test chart 1
+                                        <div class="row">
+                                                <div class="col s12" style="margin-bottom: 0px;">
+                                                        <h4>Graphs</h4>
+                                                </div>
+                                        </div>
+                                        <div class="divider"></div>
                                         <div class="row">
                                                 <div class="col s12" id="chartContainer">
                                                         <div class="ct-chart ct-perfect-fourth" id="myFirstChart">
                                                         </div>
                                                 </div>
                                         </div>
-                                        <div class="ct-chart ct-perfect-fourth" id="myFirstChart">
+                                        <div class="row" style="margin-bottom: 0px;">
+                                                <div class="col s12">
+                                                        <h4>Save Data Files</h4>
+                                                </div>
                                         </div>
+                                        <div class="divider"></div>
                                         <div class="row">
                                                 <div class="col s5" id="csvOptions">
-                                                        <h5>Save Data yearly data (CSVs): </h5>
+                                                        <h5>Save yearly depletion data (CSVs): </h5>
                                                 </div>
                                                 <div class="col s1">
                                                         <input type="number" min="0" step="1" value="0" id="csvNumberInput">
@@ -284,6 +347,14 @@
                                                 </div>
                                                 <div class="col s3">
                                                         <a class="waves-effect waves-light btn saveButton" onclick="csvAllYears()">All Years</a>
+                                                </div>
+                                        </div>
+                                        <div class="row">
+                                                <div class="col s9">
+                                                        <h5>Save the simulation configuration to file:</h5>
+                                                </div>
+                                                <div class="col s3">
+                                                        <a class="waves-effect waves-light btn saveButton" onclick="saveSimToFile();">Save Parameters</a>
                                                 </div>
                                         </div>
                                 </div>
