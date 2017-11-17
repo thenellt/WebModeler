@@ -9,7 +9,7 @@ jsDev/model.js
 jsDev/testFunctions.js
 jsDev/saveLoad.js
 jsDev/FileSaver.min.js
-jsDev/stats.js
+jsDev/dataProcessing.js
 
 js/floatingContent.js
 js/main.js
