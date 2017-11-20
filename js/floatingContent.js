@@ -2,8 +2,8 @@ var logVisibility = 0;
 var backgroundVisibility = 0;
 var otherPopup = 0;
 
-//pure javascript fade and unfade from: https://stackoverflow.com/questions/6121203/how-to-do-fade-in-and-fade-out-with-javascript-and-css
-var fadeOut = function(element) {
+//fade and unfade from: https://stackoverflow.com/questions/6121203/how-to-do-fade-in-and-fade-out-with-javascript-and-css
+function fadeOut(element) {
         var op = 1;  // initial opacity
         var timer = setInterval(function () {
                 if (op <= 0.1){
@@ -16,12 +16,12 @@ var fadeOut = function(element) {
         }, 10);
 }
 
-var fadeIn = function(element) {
+function fadeIn(element) {
         var op = 0.1;  // initial opacity
         element.style.opacity = op;
         element.style.visibility = "visible";
         var timer = setInterval(function () {
-                if (op >= .8){
+                if (op >= 0.8){
                         clearInterval(timer);
                 }
                 element.style.opacity = op;
@@ -30,9 +30,9 @@ var fadeIn = function(element) {
         }, 10);
 }
 
-var toggleChangelog = function() {
+function toggleChangelog() {
         console.log("toggleChangelog called");
-        var changeDiv = document.getElementById('changelogContent')
+        var changeDiv = document.getElementById('changelogContent');
         var hidepage = document.getElementById("hidepage");
         if(backgroundVisibility){
                 var backgroundDiv = document.getElementById("backgroundContent");
@@ -63,10 +63,7 @@ var toggleChangelog = function() {
         }
 }
 
-var changelogButton = document.getElementById("changelogButton");
-changelogButton.addEventListener('click', toggleChangelog);
-
-var toggleBackground = function() {
+function toggleBackground() {
         console.log("toggleBackground called");
         var backgroundDiv = document.getElementById("backgroundContent");
         var hidepage = document.getElementById("hidepage");
@@ -99,18 +96,15 @@ var toggleBackground = function() {
         }
 }
 
-var backgroundButton = document.getElementById("backgroundButton");
-backgroundButton.addEventListener('click', toggleBackground);
-
 //taken from a handy stack overflow: https://stackoverflow.com/questions/27840222/how-can-i-load-the-contents-of-a-small-text-file-into-a-javascript-var-wo-jquery
-var readLocalFile = function (url, type, callback) {
+function readLocalFile(url, type, callback) {
         var xhr = new XMLHttpRequest();
         xhr.onload = function () {
                 callback(this.responseText);
         };
         xhr.open(type, url);
         xhr.send();
-};
+}
 
 readLocalFile("./changelog.txt", 'GET', function(responseText) {
         var splitLog = responseText.split("\n");

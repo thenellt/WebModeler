@@ -119,3 +119,48 @@ div.tab button.active {
 #map {
         height: 400px;
 }
+
+#persistSaveContainer {
+        max-height: 600px;
+        overflow: auto;
+        border-style: solid;
+        border-width: 1px;
+        border-color: LightGrey;
+        margin-right: 4px;
+}
+
+/*
+#rawHeatmapContainer {
+        border-style: solid;
+        border-width: 1px;
+        border-color: LightGrey;
+}
+*/
+
+.persistSave {
+        margin: 4px;
+        background-color: WhiteSmoke;
+}
+
+.saveButton {
+        margin-top: 5px;
+}
+
+.saveText {
+        margin-top: 6px;
+}
+
+.notification {
+        position: fixed;
+        bottom: 40px;
+        left: 15px;
+        margin: 0 auto;
+        width: 350px;
+        height: 80px;
+        z-index: 25;
+}
+
+img {
+    max-width: 100%;
+    max-height: 100%;
+}

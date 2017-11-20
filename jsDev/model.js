@@ -1,3 +1,4 @@
+//simulation parameters
 var xSize;
 var ySize;
 var animalDiffRate;
@@ -10,54 +11,55 @@ var theta;
 var carryCapacity;
 var years;
 var diffusionSamples;
+var lowColorCode = "";
+var highColorCode = "";
+var simName = "";
+var simID;
 
-var towns = [];
-
-
-var buffer;
+//model arrays
 var grid;
-
-var yearlyGrid;
+var diffusionGrid;
 var growth;
 var effort;
-var grid;
+var towns = [];
 
 var curImage;
 
+//ol maps variables
 var map;
 var features;
-
 var source = new ol.source.Vector({wrapX: false});
 var popLabelFeatures = [];
 var pointVector;
+var canvas;
+var canvasImage;
+var imageLayer;
+var addPopFunction;
 
-var lowColorCode = "ffeda0";
-var highColorCode = "f03b20";
-var gradientSteps;
-//var gradient = [];
 
 function getRandomInt(min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min)) + min;
 }
 
-function town(long, lat, pop, killRate, name, growth){
+function town(long, lat, pop, killRate, name, growth, id){
+        if(id === 0){
+                let tempDate = new Date();
+                this.id = tempDate.valueOf();
+        }
+        else{
+                this.id = id;
+        }
         this.long = long;
         this.lat = lat;
-        //this.x = x;
-        //this.y = y;
         this.growthRate = growth;
         this.population = pop;
         this.killRate = killRate;
         this.name = name;
-        this.offtake = new Array(years).fill(0.0);
+        this.offtake = []; //new Array(years).fill(0.0);
         this.getPop = function (year) {
-                //if(year > 10){
-                        //console.log("returned 0");
-                //        return 0;
-                //}
-                return this.population;
+                return this.population*Math.pow(1 + this.growthRate, year);
         };
 
         this.printOfftake = function(){
@@ -87,7 +89,7 @@ function styleFunction() {
                                 stroke: new ol.style.Stroke({
                                         color: '#fff', width: 2
                                 }),
-                                text: this.get('description'),
+                                text: this.get('name'),
                                 offsetY: 13
                         }),
                         image: new ol.style.Circle({
@@ -102,104 +104,87 @@ function styleFunction() {
         ];
 }
 
-function addVillage(x, y, pop, kills, name, growth){
-        var tempPoint = new ol.geom.Point(
-                [x, y]
-        );
-        
-        var tempFeature = new ol.Feature(tempPoint);
-        tempFeature.set('description', name);
-        tempFeature.setStyle(styleFunction);
-        source.addFeature(tempFeature);
-        
-        towns.push(new town(parseFloat(x), parseFloat(y), pop, kills, name, growth));
+function removePopFromMapById(popId){
+        if(!source){
+                return;
+        }
+
+        var features = source.getFeatures();
+        for(var j = 0; j < features.length; j++){
+                if(features[j].get('description') == popId){
+                        source.removeFeature(features[j]);
+                        break;
+                }
+        }
 }
 
-function setupSim(){
+function addPopToMap(popId, popName, long, lat){
+        if(!source){
+                return;
+        }
+        var tempPoint = new ol.geom.Point(
+                [long, lat]
+        );
+
+        var tempFeature = new ol.Feature(tempPoint);
+        tempFeature.set('description', popId);
+        tempFeature.set('name', popName);
+        tempFeature.setStyle(styleFunction);
+        source.addFeature(tempFeature);
+}
+
+function setupSimDefaults(){
         curImage = 0;
-        xSize = geoGrid[0].length;
-        ySize = geoGrid.length;
-        console.log("setupSim grid size: " + xSize + ", " + ySize);
         animalDiffRate = 0.1;
         animalGrowthRate = 0.07;
-        killProb = .1;
+        killProb = 0.1;
         HpHy = 40;
-        encounterRate = .02043;
+        encounterRate = 0.02043;
         carryCapacity = 25;
         theta = 1;
         years = 10;
         diffusionSamples = 1;
-        huntRange = 10;
-
-        grid = new Array(years + 1);
-
-        yearlyGrid = new Array(ySize);
-        growth = new Array(ySize);
-        effort = new Array(ySize);
-
-        for(var i = 0; i < years + 1; i++){
-                grid[i] = new Array(ySize);
-                for(var j = 0; j < ySize; j++){
-                        grid[i][j] = new Array(xSize).fill(carryCapacity);
-                }
-        }
-        
-        gradientSteps = carryCapacity - 1;
-
-        for(var k = 0; k < ySize; k++){
-                yearlyGrid[k] = new Array(xSize).fill(0.0);
-                growth[k] = new Array(xSize).fill(0.0);
-                effort[k] = new Array(xSize).fill(0.0);
-        }
+        huntRange = 5;
+        lowColorCode = "ffeda0";
+        highColorCode = "f03b20";
+        simName = "defaultName";
 }
 
 function runSimulation(curYear){
-        //var count;
+        console.log("modeling year number: " + curYear + " with " + diffusionSamples + " samples");
         var top, bot, locationValue;
-
+        var up, down, center, right, left;
+        var x, y;
         for(var j = 0; j < ySize; j++){
-                yearlyGrid[j].fill(0.0);
+                diffusionGrid[j].fill(0.0);
         }
 
-        //for(var curYear = 0; curYear < years; curYear++){ //10 is years
-        console.log("starting year number: " + curYear);
-        //count = 0;
-        var a, b, c, d, e;
-        var x, y;
-        //d*(n[year,i+1,j]+n[year,i-1,j])+(1-4*d)*n[year,i,j]+d*(n[year,i,j+1]+n[year,i,j-1])
+        //d*[i+1,j] + d*[i-1,j] + d*[i,j+1] + d*[i,j-1] + ([i,j] - 4*d*[i,j])
+        //D*a       + D*b       + D*d       + D*e       + (c     - 4*D*c    )
+        //TODO check diffusion sample calculation correctness
         for(var i = 0; i < diffusionSamples; i++){
                 console.log("running diff sample: " + i);
-                for(y = 0; y < ySize; y++){
-                        for(x = 0; x < xSize; x++){
-                                if(y > 0 && y < ySize - 1){
-                                        if(x > 0 && x < xSize - 1){
-                                                /*
-                                                a = yearlyGrid[y+1][x] + grid[curYear][y+1][x];
-                                                b = yearlyGrid[y-1][x] + grid[curYear][y-1][x];
-                                                c = yearlyGrid[y][x] + grid[curYear][y][x];
-                                                d = yearlyGrid[y][x+1] + grid[curYear][y][x+1];
-                                                e = yearlyGrid[y][x-1] + grid[curYear][y+1][x-1];
-                                                */
-                                                a = grid[curYear][y+1][x];
-                                                b = grid[curYear][y-1][x];
-                                                c = grid[curYear][y][x];
-                                                d = grid[curYear][y][x+1];
-                                                e = grid[curYear][y+1][x-1];
-                                                if(i !== 0){
-                                                        yearlyGrid[y][x] += animalDiffRate * (a + b + d + e - (4 * c));
-                                                        //yearlyGrid[y][x] += (animalDiffRate*(a + b) + (1-4*animalDiffRate)*(c + animalDiffRate*(d + e)))/diffusionSamples;
-                                                }
-                                                else{
-                                                        yearlyGrid[y][x] = animalDiffRate * (a + b + d + e - (4 * c));
-                                                        //yearlyGrid[y][x] = (animalDiffRate*(a + b) + (1-4*animalDiffRate)*(c + animalDiffRate*(d + e)))/diffusionSamples;
-                                                }
-                                        }
-                                        else{
-                                                yearlyGrid[y][x] = carryCapacity;
-                                        }
+                for(y = 1; y < ySize - 1; y++){
+                        for(x = 1; x < xSize - 1; x++){
+                                if(i !== 0){
+                                        //diffusionGrid[y][x] += (animalDiffRate*(a + b) + (1-4*animalDiffRate)*(c + animalDiffRate*(d + e)))/diffusionSamples;
+                                        up     = grid[curYear][y+1][x] + diffusionGrid[y+1][x];
+                                        down   = grid[curYear][y-1][x] + diffusionGrid[y-1][x];
+                                        center = grid[curYear][y][x] + diffusionGrid[y][x];
+                                        right  = grid[curYear][y][x+1] + diffusionGrid[y][x+1];
+                                        left   = grid[curYear][y][x-1] + diffusionGrid[y][x-1];
+                                        //diffusionGrid[y][x] += (animalDiffRate * (up + down + right + left) + (center - 4 * animalDiffRate * center)) / diffusionSamples;
+                                        diffusionGrid[y][x] = (animalDiffRate * (up + down + left + right - (4 * center))) / diffusionSamples;
                                 }
                                 else{
-                                        yearlyGrid[y][x] = carryCapacity;
+                                        //diffusionGrid[y][x] = (animalDiffRate*(a + b) + (1-4*animalDiffRate)*(c + animalDiffRate*(d + e)))/diffusionSamples;
+                                        up     = grid[curYear][y+1][x];
+                                        down   = grid[curYear][y-1][x];
+                                        center = grid[curYear][y][x];
+                                        right  = grid[curYear][y][x+1];
+                                        left   = grid[curYear][y][x-1];
+                                        //diffusionGrid[y][x] = (animalDiffRate * (up + down + right + left) + (center - 4 * animalDiffRate * center)) / diffusionSamples;
+                                        diffusionGrid[y][x] = (animalDiffRate * (up + down + left + right - (4 * center))) / diffusionSamples;
                                 }
                         }
                 }
@@ -207,35 +192,40 @@ function runSimulation(curYear){
 
         for(y = 0; y < ySize; y++){
                 for(x = 0; x < xSize; x++){
-                        for(var settleNum = 0; settleNum < towns.length; settleNum++){
-                                //((comlocation[numb,0]-i)**2+(comlocation[numb,1]-j)**2))
-                                //console.log("town info: " + towns[settleNum].x +  "," + towns[settleNum].y);
-                                locationValue = Math.pow(towns[settleNum].x - x, 2) + Math.pow(towns[settleNum].y - y, 2);
-                                //console.log(locationValue);
-                                //math.exp(-1/(2*std**2)*locationValue)
-                                top = Math.exp((-1)/(2*Math.pow(huntRange, 2)) * locationValue);
+                        if(y > 0 && y < ySize - 1){
+                                if(x > 0 && x < xSize - 1){
+                                        for(var settleNum = 0; settleNum < towns.length; settleNum++){
+                                                //((comlocation[numb,0]-i)**2+(comlocation[numb,1]-j)**2))
+                                                //console.log("town info: " + towns[settleNum].x +  "," + towns[settleNum].y);
+                                                locationValue = Math.pow(towns[settleNum].x - x, 2) + Math.pow(towns[settleNum].y - y, 2);
+                                                //console.log(locationValue);
+                                                //math.exp(-1/(2*std**2)*locationValue)
+                                                top = Math.exp((-1)/(2*Math.pow(huntRange, 2)) * locationValue);
 
-                                //(2*math.pi*math.sqrt(locationValue+1)
-                                bot = 2*Math.PI*Math.sqrt(locationValue + 1);
-                                //cout << "top: " << top << " bot: " << bot << endl;
-                                //console.log("Top: " + top + " bot: " + bot);
-                                if(settleNum === 0){
-                                        effort[y][x] = (HpHy*towns[settleNum].getPop(curYear)*top)/bot;
+                                                //(2*math.pi*math.sqrt(locationValue+1)
+                                                bot = 2*Math.PI*Math.sqrt(locationValue + 1);
+                                                //console.log("Top: " + top + " bot: " + bot);
+                                                if(settleNum === 0){
+                                                        effort[y][x] = (HpHy*towns[settleNum].getPop(curYear)*top)/bot;
+                                                }
+                                                else{
+                                                        effort[y][x] += (HpHy*towns[settleNum].getPop(curYear)*top)/bot;
+                                                }
+                                                //console.log("effort at: " + x + "," + y + " is: " + effort[y][x]);
+                                                towns[settleNum].offtake[curYear] += killProb * encounterRate * ((HpHy * towns[settleNum].getPop(curYear) * top)/bot) * grid[curYear][y][x];
+                                        }
+                                        //n[year,:,:]*lambdas-lambdas*n[year,:,:]*(n[year,:,:]/density)**theta
+                                        //growth[y][x] = animalGrowthRate*grid[curYear][y][x] - animalGrowthRate*grid[curYear][y][x]*Math.pow((grid[curYear][y][x]/carryCapacity), theta);
+                                        growth[y][x] = (animalGrowthRate * grid[curYear][y][x]) * (1 - (grid[curYear][y][x]/carryCapacity));
+                                        grid[curYear + 1][y][x] = grid[curYear][y][x] + diffusionGrid[y][x] + growth[y][x] - killProb*encounterRate*effort[y][x]*grid[curYear][y][x];
                                 }
                                 else{
-                                        effort[y][x] += (HpHy*towns[settleNum].getPop(curYear)*top)/bot;
+                                        grid[curYear + 1][y][x] = carryCapacity;
                                 }
-                                //cout << "effort at: " << x << " " << y << " " << effort[y][x] << endl;
-                                //console.log("effort at: " + x + "," + y + " is: " + effort[y][x]);
-                                towns[settleNum].offtake[curYear] += killProb * encounterRate * ((HpHy * towns[settleNum].getPop(curYear) * top)/bot) * grid[curYear][y][x];
                         }
-                        //n[year,:,:]*lambdas-lambdas*n[year,:,:]*(n[year,:,:]/density)**theta
-                        //growth[y][x] = animalGrowthRate*grid[curYear][y][x] - animalGrowthRate*grid[curYear][y][x]*Math.pow((grid[curYear][y][x]/carryCapacity), theta);
-                        growth[y][x] = (animalGrowthRate * grid[curYear][y][x]) * (1 - (grid[curYear][y][x]/carryCapacity));
-                        //cout << "yearly grid - stuff + growth" << endl;
-                        //cout << "yearly grid: " << yearlyGrid[y][x] << " stuff: " << killProb*encounterRate*effort[y][x]*grid[curYear][y][x] << " growth: " << growth[y][x] << endl;
-
-                        grid[curYear + 1][y][x] = grid[curYear][y][x] + yearlyGrid[y][x] + growth[y][x] - killProb*encounterRate*effort[y][x]*grid[curYear][y][x];
+                        else{
+                                grid[curYear + 1][y][x] = carryCapacity;
+                        }
                 }
         }
 
@@ -247,26 +237,22 @@ function runSimulation(curYear){
                 }
         }
 
-        //console.log("growth: ");
-        //printArray(growth);
-        //console.log("yearly grid: ");
-        //printArray(yearlyGrid);
-        
         if(curYear + 1 < years){
-                document.getElementById("progressBar").value = ((curYear + 1) / years) * 100;
-                console.log(document.getElementById("progressBar").value);
                 //runSimulation(curYear + 1);
                 //generateCanvas(curYear);
                 setTimeout(runSimulation, 10, curYear + 1);
+                updateProgressBar("Finished Year " + curYear, progressInc);
         }
         else{
-                document.getElementById("progressBar").style.display = "none";
                 //setVisibleImage(0);
-                //drawHeatMap(geoGrid);
-                generateCanvas(curYear, 8);
-                drawHeatMap(geoGrid);
+                updateProgressBar("Cleaning up...", 100);
+                generateCanvas(curYear, 1);
+                synchPersisObject();
+                changeToOutput();
+                setupOutputRanges();
+                createCDFChart();
+                closeProgressBar();
         }
-        
 }
 
 function printArray(array){
@@ -283,33 +269,56 @@ function printArray(array){
 function setupGradient(){
         var gradient = [];
         var hotColor = [];
-        hotColor[0] = parseInt(highColorCode.substring(0, 2) , 16);
-        hotColor[1] = parseInt(highColorCode.substring(2, 4) , 16);
-        hotColor[2] = parseInt(highColorCode.substring(4, 6) , 16);
-        
+        hotColor[0] = parseInt(highColorCode.substring(1, 3) , 16);
+        hotColor[1] = parseInt(highColorCode.substring(3, 5) , 16);
+        hotColor[2] = parseInt(highColorCode.substring(5, 7) , 16);
+
         var coolColor = [];
-        coolColor[0] = parseInt(lowColorCode.substring(0, 2) , 16);
-        coolColor[1] = parseInt(lowColorCode.substring(2, 4) , 16);
-        coolColor[2] = parseInt(lowColorCode.substring(4, 6) , 16);
-        
-        console.log(hotColor);
-        console.log(coolColor);
-        
+        coolColor[0] = parseInt(lowColorCode.substring(1, 3) , 16);
+        coolColor[1] = parseInt(lowColorCode.substring(3, 5) , 16);
+        coolColor[2] = parseInt(lowColorCode.substring(5, 7) , 16);
+
+        console.log("hot color: " + hotColor + " and cool color: " + coolColor);
+
         var redRange = hotColor[0] - coolColor[0];
         var greenRange = hotColor[1] - coolColor[1];
         var blueRange = hotColor[2] - coolColor[2];
-        
+
+        var gradientSteps = carryCapacity - 1;
+
         for(var i = 0; i <= gradientSteps; i++){
-                var colorOffset = i / gradientSteps;
+                var colorOffset = i / (gradientSteps);
                 var tempColor = [];
                 tempColor[0] = Math.round(redRange * colorOffset) + coolColor[0];
                 tempColor[1] = Math.round(greenRange * colorOffset) + coolColor[1];
                 tempColor[2] = Math.round(blueRange * colorOffset) + coolColor[2];
                 gradient.push(tempColor.slice());
         }
-        
+
         console.log(gradient);
         return gradient;
+}
+
+function placePopulation(e){
+        var tempFeatures = [];
+        map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
+                tempFeatures.push(feature);
+
+        }, {hitTolerance: 5});
+
+        if(!tempFeatures.length){
+                showPopEditor(e.coordinate);
+        }
+        else{
+                var tempId = tempFeatures[0].get('description');
+                console.log("existing feature clicked. Id: " + tempId);
+                for(var t = 0; t < uiData.length; t++){
+                        if(uiData[t].id == tempId){
+                                showPopUpdater(t);
+                                break;
+                        }
+                }
+        }
 }
 
 function setupOlInputMap(){
@@ -318,7 +327,7 @@ function setupOlInputMap(){
                 fill: new ol.style.Fill({ color: [0, 255, 0, 0.3]})
         });
         features = new ol.source.Vector();
-        
+
         map = new ol.Map({
                 target: 'popMapDiv', //'map_canvas',
                 layers: [
@@ -337,7 +346,7 @@ function setupOlInputMap(){
                 }),
                 controls: []
         });
-        
+
         pointVector = new ol.layer.Vector({
                 source: source,
                 style: new ol.style.Style({
@@ -346,41 +355,18 @@ function setupOlInputMap(){
                         image: new ol.style.Circle({radius: 7, fill: new ol.style.Fill({color: '#ffcc33'})})
                 })
         });
-
         map.addLayer(pointVector);
 
-        map.on('click', function(e){
-                var tempFeatures = [];
-                map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
-                        tempFeatures.push(feature);
-                        
-                }, {hitTolerance: 5});
-                console.log("results: " + tempFeatures.length);
-                if(!tempFeatures.length){
-                        showPopEditor(e.coordinate);
-                }
-                else{
-                        var tempName = tempFeatures[0].get('description');
-                        console.log("existing feature clicked" + tempName);
-                        for(var t = 0; t < towns.length; t++){
-                                if(towns[t].name == tempName){
-                                        showPopUpdater(t);
-                                        break;
-                                }
-                        }
-                        //console.log("couldn't find village to update...");
-                }
-        });
-        
-        
+        addPopFunction = map.on('click', placePopulation);
         map.updateSize();
 }
 
 function drawHeatMap(matrix){
         console.log("starting drawHeatMap: ");
-        
+
         var gradient = setupGradient();
-        
+        var gradientSteps = carryCapacity - 1;
+
         for(var y = 0; y < ySize - 1; y++){
                 console.log("starting row: " + y);
                 for(var x = 0; x < xSize - 1; x++){
@@ -396,7 +382,7 @@ function drawHeatMap(matrix){
                                 name: ("pos" + x + "," + y),
                                 geometry: tempPolygon
                         });
-                        
+
                         var gradientPosition = Math.ceil(gradientSteps * (1 - (grid[years][y][x] / carryCapacity)));
                         if(gradientPosition < 0 || !gradientPosition){
                                 gradientPosition = 0;
@@ -409,7 +395,7 @@ function drawHeatMap(matrix){
                         features.addFeature(tempFeature);
                 }
         }
-        
+
         pointVector.setVisible(false);
 }
 
@@ -427,8 +413,9 @@ function generateCanvas(curYear, scale){
         console.log("generating canvas for year: " + curYear + " and scale: " + scale);
         //towns[0].printOfftake();
         var gradient = setupGradient();
-        
-        var canvas = document.createElement('canvas');
+        var gradientSteps = carryCapacity - 1;
+
+        canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
 
         canvas.width = xSize * scale;
@@ -441,23 +428,13 @@ function generateCanvas(curYear, scale){
         for(var y = 0; y < ySize; y++) {
                 for(var row = 0; row < scale; row++){
                         for(var x = 0; x < xSize; x++) {
-                                /*
-                                var opacity = (1 - (grid[curYear][y][x] / carryCapacity)) * 255;
-                                for(var s = 0; s < scale; s++){
-                                        data[pos] = 255;           // some R value [0, 255]
-                                        data[pos + 1] = 0;           // some G value
-                                        data[pos + 2] = 0;           // some B value
-                                        data[pos + 3] = opacity;
-                                        pos += 4;
-                                }
-                                */
-                                //console.log("test: " + grid[curYear][y][x] / carryCapacity);
+                                //TODO talk to Taal about using floor vs ceiling
                                 var gradientPosition = Math.ceil(gradientSteps * (1 - (grid[curYear][y][x] / carryCapacity)));
                                 if(gradientPosition < 0 || !gradientPosition){
                                         for(var s = 0; s < scale; s++){
-                                                data[pos] = gradient[0][0];//gradient[gradientPosition][0];           // some R value [0, 255]
-                                                data[pos + 1] = gradient[0][1];//gradient[gradientPosition][1];           // some G value
-                                                data[pos + 2] = gradient[0][2];//gradient[gradientPosition][2];           // some B value
+                                                data[pos] = gradient[0][0];
+                                                data[pos + 1] = gradient[0][1];
+                                                data[pos + 2] = gradient[0][2];
                                                 data[pos + 3] = 255;
                                                 pos += 4;
                                         }
@@ -476,41 +453,76 @@ function generateCanvas(curYear, scale){
         }
 
         ctx.putImageData(imgData, 0, 0);
-        var image = new Image();
-        image.id = 'image' + curYear;
+        canvasImage = new Image();
+        canvasImage.id = 'image' + curYear;
 
-        image.src = canvas.toDataURL();
-        document.getElementById("heatMapContainer").style.display = "inline";
-        document.getElementById("heatMapCanvas").appendChild(image);
-}
+        canvasImage.src = canvas.toDataURL();
 
-function setVisibleImage(change){
-        var position = curImage + change;
-        if(position < 0){
-                position = 0;
+        canvasImage.onload = function(){
+                console.log("picture: " + canvasImage.naturalHeight);
+                console.log("picture: " + canvasImage.naturalWidth);
+                document.getElementById("rawHeatmapContainer").appendChild(canvasImage);
+
+                var tempLength = geoGrid.length - 1;
+                var tempPoint = geoGrid[tempLength][geoGrid[tempLength].length - 1]
+
+                console.log("top corner: " + geoGrid[0][0] + " bot corner: " + tempPoint);
+                console.log("extent: " + [geoGrid[0][0][1], tempPoint[0], tempPoint[1], geoGrid[0][0][0]]);
+
+                if(imageLayer){
+                        map.removeLayer(imageLayer);
+                }
+
+                imageLayer = new ol.layer.Image({
+                        opacity: 0.8,
+                        source: new ol.source.ImageStatic({
+                            url: canvasImage.src,
+                            imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
+                            projection: map.getView().getProjection(),
+                            imageExtent: [geoGrid[0][0][1], tempPoint[0], tempPoint[1], geoGrid[0][0][0]]
+                        })
+                });
+
+                imageLayer.set('name', 'imgLayer');
+
+                /*
+                var projection = new ol.proj.Projection({
+                        projection: 'EPSG:4326'
+                });
+
+                var map2 = new ol.Map({
+                        layers: [
+                          new ol.layer.Image({
+                            source: new ol.source.ImageStatic({
+                              url: canvasImage.src,
+                              projection: projection,
+                              imageExtent: [geoGrid[0][0][1], tempPoint[0], tempPoint[1], geoGrid[0][0][0]]
+                            })
+                          })
+                        ],
+                        target: 'testMap2',
+                        view: new ol.View({
+                          projection: projection,
+                          zoom: 2,
+                          maxZoom: 8
+                        })
+                });
+                */
+                //var tempLayers = map.getLayers();
+                //for(var c = 0; c < tempLayers.getLength(); c++){
+                //        tempLayers.item(c).setVisible(false);
+                //}
+                map.addLayer(imageLayer);
         }
-        else if(position > years){
-                position = years;
+}
+
+function toggleImgLayer(){
+        if(imageLayer.getVisible()){
+                imageLayer.setVisible(false);
         }
-
-}
-
-function rad(dg) {
-        return (dg* Math.PI / 180);
-}
-
-function deg(rd) {
-        return (rd* 180 / Math.PI);
-}
-
-function normalizeLongitude(lon) {
-        var n=Math.PI;
-        if (lon > n) {
-                lon = lon - 2*n
-        } else if (lon < -n) {
-                lon = lon + 2*n
+        else{
+                imageLayer.setVisible(true);
         }
-        return lon;
 }
 
 setupOlInputMap();

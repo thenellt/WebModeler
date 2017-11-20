@@ -1,0 +1,28 @@
+CACHE MANIFEST
+# manifest v17b
+
+CACHE:
+index.html
+changelog.txt
+
+jsDev/model.js
+jsDev/testFunctions.js
+jsDev/saveLoad.js
+jsDev/FileSaver.min.js
+jsDev/dataProcessing.js
+
+js/floatingContent.js
+js/main.js
+js/materialize.min.js
+js/table.js
+js/tabs.js
+js/chartist.min.js
+
+css/materialize.min.css
+css/otherStyle.css
+css/table.css
+css/chartist.min.css
+
+
+NETWORK:
+*
