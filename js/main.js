@@ -2,6 +2,7 @@ var popupEvntFunction;
 var currentId;
 var olmapLocation;
 var simulationRun;
+var progressInc;
 
 function setupTabs(){
         var tabs = document.getElementsByClassName("tablinks");
@@ -55,8 +56,8 @@ function resetSimulation(){
         document.getElementById("paramName").value = "";
 
         document.getElementById("paramTheta").value = "";
-        document.getElementById("paramLowColor").value = "";
-        document.getElementById("paramHighColor").value = "";
+        document.getElementById("paramLowColor").value = "#ffeda0";
+        document.getElementById("paramHighColor").value = "#f03b20";
         document.getElementById("diffSamples").value = "";
 
         if(simulationRun){
@@ -102,6 +103,15 @@ function resetSimulation(){
         document.getElementById("newSimButton").classList.remove("hide");
 
         emptyTable();
+}
+
+function resetColorCode(isHighColor){
+        if(isHighColor){
+                document.getElementById("paramHighColor").value = "#f03b20";
+        }
+        else{
+                document.getElementById("paramLowColor").value = "#ffeda0";
+        }
 }
 
 function showAdvancedSettings(){
@@ -392,6 +402,28 @@ function notifyMessage(text, time){
 
 function closeNotifyMessage(){
         let element = document.getElementById("notificationContainer");
+        element.classList.add("scale-out")
+        element.classList.remove("scale-in");
+}
+
+function showProgressBar(message, value){
+        console.log("showing progress bar");
+        document.getElementById("progressText").innerHTML = message;
+        document.getElementById("progressBar").style.width = value;
+
+        let element = document.getElementById("prgressContainer");
+        element.classList.add("scale-out")
+        element.classList.remove("scale-in");
+}
+
+function updateProgressBar(message, valueChange){
+        console.log("updating progress bar: " + message);
+        document.getElementById("progressText").innerHTML = message;
+        document.getElementById("progressBar").style.width += valueChange;
+}
+
+function closeProgressBar(){
+        let element = document.getElementById("prgressContainer");
         element.classList.add("scale-out")
         element.classList.remove("scale-in");
 }

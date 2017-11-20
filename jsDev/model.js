@@ -18,7 +18,7 @@ var simID;
 
 //model arrays
 var grid;
-var yearlyGrid;
+var diffusionGrid;
 var growth;
 var effort;
 var towns = [];
@@ -59,8 +59,7 @@ function town(long, lat, pop, killRate, name, growth, id){
         this.name = name;
         this.offtake = []; //new Array(years).fill(0.0);
         this.getPop = function (year) {
-                //add population growth function
-                return this.population;
+                return this.population*Math.pow(1 + this.growthRate, year);
         };
 
         this.printOfftake = function(){
@@ -152,49 +151,40 @@ function setupSimDefaults(){
 }
 
 function runSimulation(curYear){
-        console.log("modeling year number: " + curYear);
+        console.log("modeling year number: " + curYear + " with " + diffusionSamples + " samples");
         var top, bot, locationValue;
-        var a, b, c, d, e;
+        var up, down, center, right, left;
         var x, y;
         for(var j = 0; j < ySize; j++){
-                yearlyGrid[j].fill(0.0);
+                diffusionGrid[j].fill(0.0);
         }
 
-        //d*(n[year,i+1,j]+n[year,i-1,j])+(1-4*d)*n[year,i,j]+d*(n[year,i,j+1]+n[year,i,j-1])
+        //d*[i+1,j] + d*[i-1,j] + d*[i,j+1] + d*[i,j-1] + ([i,j] - 4*d*[i,j])
+        //D*a       + D*b       + D*d       + D*e       + (c     - 4*D*c    )
         //TODO check diffusion sample calculation correctness
         for(var i = 0; i < diffusionSamples; i++){
-                //console.log("running diff sample: " + i);
-                for(y = 0; y < ySize; y++){
-                        for(x = 0; x < xSize; x++){
-                                if(y > 0 && y < ySize - 1){
-                                        if(x > 0 && x < xSize - 1){
-                                                /*
-                                                a = yearlyGrid[y+1][x] + grid[curYear][y+1][x];
-                                                b = yearlyGrid[y-1][x] + grid[curYear][y-1][x];
-                                                c = yearlyGrid[y][x] + grid[curYear][y][x];
-                                                d = yearlyGrid[y][x+1] + grid[curYear][y][x+1];
-                                                e = yearlyGrid[y][x-1] + grid[curYear][y+1][x-1];
-                                                */
-                                                a = grid[curYear][y+1][x];
-                                                b = grid[curYear][y-1][x];
-                                                c = grid[curYear][y][x];
-                                                d = grid[curYear][y][x+1];
-                                                e = grid[curYear][y+1][x-1];
-                                                if(i !== 0){
-                                                        yearlyGrid[y][x] += animalDiffRate * (a + b + d + e - (4 * c));
-                                                        //yearlyGrid[y][x] += (animalDiffRate*(a + b) + (1-4*animalDiffRate)*(c + animalDiffRate*(d + e)))/diffusionSamples;
-                                                }
-                                                else{
-                                                        yearlyGrid[y][x] = animalDiffRate * (a + b + d + e - (4 * c));
-                                                        //yearlyGrid[y][x] = (animalDiffRate*(a + b) + (1-4*animalDiffRate)*(c + animalDiffRate*(d + e)))/diffusionSamples;
-                                                }
-                                        }
-                                        else{
-                                                yearlyGrid[y][x] = carryCapacity;
-                                        }
+                console.log("running diff sample: " + i);
+                for(y = 1; y < ySize - 1; y++){
+                        for(x = 1; x < xSize - 1; x++){
+                                if(i !== 0){
+                                        //diffusionGrid[y][x] += (animalDiffRate*(a + b) + (1-4*animalDiffRate)*(c + animalDiffRate*(d + e)))/diffusionSamples;
+                                        up     = grid[curYear][y+1][x] + diffusionGrid[y+1][x];
+                                        down   = grid[curYear][y-1][x] + diffusionGrid[y-1][x];
+                                        center = grid[curYear][y][x] + diffusionGrid[y][x];
+                                        right  = grid[curYear][y][x+1] + diffusionGrid[y][x+1];
+                                        left   = grid[curYear][y][x-1] + diffusionGrid[y][x-1];
+                                        //diffusionGrid[y][x] += (animalDiffRate * (up + down + right + left) + (center - 4 * animalDiffRate * center)) / diffusionSamples;
+                                        diffusionGrid[y][x] = (animalDiffRate * (up + down + left + right - (4 * center))) / diffusionSamples;
                                 }
                                 else{
-                                        yearlyGrid[y][x] = carryCapacity;
+                                        //diffusionGrid[y][x] = (animalDiffRate*(a + b) + (1-4*animalDiffRate)*(c + animalDiffRate*(d + e)))/diffusionSamples;
+                                        up     = grid[curYear][y+1][x];
+                                        down   = grid[curYear][y-1][x];
+                                        center = grid[curYear][y][x];
+                                        right  = grid[curYear][y][x+1];
+                                        left   = grid[curYear][y][x-1];
+                                        //diffusionGrid[y][x] = (animalDiffRate * (up + down + right + left) + (center - 4 * animalDiffRate * center)) / diffusionSamples;
+                                        diffusionGrid[y][x] = (animalDiffRate * (up + down + left + right - (4 * center))) / diffusionSamples;
                                 }
                         }
                 }
@@ -202,35 +192,40 @@ function runSimulation(curYear){
 
         for(y = 0; y < ySize; y++){
                 for(x = 0; x < xSize; x++){
-                        for(var settleNum = 0; settleNum < towns.length; settleNum++){
-                                //((comlocation[numb,0]-i)**2+(comlocation[numb,1]-j)**2))
-                                //console.log("town info: " + towns[settleNum].x +  "," + towns[settleNum].y);
-                                locationValue = Math.pow(towns[settleNum].x - x, 2) + Math.pow(towns[settleNum].y - y, 2);
-                                //console.log(locationValue);
-                                //math.exp(-1/(2*std**2)*locationValue)
-                                top = Math.exp((-1)/(2*Math.pow(huntRange, 2)) * locationValue);
+                        if(y > 0 && y < ySize - 1){
+                                if(x > 0 && x < xSize - 1){
+                                        for(var settleNum = 0; settleNum < towns.length; settleNum++){
+                                                //((comlocation[numb,0]-i)**2+(comlocation[numb,1]-j)**2))
+                                                //console.log("town info: " + towns[settleNum].x +  "," + towns[settleNum].y);
+                                                locationValue = Math.pow(towns[settleNum].x - x, 2) + Math.pow(towns[settleNum].y - y, 2);
+                                                //console.log(locationValue);
+                                                //math.exp(-1/(2*std**2)*locationValue)
+                                                top = Math.exp((-1)/(2*Math.pow(huntRange, 2)) * locationValue);
 
-                                //(2*math.pi*math.sqrt(locationValue+1)
-                                bot = 2*Math.PI*Math.sqrt(locationValue + 1);
-                                //cout << "top: " << top << " bot: " << bot << endl;
-                                //console.log("Top: " + top + " bot: " + bot);
-                                if(settleNum === 0){
-                                        effort[y][x] = (HpHy*towns[settleNum].getPop(curYear)*top)/bot;
+                                                //(2*math.pi*math.sqrt(locationValue+1)
+                                                bot = 2*Math.PI*Math.sqrt(locationValue + 1);
+                                                //console.log("Top: " + top + " bot: " + bot);
+                                                if(settleNum === 0){
+                                                        effort[y][x] = (HpHy*towns[settleNum].getPop(curYear)*top)/bot;
+                                                }
+                                                else{
+                                                        effort[y][x] += (HpHy*towns[settleNum].getPop(curYear)*top)/bot;
+                                                }
+                                                //console.log("effort at: " + x + "," + y + " is: " + effort[y][x]);
+                                                towns[settleNum].offtake[curYear] += killProb * encounterRate * ((HpHy * towns[settleNum].getPop(curYear) * top)/bot) * grid[curYear][y][x];
+                                        }
+                                        //n[year,:,:]*lambdas-lambdas*n[year,:,:]*(n[year,:,:]/density)**theta
+                                        //growth[y][x] = animalGrowthRate*grid[curYear][y][x] - animalGrowthRate*grid[curYear][y][x]*Math.pow((grid[curYear][y][x]/carryCapacity), theta);
+                                        growth[y][x] = (animalGrowthRate * grid[curYear][y][x]) * (1 - (grid[curYear][y][x]/carryCapacity));
+                                        grid[curYear + 1][y][x] = grid[curYear][y][x] + diffusionGrid[y][x] + growth[y][x] - killProb*encounterRate*effort[y][x]*grid[curYear][y][x];
                                 }
                                 else{
-                                        effort[y][x] += (HpHy*towns[settleNum].getPop(curYear)*top)/bot;
+                                        grid[curYear + 1][y][x] = carryCapacity;
                                 }
-                                //cout << "effort at: " << x << " " << y << " " << effort[y][x] << endl;
-                                //console.log("effort at: " + x + "," + y + " is: " + effort[y][x]);
-                                towns[settleNum].offtake[curYear] += killProb * encounterRate * ((HpHy * towns[settleNum].getPop(curYear) * top)/bot) * grid[curYear][y][x];
                         }
-                        //n[year,:,:]*lambdas-lambdas*n[year,:,:]*(n[year,:,:]/density)**theta
-                        //growth[y][x] = animalGrowthRate*grid[curYear][y][x] - animalGrowthRate*grid[curYear][y][x]*Math.pow((grid[curYear][y][x]/carryCapacity), theta);
-                        growth[y][x] = (animalGrowthRate * grid[curYear][y][x]) * (1 - (grid[curYear][y][x]/carryCapacity));
-                        //cout << "yearly grid - stuff + growth" << endl;
-                        //cout << "yearly grid: " << yearlyGrid[y][x] << " stuff: " << killProb*encounterRate*effort[y][x]*grid[curYear][y][x] << " growth: " << growth[y][x] << endl;
-
-                        grid[curYear + 1][y][x] = grid[curYear][y][x] + yearlyGrid[y][x] + growth[y][x] - killProb*encounterRate*effort[y][x]*grid[curYear][y][x];
+                        else{
+                                grid[curYear + 1][y][x] = carryCapacity;
+                        }
                 }
         }
 
@@ -246,14 +241,17 @@ function runSimulation(curYear){
                 //runSimulation(curYear + 1);
                 //generateCanvas(curYear);
                 setTimeout(runSimulation, 10, curYear + 1);
+                updateProgressBar("Finished Year " + curYear, progressInc);
         }
         else{
                 //setVisibleImage(0);
+                updateProgressBar("Cleaning up...", 100);
                 generateCanvas(curYear, 1);
                 synchPersisObject();
                 changeToOutput();
                 setupOutputRanges();
                 createCDFChart();
+                closeProgressBar();
         }
 }
 
@@ -271,14 +269,14 @@ function printArray(array){
 function setupGradient(){
         var gradient = [];
         var hotColor = [];
-        hotColor[0] = parseInt(highColorCode.substring(0, 2) , 16);
-        hotColor[1] = parseInt(highColorCode.substring(2, 4) , 16);
-        hotColor[2] = parseInt(highColorCode.substring(4, 6) , 16);
+        hotColor[0] = parseInt(highColorCode.substring(1, 3) , 16);
+        hotColor[1] = parseInt(highColorCode.substring(3, 5) , 16);
+        hotColor[2] = parseInt(highColorCode.substring(5, 7) , 16);
 
         var coolColor = [];
-        coolColor[0] = parseInt(lowColorCode.substring(0, 2) , 16);
-        coolColor[1] = parseInt(lowColorCode.substring(2, 4) , 16);
-        coolColor[2] = parseInt(lowColorCode.substring(4, 6) , 16);
+        coolColor[0] = parseInt(lowColorCode.substring(1, 3) , 16);
+        coolColor[1] = parseInt(lowColorCode.substring(3, 5) , 16);
+        coolColor[2] = parseInt(lowColorCode.substring(5, 7) , 16);
 
         console.log("hot color: " + hotColor + " and cool color: " + coolColor);
 

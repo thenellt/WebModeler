@@ -159,3 +159,8 @@ div.tab button.active {
         height: 80px;
         z-index: 25;
 }
+
+img {
+    max-width: 100%;
+    max-height: 100%;
+}

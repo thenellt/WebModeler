@@ -90,6 +90,14 @@ function loadSimConfig(fileData){
         highColorCode = config.highColorCode;
         diffusionSamples = config.diffusionSamples;
 
+        //support saves with old color formatting
+        if(lowColorCode[0] !== '#'){
+                lowColorCode = "#" + lowColorCode;
+        }
+        if(highColorCode[0] !== '#'){
+                highColorCode = "#" + highColorCode;
+        }
+
         emptyTable();
         for(let i = 0; i < config.popData.length; i++){
                 console.log("Adding pop name: " + config.popData[i]);
@@ -402,7 +410,6 @@ function loadConfigByID(persistID, isCopy){
                         synchPersisObject();
                 }
                 else{
-                        console.log("*****loadConfigbyid addrow called");
                         addRow("popTable", -1);
                         document.getElementById("parameterSetupTab").disabled = false;
                         document.getElementById("resetButton").classList.remove("hide");

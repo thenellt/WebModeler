@@ -27,7 +27,7 @@ function generateBounds(range){
                 else if(points[i][0] > botRight[0]){
                         botRight[0] = points[i][0];
                 }
-                
+
                 if(points[i][1] > topLeft[1]){
                         topLeft[1] = points[i][1];
                 }
@@ -36,20 +36,20 @@ function generateBounds(range){
                 }
                 console.log("");
         }
-        
+
         var topOffset = [];
         var botOffset = [];
-        
+
         topOffset = destEllipse(topLeft[1], topLeft[0], 0, range);
         topOffset = destEllipse(topOffset[0], topOffset[1], 270, range);
 
         botOffset = destEllipse(botRight[1], botRight[0], 180, range);
         botOffset = destEllipse(botOffset[0], botOffset[1], 90, range);
-        
+
         console.log("***********offsetsf**************");
         console.log("topLeft: " + topOffset[0] + ", " + topOffset[1]);
         console.log("botRight: " + botOffset[0] + ", " + botOffset[1]);
-        
+
         /*
         var tempPolygon1 = new ol.geom.Polygon([[
                                 [topOffset[1], topOffset[0]],
@@ -80,9 +80,9 @@ function generategeoGrid(extremePoints){
         var i = 0;
         var j = 0;
         var temp = [];
-        
+
         var xd = 0;
-        
+
         while(y > extremePoints[1][0]){
                 while(x < extremePoints[1][1]){
                         //console.log("starting point: " + geoGrid[j][i][0] + ", " + geoGrid[j][i][1]);
@@ -97,7 +97,7 @@ function generategeoGrid(extremePoints){
                 geoGrid[j].push([temp[0], temp[1]]);
                 i = 0;
                 x = extremePoints[0][1];
-                
+
 
                 temp = destEllipse(geoGrid[j][i][0], geoGrid[j][i][1], 180, 1);
                 j++;
@@ -105,10 +105,10 @@ function generategeoGrid(extremePoints){
                 //console.log("starting point: " + geoGrid[0][0] + " new y: " + temp);
                 geoGrid.push([]);
                 geoGrid[j].push([temp[0], temp[1]]);
-                
+
 
         }
-        
+
         while(x < extremePoints[1][1]){
                 temp = destEllipse(geoGrid[j][i][0], geoGrid[j][i][1], 90, 1);
                 geoGrid[j].push([temp[0], temp[1]]);
@@ -117,7 +117,7 @@ function generategeoGrid(extremePoints){
         }
         temp = destEllipse(geoGrid[j][i][0], geoGrid[j][i][1], 90, 1);
         geoGrid[j].push([temp[0], temp[1]]);
-        
+
         console.log("geoGrid size: " + geoGrid[0].length + " x " + geoGrid.length);
 }
 
@@ -155,22 +155,22 @@ function placeLocations(matrix, pointSet){
         //loop over points until we find best fitting 1km x 1km square
         var y = 0;
         var x = 0;
-        
+
         for(var i = 0; i < pointSet.length; i++){
                 while(matrix[y][0][0] > pointSet[i][1]){
                         y++;
                 }
-                
+
                 while(matrix[y][x][1] < pointSet[i][0]){
                         x++;
                 }
-                
+
                 console.log("placing point " + pointSet[i] + " at: " + x + ", " + y);
                 pointSet[i].push(y - 1);
                 towns[i].y = (y - 1);
                 pointSet[i].push(x - 1);
                 towns[i].x = (x - 1);
-                
+
                 x = 0;
                 y = 0;
         }
@@ -195,7 +195,7 @@ function destEllipse(lat1, lon1, bearing, distance) {
         var s = distance;
         var a = 6378137;
         var b = a - (a/298.257223563);
-        
+
         s *= 1000;
         //var ind = max(f1.model.selectedIndex, 1);
         var cs1, ds1, ss1, cs1m;
@@ -261,25 +261,27 @@ function readUserParameters(){
         encounterRate = parseFloat(document.getElementById("paramEncounterRate").value) || encounterRate;
         killProb = parseFloat(document.getElementById("paramKillProb").value) || killProb;
         HpHy = parseInt(document.getElementById("paramHphy").value, 10) || HpHy;
-        huntRange = parseInt(document.getElementById("rangeHphy"), 10) || 10;
+        huntRange = parseInt(document.getElementById("rangeHphy").value, 10) || 10;
+
         var tempLow = document.getElementById("paramLowColor").value;
         if(tempLow.length > 0){
                 lowColorCode = tempLow;
         }
-        
+
         var tempHigh = document.getElementById("paramHighColor").value;
         if(tempHigh.length > 0){
                 highColorCode = tempHigh;
         }
-        
+
         var tempName = document.getElementById("paramName").value;
         if(tempName.length > 0){
                 simName = tempName;
         }
-        
-        theta = parseFloat(document.getElementById("paramTheta")) || theta;
-        diffusionSamples = parseInt(document.getElementById("diffSamples"), 10) || diffusionSamples;
-        
+
+        theta = parseFloat(document.getElementById("paramTheta").value) || theta;
+        console.log("diff sample input: " + document.getElementById("diffSamples").value);
+        diffusionSamples = parseInt(document.getElementById("diffSamples").value, 10) || diffusionSamples;
+
         console.log("finished reading user input");
 }
 
@@ -287,10 +289,10 @@ function readUserParameters(){
 function allocateMemory(){
         ySize = geoGrid.length;
         xSize = geoGrid[ySize - 1].length;
-        
+
         grid = new Array(years + 1);
 
-        yearlyGrid = new Array(ySize);
+        diffusionGrid = new Array(ySize);
         growth = new Array(ySize);
         effort = new Array(ySize);
 
@@ -300,18 +302,18 @@ function allocateMemory(){
                         grid[i][j] = new Array(xSize).fill(carryCapacity);
                 }
         }
-        
+
         for(var k = 0; k < ySize; k++){
-                yearlyGrid[k] = new Array(xSize).fill(0.0);
+                diffusionGrid[k] = new Array(xSize).fill(0.0);
                 growth[k] = new Array(xSize).fill(0.0);
                 effort[k] = new Array(xSize).fill(0.0);
         }
-        
+
         console.log("Successfully allocated memory");
 }
 
 
-function setupAndRunSimulation(){
+function setupSimulation(){
         console.log("----------------starting a new run-------------------");
         var cleanup = document.getElementById("rawHeatmapContainer");
         while (cleanup.firstChild) {
@@ -330,7 +332,14 @@ function setupAndRunSimulation(){
                 return;
         }
         console.log("towns: " + towns.length);
-        
+
+        progressInc = 1.0 / years;
+
+        showProgressBar("Setting up simulation", 0);
+        setTimeout(startSimulation, 100);
+}
+
+function startSimulation(){
         points = [];
         for(var g = 0; g < towns.length; g++){
                 points.push([towns[g].long, towns[g].lat]);
