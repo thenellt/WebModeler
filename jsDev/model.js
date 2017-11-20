@@ -76,27 +76,21 @@ function town(long, lat, pop, killRate, name, growth, id){
 function styleFunction() {
         return [
                 new ol.style.Style({
-                        fill: new ol.style.Fill({
-                                color: 'rgba(255,255,255,0.4)'
-                        }),
-                        stroke: new ol.style.Stroke({
-                                color: '#3399CC',
-                                width: 1.25
-                        }),
                         text: new ol.style.Text({
                                 font: '12px Calibri,sans-serif',
-                                fill: new ol.style.Fill({ color: '#000' }),
+                                fill: new ol.style.Fill({ color: '#FFFFFF' }),
                                 stroke: new ol.style.Stroke({
-                                        color: '#fff', width: 2
+                                        color: '#000000',
+                                        width: 1
                                 }),
                                 text: this.get('name'),
                                 offsetY: 13
                         }),
                         image: new ol.style.Circle({
                                 radius: 6,
-                                fill: new ol.style.Fill({ color: 'rgba(255,0,0,1)'}),
+                                fill: new ol.style.Fill({ color: "#2196F3"}),//'rgba(255,0,0,1)'}),
                                 stroke: new ol.style.Stroke({
-                                        color: 'rgba(38,166,154,1)',
+                                        color: '#000000',
                                         width: 1
                                 })
                         })
@@ -255,17 +249,6 @@ function runSimulation(curYear){
         }
 }
 
-function printArray(array){
-        var arrText = '';
-        for (var i = 0; i < array.length; i++) {
-            for (var j = 0; j < array[i].length; j++) {
-                arrText+=(array[i][j]).toFixed(2) + ' ';
-            }
-            console.log(arrText);
-            arrText='';
-        }
-}
-
 function setupGradient(){
         var gradient = [];
         var hotColor = [];
@@ -331,8 +314,30 @@ function setupOlInputMap(){
         map = new ol.Map({
                 target: 'popMapDiv', //'map_canvas',
                 layers: [
+                        /*
                         new ol.layer.Tile({
                                 source: new ol.source.OSM({wrapX: false})
+                        }),
+                        */
+                        new ol.layer.Tile({
+                                source: new ol.source.BingMaps({
+                                        imagerySet: 'Aerial',
+                                        key: API_KEYS.bingMaps,
+                                        projection: 'EPSG:4326',
+                                        wrapX: false
+                                })
+                                /*new ol.source.TileWMS({
+                                        url: 'https://ahocevar.com/geoserver/wms',
+                                        //crossOrigin: '',
+
+                                        params: {
+                                                'LAYERS': 'ne:NE1_HR_LC_SR_W_DR',
+                                                'TILED': true
+                                        },
+                                        projection: 'EPSG:4326',
+                                        wrapX: false
+                                })
+                                */
                         }),
                         new ol.layer.Vector({
                                 source: features,
