@@ -11,10 +11,6 @@ var theta;
 var carryCapacity;
 var years;
 var diffusionSamples;
-var lowColorCode = "";
-var highColorCode = "";
-var simName = "";
-var simID;
 
 //model arrays
 var grid;
@@ -22,109 +18,20 @@ var diffusionGrid;
 var growth;
 var effort;
 var towns = [];
+var points = [];
+var geoGrid = [[[]]];
+//var counter = 0;
 
-var curImage;
+onmessage = startWork(message);
 
-//ol maps variables
-var map;
-var features;
-var source = new ol.source.Vector({wrapX: false});
-var popLabelFeatures = [];
-var pointVector;
-var canvas;
-var canvasImage;
-var imageLayer;
-var addPopFunction;
-
-
-function getRandomInt(min, max) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min)) + min;
-}
-
-function town(long, lat, pop, killRate, name, growth, id){
-        if(id === 0){
-                let tempDate = new Date();
-                this.id = tempDate.valueOf();
-        }
-        else{
-                this.id = id;
-        }
-        this.long = long;
-        this.lat = lat;
-        this.growthRate = growth;
-        this.population = pop;
-        this.killRate = killRate;
-        this.name = name;
-        this.offtake = []; //new Array(years).fill(0.0);
-        this.getPop = function (year) {
-                return this.population*Math.pow(1 + this.growthRate, year);
-        };
-
-        this.printOfftake = function(){
-                var text = ' ';
-                for(var i = 0; i < years; i++){
-                        text += this.offtake[i].toFixed(2) + " ";
-                }
-                console.log("Village: " + name + " offtake: ");
-                console.log(text);
-        };
-}
-
-//https://stackoverflow.com/questions/39006597/openlayers-3-add-text-label-to-feature
-function styleFunction() {
-        return [
-                new ol.style.Style({
-                        text: new ol.style.Text({
-                                font: '12px Calibri,sans-serif',
-                                fill: new ol.style.Fill({ color: '#FFFFFF' }),
-                                stroke: new ol.style.Stroke({
-                                        color: '#000000',
-                                        width: 1
-                                }),
-                                text: this.get('name'),
-                                offsetY: 13
-                        }),
-                        image: new ol.style.Circle({
-                                radius: 6,
-                                fill: new ol.style.Fill({ color: "#2196F3"}),//'rgba(255,0,0,1)'}),
-                                stroke: new ol.style.Stroke({
-                                        color: '#000000',
-                                        width: 1
-                                })
-                        })
-                })
-        ];
-}
-
-function removePopFromMapById(popId){
-        if(!source){
-                return;
-        }
-
-        var features = source.getFeatures();
-        for(var j = 0; j < features.length; j++){
-                if(features[j].get('description') == popId){
-                        source.removeFeature(features[j]);
-                        break;
-                }
-        }
-}
-
-function addPopToMap(popId, popName, long, lat){
-        if(!source){
-                return;
-        }
-        var tempPoint = new ol.geom.Point(
-                [long, lat]
-        );
-
-        var tempFeature = new ol.Feature(tempPoint);
-        tempFeature.set('description', popId);
-        tempFeature.set('name', popName);
-        tempFeature.setStyle(styleFunction);
-        source.addFeature(tempFeature);
+function startWork(msg){
+        setupSimDefaults();
+        unpackParams(msg.data);
+        let bounds = generateBounds(30 + huntRange);
+        generategeoGrid(bounds);
+        allocateMemory();
+        placeLocations(geoGrid, points);
+        runSimulation(0);
 }
 
 function setupSimDefaults(){
@@ -139,9 +46,237 @@ function setupSimDefaults(){
         years = 10;
         diffusionSamples = 1;
         huntRange = 5;
-        lowColorCode = "ffeda0";
-        highColorCode = "f03b20";
-        simName = "defaultName";
+}
+
+function unpackParams(data){
+        
+}
+
+//dependent on readUserParameters
+function allocateMemory(){
+        ySize = geoGrid.length;
+        xSize = geoGrid[ySize - 1].length;
+
+        grid = new Array(years + 1);
+
+        diffusionGrid = new Array(ySize);
+        growth = new Array(ySize);
+        effort = new Array(ySize);
+
+        for(var i = 0; i < years + 1; i++){
+                grid[i] = new Array(ySize);
+                for(var j = 0; j < ySize; j++){
+                        grid[i][j] = new Array(xSize).fill(carryCapacity);
+                }
+        }
+
+        for(var k = 0; k < ySize; k++){
+                diffusionGrid[k] = new Array(xSize).fill(0.0);
+                growth[k] = new Array(xSize).fill(0.0);
+                effort[k] = new Array(xSize).fill(0.0);
+        }
+
+        console.log("Successfully allocated memory");
+}
+
+function generateBounds(range){
+        console.log("range: " + range);
+        var topLeft = points[0].slice(0);
+        var botRight = points[0].slice(0);
+
+        for(var i = 1; i < points.length; i++){
+
+                console.log("array point: " + points[i][0] +  ", " + points[i][1]);
+                console.log("top Left: " + topLeft[0] +  ", " + topLeft[1]);
+
+                if(points[i][0] < topLeft[0]){
+                        console.log("type of orig: " + (typeof topLeft[0]) + " type of new: " + (typeof points[i][0]));
+                        console.log("replacing " + topLeft[0] +  " with " + points[i][0]);
+                        topLeft[0] = points[i][0];
+                }
+                else if(points[i][0] > botRight[0]){
+                        botRight[0] = points[i][0];
+                }
+
+                if(points[i][1] > topLeft[1]){
+                        topLeft[1] = points[i][1];
+                }
+                else if(points[i][1] < botRight[1]){
+                        botRight[1] = points[i][1];
+                }
+                console.log("");
+        }
+
+        var topOffset = [];
+        var botOffset = [];
+
+        topOffset = destEllipse(topLeft[1], topLeft[0], 0, range);
+        topOffset = destEllipse(topOffset[0], topOffset[1], 270, range);
+
+        botOffset = destEllipse(botRight[1], botRight[0], 180, range);
+        botOffset = destEllipse(botOffset[0], botOffset[1], 90, range);
+
+        console.log("***********offsetsf**************");
+        console.log("topLeft: " + topOffset[0] + ", " + topOffset[1]);
+        console.log("botRight: " + botOffset[0] + ", " + botOffset[1]);
+
+        /*
+        var tempPolygon1 = new ol.geom.Polygon([[
+                                [topOffset[1], topOffset[0]],
+                                [topOffset[1], botOffset[0]],
+                                [botOffset[1], botOffset[0]],
+                                [botOffset[1], topOffset[0]],
+                                [topOffset[1], topOffset[0]]
+                        ]]);
+
+        var tempFeature1 = new ol.Feature({
+                name: ("pos" + counter++),
+                geometry: tempPolygon1
+        });
+
+        var teststyle1 = new ol.style.Style({ stroke: new ol.style.Stroke({width: 1 })});
+        tempFeature1.setStyle(teststyle1);
+        features.addFeature(tempFeature1);
+        */
+        return [topOffset, botOffset];
+}
+
+function generategeoGrid(extremePoints){
+        geoGrid = [[[]]];
+        geoGrid[0][0] = [extremePoints[0][0], extremePoints[0][1]];
+        console.log("grid 0,0: " + geoGrid[0][0]);
+        var x = extremePoints[0][1];
+        var y = extremePoints[0][0];
+        var i = 0;
+        var j = 0;
+        var temp = [];
+
+        var xd = 0;
+
+        while(y > extremePoints[1][0]){
+                while(x < extremePoints[1][1]){
+                        //console.log("starting point: " + geoGrid[j][i][0] + ", " + geoGrid[j][i][1]);
+                        temp = destEllipse(geoGrid[j][i][0], geoGrid[j][i][1], 90, 1);
+                        //console.log("temp: " + [temp[0], temp[1]]);
+                        geoGrid[j].push([temp[0], temp[1]]);
+                        //console.log(geoGrid[j]);
+                        x = temp[1];
+                        i++;
+                }
+                temp = destEllipse(geoGrid[j][i][0], geoGrid[j][i][1], 90, 1);
+                geoGrid[j].push([temp[0], temp[1]]);
+                i = 0;
+                x = extremePoints[0][1];
+
+
+                temp = destEllipse(geoGrid[j][i][0], geoGrid[j][i][1], 180, 1);
+                j++;
+                y = temp[0];
+                //console.log("starting point: " + geoGrid[0][0] + " new y: " + temp);
+                geoGrid.push([]);
+                geoGrid[j].push([temp[0], temp[1]]);
+
+
+        }
+
+        while(x < extremePoints[1][1]){
+                temp = destEllipse(geoGrid[j][i][0], geoGrid[j][i][1], 90, 1);
+                geoGrid[j].push([temp[0], temp[1]]);
+                x = temp[1];
+                i++;
+        }
+        temp = destEllipse(geoGrid[j][i][0], geoGrid[j][i][1], 90, 1);
+        geoGrid[j].push([temp[0], temp[1]]);
+
+        console.log("geoGrid size: " + geoGrid[0].length + " x " + geoGrid.length);
+}
+
+
+function placeLocations(matrix, pointSet){
+        console.log("first point: " + pointSet[0]);
+        console.log("corner: " + matrix[0][0]);
+        //for each location
+        //loop over points until we find best fitting 1km x 1km square
+        var y = 0;
+        var x = 0;
+
+        for(var i = 0; i < pointSet.length; i++){
+                while(matrix[y][0][0] > pointSet[i][1]){
+                        y++;
+                }
+
+                while(matrix[y][x][1] < pointSet[i][0]){
+                        x++;
+                }
+
+                console.log("placing point " + pointSet[i] + " at: " + x + ", " + y);
+                pointSet[i].push(y - 1);
+                towns[i].y = (y - 1);
+                pointSet[i].push(x - 1);
+                towns[i].x = (x - 1);
+
+                x = 0;
+                y = 0;
+        }
+}
+
+function destEllipse(lat1, lon1, bearing, distance) {
+        var point = [0.0, 0.0, 0.0, 0.0];
+        var brg = new Array(0, 180, 0);
+        brg[0] = bearing;
+        var j=0;
+        if (lat1 == 90) {
+                startlat = 89.999999999;
+                j=1;
+        }
+        if (lat1 == -90) {
+                startlat = -89.999999999;
+                j=2;
+        }
+        lat1 = rad(lat1);
+        lon1 = rad(lon1);
+        brg[j] = rad(brg[j]);
+        var s = distance;
+        var a = 6378137;
+        var b = a - (a/298.257223563);
+
+        s *= 1000;
+        //var ind = max(f1.model.selectedIndex, 1);
+        var cs1, ds1, ss1, cs1m;
+        var f = 1/298.257223563;
+        var sb=Math.sin(brg[j]);
+        var cb=Math.cos(brg[j]);
+        var tu1=(1-f)*Math.tan(lat1);
+        var cu1=1/Math.sqrt((1+tu1*tu1));
+        var su1=tu1*cu1;
+        var s2=Math.atan2(tu1, cb);
+        var sa = cu1*sb;
+        var csa=1-sa*sa;
+        var us=csa*(a*a - b*b)/(b*b);
+        var A=1+us/16384*(4096+us*(-768+us*(320-175*us)));
+        var B = us/1024*(256+us*(-128+us*(74-47*us)));
+        var s1=s/(b*A);
+        var s1p = 2*Math.PI;
+        while (Math.abs(s1-s1p) > 1e-12) {
+                cs1m=Math.cos(2*s2+s1);
+                ss1=Math.sin(s1);
+                cs1=Math.cos(s1);
+                ds1=B*ss1*(cs1m+B/4*(cs1*(-1+2*cs1m*cs1m)- B/6*cs1m*(-3+4*ss1*ss1)*(-3+4*cs1m*cs1m)));
+                s1p=s1;
+                s1=s/(b*A)+ds1;
+        }
+        var t=su1*ss1-cu1*cs1*cb;
+        var lat2=Math.atan2(su1*cs1+cu1*ss1*cb, (1-f)*Math.sqrt(sa*sa + t*t));
+        var l2=Math.atan2(ss1*sb, cu1*cs1-su1*ss1*cb);
+        var c=f/16*csa*(4+f*(4-3*csa));
+        var l=l2-(1-c)*f*sa* (s1+c*ss1*(cs1m+c*cs1*(-1+2*cs1m*cs1m)));
+        var d=Math.atan2(sa, -t);
+        //point[2] = d+2*Math.PI;
+        //point[3] = d+Math.PI;
+        point[0] = deg(lat2);
+        point[1] = deg(normalizeLongitude(lon1+l));
+
+        return point;
 }
 
 function runSimulation(curYear){
@@ -206,7 +341,7 @@ function runSimulation(curYear){
                                                         effort[y][x] += (HpHy*towns[settleNum].getPop(curYear)*top)/bot;
                                                 }
                                                 //console.log("effort at: " + x + "," + y + " is: " + effort[y][x]);
-                                                towns[settleNum].offtake[curYear] += killProb * encounterRate * ((HpHy * towns[settleNum].getPop(curYear) * top)/bot) * grid[curYear][y][x];
+                                                towns[settleNum].offtake[curYear] += killProb * encounterRate * ((HpHy * getTownPop(towns[settleNum], curYear) * top)/bot) * grid[curYear][y][x];
                                         }
                                         //n[year,:,:]*lambdas-lambdas*n[year,:,:]*(n[year,:,:]/density)**theta
                                         //growth[y][x] = animalGrowthRate*grid[curYear][y][x] - animalGrowthRate*grid[curYear][y][x]*Math.pow((grid[curYear][y][x]/carryCapacity), theta);
@@ -249,285 +384,33 @@ function runSimulation(curYear){
         }
 }
 
-function setupGradient(){
-        var gradient = [];
-        var hotColor = [];
-        hotColor[0] = parseInt(highColorCode.substring(1, 3) , 16);
-        hotColor[1] = parseInt(highColorCode.substring(3, 5) , 16);
-        hotColor[2] = parseInt(highColorCode.substring(5, 7) , 16);
+/******** Helper Functions **********/
 
-        var coolColor = [];
-        coolColor[0] = parseInt(lowColorCode.substring(1, 3) , 16);
-        coolColor[1] = parseInt(lowColorCode.substring(3, 5) , 16);
-        coolColor[2] = parseInt(lowColorCode.substring(5, 7) , 16);
-
-        console.log("hot color: " + hotColor + " and cool color: " + coolColor);
-
-        var redRange = hotColor[0] - coolColor[0];
-        var greenRange = hotColor[1] - coolColor[1];
-        var blueRange = hotColor[2] - coolColor[2];
-
-        var gradientSteps = carryCapacity - 1;
-
-        for(var i = 0; i <= gradientSteps; i++){
-                var colorOffset = i / (gradientSteps);
-                var tempColor = [];
-                tempColor[0] = Math.round(redRange * colorOffset) + coolColor[0];
-                tempColor[1] = Math.round(greenRange * colorOffset) + coolColor[1];
-                tempColor[2] = Math.round(blueRange * colorOffset) + coolColor[2];
-                gradient.push(tempColor.slice());
-        }
-
-        console.log(gradient);
-        return gradient;
+function getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min)) + min;
 }
 
-function placePopulation(e){
-        var tempFeatures = [];
-        map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
-                tempFeatures.push(feature);
-
-        }, {hitTolerance: 5});
-
-        if(!tempFeatures.length){
-                showPopEditor(e.coordinate);
-        }
-        else{
-                var tempId = tempFeatures[0].get('description');
-                console.log("existing feature clicked. Id: " + tempId);
-                for(var t = 0; t < uiData.length; t++){
-                        if(uiData[t].id == tempId){
-                                showPopUpdater(t);
-                                break;
-                        }
-                }
-        }
+function getTownPop(town, year){
+        return town.population*Math.pow(1 + town.growthRate, year);
 }
 
-function setupOlInputMap(){
-        var drawControls;
-        var teststyle = new ol.style.Style({
-                fill: new ol.style.Fill({ color: [0, 255, 0, 0.3]})
-        });
-        features = new ol.source.Vector();
-
-        map = new ol.Map({
-                target: 'popMapDiv', //'map_canvas',
-                layers: [
-                        /*
-                        new ol.layer.Tile({
-                                source: new ol.source.OSM({wrapX: false})
-                        }),
-                        */
-                        new ol.layer.Tile({
-                                source: new ol.source.BingMaps({
-                                        imagerySet: 'Aerial',
-                                        key: API_KEYS.bingMaps,
-                                        projection: 'EPSG:4326',
-                                        wrapX: false
-                                })
-                                /*new ol.source.TileWMS({
-                                        url: 'https://ahocevar.com/geoserver/wms',
-                                        //crossOrigin: '',
-
-                                        params: {
-                                                'LAYERS': 'ne:NE1_HR_LC_SR_W_DR',
-                                                'TILED': true
-                                        },
-                                        projection: 'EPSG:4326',
-                                        wrapX: false
-                                })
-                                */
-                        }),
-                        new ol.layer.Vector({
-                                source: features,
-                                style: teststyle
-                        })
-                ],
-                view: new ol.View({
-                        projection: 'EPSG:4326',
-                        center: [37.41, 8.82],
-                        zoom: 2
-                }),
-                controls: []
-        });
-
-        pointVector = new ol.layer.Vector({
-                source: source,
-                style: new ol.style.Style({
-                        fill: new ol.style.Fill({color: 'rgba(255, 255, 255, 0.2)'}),
-                        stroke: new ol.style.Stroke({color: '#ffcc33', width: 2}),
-                        image: new ol.style.Circle({radius: 7, fill: new ol.style.Fill({color: '#ffcc33'})})
-                })
-        });
-        map.addLayer(pointVector);
-
-        addPopFunction = map.on('click', placePopulation);
-        map.updateSize();
+function deg(rd) {
+        return (rd* 180 / Math.PI);
 }
 
-function drawHeatMap(matrix){
-        console.log("starting drawHeatMap: ");
-
-        var gradient = setupGradient();
-        var gradientSteps = carryCapacity - 1;
-
-        for(var y = 0; y < ySize - 1; y++){
-                console.log("starting row: " + y);
-                for(var x = 0; x < xSize - 1; x++){
-                        var tempPolygon = new ol.geom.Polygon([[
-                                [matrix[y][x][1], matrix[y][x][0]],
-                                [matrix[y][x][1], matrix[y + 1][x][0]],
-                                [matrix[y + 1][x + 1][1], matrix[y + 1][x + 1][0]],
-                                [matrix[y][x + 1][1], matrix[y][x][0]],
-                                [matrix[y][x][1], matrix[y][x][0]]
-                        ]]);
-
-                        var tempFeature = new ol.Feature({
-                                name: ("pos" + x + "," + y),
-                                geometry: tempPolygon
-                        });
-
-                        var gradientPosition = Math.ceil(gradientSteps * (1 - (grid[years][y][x] / carryCapacity)));
-                        if(gradientPosition < 0 || !gradientPosition){
-                                gradientPosition = 0;
-                        }
-
-                        var teststyle = new ol.style.Style({
-                                fill: new ol.style.Fill({ color: [gradient[gradientPosition][0], gradient[gradientPosition][1], gradient[gradientPosition][2], .5]}) //color: [255, 0, 0, (1 - (grid[years][y][x] / carryCapacity))]
-                        });
-                        tempFeature.setStyle(teststyle);
-                        features.addFeature(tempFeature);
-                }
-        }
-
-        pointVector.setVisible(false);
+function rad(dg) {
+        return (dg* Math.PI / 180);
 }
 
-function getExtent(){
-        console.log("button clicked");
-        console.log(ol.geom.Polygon.fromExtent(map.getView().calculateExtent(map.getSize())));
-        var coords = map.getView().calculateExtent(map.getSize());
-        console.log(coords[0] + ", " + coords[3]);
-        //map.getView().setCenter(ol.proj.transform([long, lat], 'EPSG:4326', 'EPSG:3857'));
-        map.getView().setCenter([coords[0],coords[3]]);
+function normalizeLongitude(lon) {
+        var n=Math.PI;
+        if (lon > n) {
+                lon = lon - 2*n;
+        } else if (lon < -n) {
+                lon = lon + 2*n;
+        }
+        return lon;
 }
 
-
-function generateCanvas(curYear, scale){
-        console.log("generating canvas for year: " + curYear + " and scale: " + scale);
-        //towns[0].printOfftake();
-        var gradient = setupGradient();
-        var gradientSteps = carryCapacity - 1;
-
-        canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
-
-        canvas.width = xSize * scale;
-        canvas.height = ySize * scale;
-
-        var imgData=ctx.getImageData(0,0,xSize * scale,ySize * scale);
-        var data=imgData.data;
-
-        var pos = 0;
-        for(var y = 0; y < ySize; y++) {
-                for(var row = 0; row < scale; row++){
-                        for(var x = 0; x < xSize; x++) {
-                                //TODO talk to Taal about using floor vs ceiling
-                                var gradientPosition = Math.ceil(gradientSteps * (1 - (grid[curYear][y][x] / carryCapacity)));
-                                if(gradientPosition < 0 || !gradientPosition){
-                                        for(var s = 0; s < scale; s++){
-                                                data[pos] = gradient[0][0];
-                                                data[pos + 1] = gradient[0][1];
-                                                data[pos + 2] = gradient[0][2];
-                                                data[pos + 3] = 255;
-                                                pos += 4;
-                                        }
-                                }
-                                else{
-                                        for(var s = 0; s < scale; s++){
-                                                data[pos] = gradient[gradientPosition][0];           // some R value [0, 255]
-                                                data[pos + 1] = gradient[gradientPosition][1];           // some G value
-                                                data[pos + 2] = gradient[gradientPosition][2];           // some B value
-                                                data[pos + 3] = 255;
-                                                pos += 4;
-                                        }
-                                }
-                        }
-                }
-        }
-
-        ctx.putImageData(imgData, 0, 0);
-        canvasImage = new Image();
-        canvasImage.id = 'image' + curYear;
-
-        canvasImage.src = canvas.toDataURL();
-
-        canvasImage.onload = function(){
-                console.log("picture: " + canvasImage.naturalHeight);
-                console.log("picture: " + canvasImage.naturalWidth);
-                document.getElementById("rawHeatmapContainer").appendChild(canvasImage);
-
-                var tempLength = geoGrid.length - 1;
-                var tempPoint = geoGrid[tempLength][geoGrid[tempLength].length - 1]
-
-                console.log("top corner: " + geoGrid[0][0] + " bot corner: " + tempPoint);
-                console.log("extent: " + [geoGrid[0][0][1], tempPoint[0], tempPoint[1], geoGrid[0][0][0]]);
-
-                if(imageLayer){
-                        map.removeLayer(imageLayer);
-                }
-
-                imageLayer = new ol.layer.Image({
-                        opacity: 0.8,
-                        source: new ol.source.ImageStatic({
-                            url: canvasImage.src,
-                            imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
-                            projection: map.getView().getProjection(),
-                            imageExtent: [geoGrid[0][0][1], tempPoint[0], tempPoint[1], geoGrid[0][0][0]]
-                        })
-                });
-
-                imageLayer.set('name', 'imgLayer');
-
-                /*
-                var projection = new ol.proj.Projection({
-                        projection: 'EPSG:4326'
-                });
-
-                var map2 = new ol.Map({
-                        layers: [
-                          new ol.layer.Image({
-                            source: new ol.source.ImageStatic({
-                              url: canvasImage.src,
-                              projection: projection,
-                              imageExtent: [geoGrid[0][0][1], tempPoint[0], tempPoint[1], geoGrid[0][0][0]]
-                            })
-                          })
-                        ],
-                        target: 'testMap2',
-                        view: new ol.View({
-                          projection: projection,
-                          zoom: 2,
-                          maxZoom: 8
-                        })
-                });
-                */
-                //var tempLayers = map.getLayers();
-                //for(var c = 0; c < tempLayers.getLength(); c++){
-                //        tempLayers.item(c).setVisible(false);
-                //}
-                map.addLayer(imageLayer);
-        }
-}
-
-function toggleImgLayer(){
-        if(imageLayer.getVisible()){
-                imageLayer.setVisible(false);
-        }
-        else{
-                imageLayer.setVisible(true);
-        }
-}
-
-setupOlInputMap();
