@@ -1,3 +1,5 @@
+/* global ol features uiData simData simResults lowColorCode:true highColorCode:true*/
+
 var workerThread;
 
 function town(long, lat, pop, killRate, name, growth, id){
@@ -15,24 +17,39 @@ function town(long, lat, pop, killRate, name, growth, id){
         this.killRate = killRate;
         this.name = name;
         this.offtake = []; //new Array(years).fill(0.0);
-        this.getPop = function (year) {
-                return this.population*Math.pow(1 + this.growthRate, year);
-        };
-
-        this.printOfftake = function(){
-                var text = ' ';
-                for(var i = 0; i < years; i++){
-                        text += this.offtake[i].toFixed(2) + " ";
-                }
-                console.log("Village: " + name + " offtake: ");
-                console.log(text);
-        };
 }
 
+function setupSimDefaults(){
+        simData.animalDiffRate = 0.1;
+        simData.animalGrowthRate = 0.07;
+        simData.killProb = 0.1;
+        simData.HpHy = 40;
+        simData.encounterRate = 0.02043;
+        simData.carryCapacity = 25;
+        simData.theta = 1;
+        simData.years = 10;
+        simData.diffusionSamples = 1;
+        simData.huntRange = 5;
+        simData.lowColorCode = "ffeda0";
+        simData.highColorCode = "f03b20";
+        simData.simName = "defaultName";
+}
+
+function printOfftake(village){
+        var text = ' ';
+        for(var i = 0; i < simData.years; i++){
+                text += village.offtake[i].toFixed(2) + " ";
+        }
+        console.log("Village: " + village.name + " offtake: ");
+        console.log(text);
+}
+
+/*
 function drawgeoGrid(){
+        let geoGrid = simResults.geoGrid;
         for(var y = 0; y < geoGrid.length - 1; y++){
                 for(var x = 0; x < geoGrid[0].length - 1; x++){
-                        var tempPolygon = new ol.geom.Polygon([[
+                         var tempPolygon = new ol.geom.Polygon([[
                                 [geoGrid[y][x][1], geoGrid[y][x][0]],
                                 [geoGrid[y][x][1], geoGrid[y + 1][x][0]],
                                 [geoGrid[y + 1][x + 1][1], geoGrid[y + 1][x + 1][0]],
@@ -55,81 +72,73 @@ function drawgeoGrid(){
                 }
         }
 }
+*/
 
 function readUserParameters(){
-        years = parseInt(document.getElementById("paramYears").value, 10) || years;
-        carryCapacity = parseInt(document.getElementById("paramCarry").value, 10) || carryCapacity;
-        animalDiffRate = parseFloat(document.getElementById("paramDifRate").value) || animalDiffRate;
-        animalGrowthRate = parseFloat(document.getElementById("paramGrowthRate").value) || animalGrowthRate;
-        encounterRate = parseFloat(document.getElementById("paramEncounterRate").value) || encounterRate;
-        killProb = parseFloat(document.getElementById("paramKillProb").value) || killProb;
-        HpHy = parseInt(document.getElementById("paramHphy").value, 10) || HpHy;
-        huntRange = parseInt(document.getElementById("rangeHphy").value, 10) || 10;
+        simData.years = parseInt(document.getElementById("paramYears").value, 10) || simData.years;
+        simData.carryCapacity = parseInt(document.getElementById("paramCarry").value, 10) || simData.carryCapacity;
+        simData.animalDiffRate = parseFloat(document.getElementById("paramDifRate").value) || simData.animalDiffRate;
+        simData.animalGrowthRate = parseFloat(document.getElementById("paramGrowthRate").value) || simData.animalGrowthRate;
+        simData.encounterRate = parseFloat(document.getElementById("paramEncounterRate").value) || simData.encounterRate;
+        simData.killProb = parseFloat(document.getElementById("paramKillProb").value) || simData.killProb;
+        simData.HpHy = parseInt(document.getElementById("paramHphy").value, 10) || simData.HpHy;
+        simData.huntRange = parseInt(document.getElementById("rangeHphy").value, 10) || 10;
 
         var tempLow = document.getElementById("paramLowColor").value;
         if(tempLow.length > 0){
-                lowColorCode = tempLow;
+                simData.lowColorCode = tempLow;
         }
 
         var tempHigh = document.getElementById("paramHighColor").value;
         if(tempHigh.length > 0){
-                highColorCode = tempHigh;
+                simData.highColorCode = tempHigh;
         }
 
         var tempName = document.getElementById("paramName").value;
         if(tempName.length > 0){
-                simName = tempName;
+                simData.simName = tempName;
         }
 
-        theta = parseFloat(document.getElementById("paramTheta").value) || theta;
+        simData.theta = parseFloat(document.getElementById("paramTheta").value) || simData.theta;
         console.log("diff sample input: " + document.getElementById("diffSamples").value);
-        diffusionSamples = parseInt(document.getElementById("diffSamples").value, 10) || diffusionSamples;
+        simData.diffusionSamples = parseInt(document.getElementById("diffSamples").value, 10) || simData.diffusionSamples;
 
         console.log("finished reading user input");
 }
 
 function setupSimulation(){
-        console.log("----------------starting a new run-------------------");
+        console.log("----------------Starting sim setup-------------------");
+        //maybe move this to output display setup
         var cleanup = document.getElementById("rawHeatmapContainer");
         while (cleanup.firstChild) {
                 cleanup.removeChild(cleanup.firstChild);
         }
 
-        towns = [];
+        let townData = [];
         for(let i = 0; i < uiData.length; i++){
                 if(uiData[i].valid){
-                        towns.push(buildTownFromData(i));
+                        townData.push(buildTownFromData(i));
                 }
         }
-        if(!towns.length){
+        if(!townData.length){
                 //TODO add error dialog
-                console.log("no populations found");
+                console.log("no populations found - aborting run");
                 return;
         }
-        console.log("towns: " + towns.length);
-
-        progressInc = 1.0 / years;
+        console.log("Found " + townData.length + " valid towns");
 
         showProgressBar("Setting up simulation", 0);
-        setTimeout(startSimulation, 100);
-}
-
-function startSimulation(){
-        points = [];
-        for(var g = 0; g < towns.length; g++){
-                points.push([towns[g].long, towns[g].lat]);
-        }
-
         setupSimDefaults();
         readUserParameters();
-        
+
         //
         workerThread = new Worker('model.js');
-        
         workerThread.onmessage = function(oEvent) {
                 console.log("Worker message recieved");
                 handleWorkerMessage(oEvent.data);
         };
+
+        workerThread.postMessage({type:"newSim", params:simData, towns:townData});
 }
 
 function handleWorkerMessage(msg){
@@ -140,6 +149,7 @@ function handleWorkerMessage(msg){
         case 'finished':
                 //TODO code for getting data back
                 updateProgressBar("Visualizing Data", 100);
+                simResults.grid = new Array(simData.years + 1);
                 generateCanvas(curYear, 1);
                 synchPersisObject();
                 changeToOutput();
@@ -147,8 +157,14 @@ function handleWorkerMessage(msg){
                 createCDFChart();
                 closeProgressBar();
                 break;
+        case 'debug':
+                console.log("--Worker: " + msg.statusMsg);
+                break;
         case 'error':
                 //TODO fallback to setup, display error message as popup
+                break;
+        case 'imgData':
+
                 break;
         }
 }

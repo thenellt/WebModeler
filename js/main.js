@@ -1,12 +1,16 @@
+/*eslint no-unused-vars: ["error", { "vars": "local" }]*/
+/* global imageLayer uiData:true map source addPopFunction otherPopup:true ol */
+
 var popupEvntFunction;
 var currentId;
 var olmapLocation;
 var simulationRun;
-var progressInc;
+var simData;
+var simResults;
 
 function setupTabs(){
         var tabs = document.getElementsByClassName("tablinks");
-        for(i = 0; i < tabs.length; i++){
+        for(let i = 0; i < tabs.length; i++){
                 if(!tabs[i].classList.contains("defaultOpen")){
                         console.log("found non-default tab: " + tabs[i].id);
                         tabs[i].disabled = true;
@@ -22,12 +26,11 @@ function setupTabs(){
         simulationRun = 0;
 }
 
-
 function newSimulation(){
         var tempDate = new Date();
-        simID = tempDate.valueOf();
+        simData.simID = tempDate.valueOf();
         addRow("popTable", -1);
-        console.log("new simulation setup with ID: " + simID);
+        console.log("new simulation setup with ID: " + simData.simID);
         document.getElementById("parameterSetupTab").disabled = false;
         document.getElementById("resetButton").classList.remove("hide");
         document.getElementById("newSimButton").classList.add("hide");
@@ -44,7 +47,7 @@ function resetSimulationCheck(){
 }
 
 function resetSimulation(){
-        simID = -1;
+        simData.simID = -1;
         document.getElementById("paramYears").value = "";
         document.getElementById("paramCarry").value = "";
         document.getElementById("paramDifRate").value = "";
@@ -82,9 +85,7 @@ function resetSimulation(){
                 deleteTableRowById(uiData[k].id);
         }
 
-        towns = [];
         uiData = [];
-        points = [];
 
         if(source){
                 var features = source.getFeatures();
@@ -280,7 +281,7 @@ function closePopUpdater(input){
         changeDiv.classList.add('scale-out');
         var hidepage = document.getElementById("hidepage");
         fadeOut(hidepage);
-        oldName = "";
+        //oldName = "";
 }
 
 function closePopEditor(clear){
@@ -356,7 +357,6 @@ function changeToPopulations(){
 
 function changeToGetStarted(){
         let contentDiv = document.getElementById("getStarted");
-        let outputDiv = document.getElementById("resultsPage");
         if(contentDiv.style.display == "none"){
                 console.log("updating persist display");
                 var saveContainer = document.getElementById("persistSaveContainer");

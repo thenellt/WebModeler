@@ -7,6 +7,7 @@ changelog.txt
 
 jsDev/model.js
 jsDev/testFunctions.js
+jsDev/mapFunctionality.js
 jsDev/saveLoad.js
 jsDev/FileSaver.min.js
 jsDev/dataProcessing.js

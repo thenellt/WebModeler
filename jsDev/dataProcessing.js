@@ -1,3 +1,4 @@
+/* global simResults simData Chartist JSZip saveAs*/
 
 function generateCDFBins(year){
         var numCells = 0;
@@ -8,10 +9,10 @@ function generateCDFBins(year){
 
         console.log("dataValues starting: " + dataValues);
 
-        grid[year].forEach(function(element){
+        simResults.grid[year].forEach(function(element){
                 element.forEach(function(ele){
                         numCells++;
-                        let temp = ele / (1.0 * carryCapacity);
+                        let temp = ele / (1.0 * simData.carryCapacity);
                         if(temp > .99){
                                 dataValues[10]++;
                         }
@@ -33,7 +34,7 @@ function generateCDFBins(year){
 }
 
 function createCDFChart(){
-        let densities = generateCDFBins(years);
+        let densities = generateCDFBins(simData.years);
 
         var data = {
           // A labels array that can contain any sort of values
@@ -62,15 +63,15 @@ function rawHWScaleInput(value){
 }
 
 function setupOutputRanges(){
-        document.getElementById("heatmapYear").max = years;
-        document.getElementById("overlayYear").max = years;
-        document.getElementById("csvNumberInput").max = years;
+        document.getElementById("heatmapYear").max = simData.years;
+        document.getElementById("overlayYear").max = simData.years;
+        document.getElementById("csvNumberInput").max = simData.years;
 }
 
 function generateCSV(yearNum){
         var outputString = "";
-        for(let i = 0; i < grid[yearNum].length; i++){
-                outputString += grid[yearNum][i].join(", ");
+        for(let i = 0; i < simResults.grid[yearNum].length; i++){
+                outputString += simResults.grid[yearNum][i].join(", ");
                 outputString += "\r\n";
         }
 
@@ -83,18 +84,18 @@ function csvSingleYear(){
         var text = generateCSV(yearNum);
 
         var jsonBlob = new Blob([text], {type: "text/csv"});
-        saveAs(jsonBlob, simName + "_year" + yearNum + "data.csv");
+        saveAs(jsonBlob, simData.simName + "_year" + yearNum + "data.csv");
 }
 
 function csvAllYears(){
         var zip = new JSZip();
-        for(let i = 0; i <= years; i++){
-                zip.file(simName + "_year" + i + ".csv", generateCSV(i));
+        for(let i = 0; i <= simData.years; i++){
+                zip.file(simData.simName + "_year" + i + ".csv", generateCSV(i));
         }
 
         zip.generateAsync({type:"blob"})
                 .then(function(content) {
                 // see FileSaver.js
-                saveAs(content, simName + "_csvData.zip");
+                saveAs(content, simData.simName + "_csvData.zip");
         });
 }

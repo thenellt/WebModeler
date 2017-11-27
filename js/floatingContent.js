@@ -112,7 +112,7 @@ readLocalFile("./changelog.txt", 'GET', function(responseText) {
         var list = document.createElement('ul');
         list.className = "collection";
 
-        for(i = 0; i < splitLog.length - 1; i++){
+        for(let i = 0; i < splitLog.length - 1; i++){
                 var content = splitLog[i].split('-');
 
                 var item = document.createElement('li');

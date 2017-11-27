@@ -1,14 +1,16 @@
+/* global ol uiData API_KEYS simData simResults*/
+
 var map;
 var features;
 var source = new ol.source.Vector({wrapX: false});
-var popLabelFeatures = [];
+//var popLabelFeatures = [];
 var pointVector;
 var canvas;
 var canvasImage;
 var imageLayer;
 var addPopFunction;
-var curImage;
 
+/*
 function setupGradient(){
         var gradient = [];
         var hotColor = [];
@@ -27,7 +29,7 @@ function setupGradient(){
         var greenRange = hotColor[1] - coolColor[1];
         var blueRange = hotColor[2] - coolColor[2];
 
-        var gradientSteps = carryCapacity - 1;
+        var gradientSteps = simData.carryCapacity - 1;
 
         for(var i = 0; i <= gradientSteps; i++){
                 var colorOffset = i / (gradientSteps);
@@ -41,6 +43,7 @@ function setupGradient(){
         console.log(gradient);
         return gradient;
 }
+*/
 
 function placePopulation(e){
         var tempFeatures = [];
@@ -119,15 +122,16 @@ function styleFunction() {
         ];
 }
 
+/*
 function drawHeatMap(matrix){
         console.log("starting drawHeatMap: ");
 
         var gradient = setupGradient();
-        var gradientSteps = carryCapacity - 1;
+        var gradientSteps = simData.carryCapacity - 1;
 
-        for(var y = 0; y < ySize - 1; y++){
+        for(var y = 0; y < simResults.ySize - 1; y++){
                 console.log("starting row: " + y);
-                for(var x = 0; x < xSize - 1; x++){
+                for(var x = 0; x < simResults.xSize - 1; x++){
                         var tempPolygon = new ol.geom.Polygon([[
                                 [matrix[y][x][1], matrix[y][x][0]],
                                 [matrix[y][x][1], matrix[y + 1][x][0]],
@@ -141,7 +145,7 @@ function drawHeatMap(matrix){
                                 geometry: tempPolygon
                         });
 
-                        var gradientPosition = Math.ceil(gradientSteps * (1 - (grid[years][y][x] / carryCapacity)));
+                        var gradientPosition = Math.ceil(gradientSteps * (1 - (simResults.grid[simData.years][y][x] / simData.carryCapacity)));
                         if(gradientPosition < 0 || !gradientPosition){
                                 gradientPosition = 0;
                         }
@@ -156,9 +160,9 @@ function drawHeatMap(matrix){
 
         pointVector.setVisible(false);
 }
+*/
 
 function setupOlInputMap(){
-        var drawControls;
         var teststyle = new ol.style.Style({
                 fill: new ol.style.Fill({ color: [0, 255, 0, 0.3]})
         });
@@ -232,25 +236,25 @@ function generateCanvas(curYear, scale){
         console.log("generating canvas for year: " + curYear + " and scale: " + scale);
         //towns[0].printOfftake();
         var gradient = setupGradient();
-        var gradientSteps = carryCapacity - 1;
+        var gradientSteps = simData.carryCapacity - 1;
 
         canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
 
-        canvas.width = xSize * scale;
-        canvas.height = ySize * scale;
+        canvas.width = simResults.xSize * scale;
+        canvas.height = simResults.ySize * scale;
 
-        var imgData=ctx.getImageData(0,0,xSize * scale,ySize * scale);
+        var imgData=ctx.getImageData(0, 0, simResults.xSize * scale, simResults.ySize * scale);
         var data=imgData.data;
 
         var pos = 0;
-        for(var y = 0; y < ySize; y++) {
+        for(var y = 0; y < simResults.ySize; y++) {
                 for(var row = 0; row < scale; row++){
-                        for(var x = 0; x < xSize; x++) {
+                        for(var x = 0; x < simResults.xSize; x++) {
                                 //TODO talk to Taal about using floor vs ceiling
-                                var gradientPosition = Math.ceil(gradientSteps * (1 - (grid[curYear][y][x] / carryCapacity)));
+                                var gradientPosition = Math.ceil(gradientSteps * (1 - (simResults.grid[curYear][y][x] / simData.carryCapacity)));
                                 if(gradientPosition < 0 || !gradientPosition){
-                                        for(var s = 0; s < scale; s++){
+                                        for(let s = 0; s < scale; s++){
                                                 data[pos] = gradient[0][0];
                                                 data[pos + 1] = gradient[0][1];
                                                 data[pos + 2] = gradient[0][2];
@@ -259,7 +263,7 @@ function generateCanvas(curYear, scale){
                                         }
                                 }
                                 else{
-                                        for(var s = 0; s < scale; s++){
+                                        for(let s = 0; s < scale; s++){
                                                 data[pos] = gradient[gradientPosition][0];           // some R value [0, 255]
                                                 data[pos + 1] = gradient[gradientPosition][1];           // some G value
                                                 data[pos + 2] = gradient[gradientPosition][2];           // some B value
@@ -282,11 +286,11 @@ function generateCanvas(curYear, scale){
                 console.log("picture: " + canvasImage.naturalWidth);
                 document.getElementById("rawHeatmapContainer").appendChild(canvasImage);
 
-                var tempLength = geoGrid.length - 1;
-                var tempPoint = geoGrid[tempLength][geoGrid[tempLength].length - 1];
+                var tempLength = simResults.geoGrid.length - 1;
+                var tempPoint = simResults.geoGrid[tempLength][simResults.geoGrid[tempLength].length - 1];
 
-                console.log("top corner: " + geoGrid[0][0] + " bot corner: " + tempPoint);
-                console.log("extent: " + [geoGrid[0][0][1], tempPoint[0], tempPoint[1], geoGrid[0][0][0]]);
+                console.log("top corner: " + simResults.geoGrid[0][0] + " bot corner: " + tempPoint);
+                console.log("extent: " + [simResults.geoGrid[0][0][1], tempPoint[0], tempPoint[1], simResults.geoGrid[0][0][0]]);
 
                 if(imageLayer){
                         map.removeLayer(imageLayer);
@@ -298,7 +302,7 @@ function generateCanvas(curYear, scale){
                             url: canvasImage.src,
                             imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
                             projection: map.getView().getProjection(),
-                            imageExtent: [geoGrid[0][0][1], tempPoint[0], tempPoint[1], geoGrid[0][0][0]]
+                            imageExtent: [simResults.geoGrid[0][0][1], tempPoint[0], tempPoint[1], simResults.geoGrid[0][0][0]]
                         })
                 });
 
@@ -336,7 +340,7 @@ function generateCanvas(curYear, scale){
 }
 
 function drawHeatmap(){
-        
+
 }
 
 setupOlInputMap();

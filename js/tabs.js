@@ -1,3 +1,5 @@
+/*eslint no-unused-vars: ["error", { "vars": "local" }]*/
+/* global map */
 var populationView = 1;
 
 //based on vertical tab tutorial from: https://www.w3schools.com/howto/howto_js_vertical_tabs.asp
@@ -27,7 +29,7 @@ function togglePopulationView(mode){
         if(mode == populationView){
                 return;
         }
-        
+
         populationView = mode;
         if(populationView){
                 document.getElementById("popMapContent").classList.add("hide");

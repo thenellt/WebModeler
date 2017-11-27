@@ -1,3 +1,4 @@
+/* global source */
 var uiData = [];
 
 function uiRow(long, lat, pop, kill, name, growth, id, validity){
@@ -55,12 +56,12 @@ function addRow(tableId, rowId){
         var body = table.getElementsByTagName('tbody')[0];
         var row = body.insertRow(table.rows.length - 1);
         row.id = tempId;
-        var nameCell = row.insertCell(cellNum++);
-        var longCell = row.insertCell(cellNum++);
-        var latCell = row.insertCell(cellNum++);
-        var popCell = row.insertCell(cellNum++);
-        var growthCell = row.insertCell(cellNum++);
-        var killCell = row.insertCell(cellNum++);
+        row.insertCell(cellNum++);
+        row.insertCell(cellNum++);
+        row.insertCell(cellNum++);
+        row.insertCell(cellNum++);
+        row.insertCell(cellNum++);
+        row.insertCell(cellNum++);
         var deleteCell = row.insertCell(cellNum++);
 
         var delButton = document.createElement('input');
@@ -185,7 +186,6 @@ function checkKey(e){
                 else{
                         return 1;
                 }
-                break;
         case 37: e.preventDefault();
                  return 4;
         case 38: return 5;
@@ -339,9 +339,9 @@ function deleteTableRowById(rowId){
 }
 
 //assumes uiData has been updated already
-function updateTableRow(row){
+function updateTableRow(rowNum){
         var table = document.getElementById("popTable");
-        var villageData = uiData[row];
+        var villageData = uiData[rowNum];
         var row;
         for(var i = 0; i < table.rows.length; i++){
                 if(table.rows[i].id == villageData.id){
