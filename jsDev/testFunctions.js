@@ -150,11 +150,13 @@ function handleWorkerMessage(msg){
                 //TODO code for getting data back
                 updateProgressBar("Visualizing Data", 100);
                 simResults.grid = new Array(simData.years + 1);
-                generateCanvas(curYear, 1);
+                //generateCanvas(simData.years - 1, 1);
+                let temp = {type:'genImage', dest:'mapViewer', year:simData.years - 1, scale:1};
+                workerThread.postMessage(temp);
                 synchPersisObject();
                 changeToOutput();
                 setupOutputRanges();
-                createCDFChart();
+                //createCDFChart();
                 closeProgressBar();
                 break;
         case 'debug':
@@ -164,7 +166,7 @@ function handleWorkerMessage(msg){
                 //TODO fallback to setup, display error message as popup
                 break;
         case 'imgData':
-
+                generateCanvas(msg.year, msg.scale, msg.data, msg.dest);
                 break;
         }
 }

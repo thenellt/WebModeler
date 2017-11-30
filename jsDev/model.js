@@ -412,7 +412,7 @@ function generateImageData(params){
                 }
         }
 
-        self.postMessage({type:'imgData', year:params.year, data:imgData});
+        self.postMessage({type:'imgData', year:params.year, scale:params.scale, dest:params.dest, data:imgData.buffer});
 }
 
 function setupGradient(){

@@ -232,6 +232,55 @@ function getExtent(){
         map.getView().setCenter([coords[0],coords[3]]);
 }
 
+function generateCanvas(year, scale, data, dest){
+        console.log("generating canvas for year: " + year + " and scale: " + scale);
+        canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+
+        canvas.width = simResults.xSize * scale;
+        canvas.height = simResults.ySize * scale;
+        
+        ctx.putImageData(data, 0, 0);
+        canvasImage = new Image();
+        canvasImage.id = 'image' + year;
+
+        switch()
+        canvasImage.onload = function(){
+                drawCanvasToMap()
+        };
+        
+        canvasImage.src = canvas.toDataURL();
+}
+
+function drawCanvasToMap(canvasImage){
+        console.log("picture: " + canvasImage.naturalHeight);
+        console.log("picture: " + canvasImage.naturalWidth);
+        document.getElementById("rawHeatmapContainer").appendChild(canvasImage);
+
+        var tempLength = simResults.geoGrid.length - 1;
+        var tempPoint = simResults.geoGrid[tempLength][simResults.geoGrid[tempLength].length - 1];
+
+        console.log("top corner: " + simResults.geoGrid[0][0] + " bot corner: " + tempPoint);
+        console.log("extent: " + [simResults.geoGrid[0][0][1], tempPoint[0], tempPoint[1], simResults.geoGrid[0][0][0]]);
+
+        if(imageLayer){
+                map.removeLayer(imageLayer);
+        }
+
+        imageLayer = new ol.layer.Image({
+                opacity: 0.8,
+                source: new ol.source.ImageStatic({
+                    url: canvasImage.src,
+                    imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
+                    projection: map.getView().getProjection(),
+                    imageExtent: [simResults.geoGrid[0][0][1], tempPoint[0], tempPoint[1], simResults.geoGrid[0][0][0]]
+                })
+        });
+
+        imageLayer.set('name', 'imgLayer');
+        map.addLayer(imageLayer);
+}
+        
 function generateCanvas(curYear, scale){
         console.log("generating canvas for year: " + curYear + " and scale: " + scale);
         //towns[0].printOfftake();
