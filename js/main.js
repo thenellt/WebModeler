@@ -5,8 +5,8 @@ var popupEvntFunction;
 var currentId;
 var olmapLocation;
 var simulationRun;
-var simData;
-var simResults;
+var simData = {};
+var simResults = {};
 
 function setupTabs(){
         var tabs = document.getElementsByClassName("tablinks");
@@ -412,14 +412,14 @@ function showProgressBar(message, value){
         document.getElementById("progressBar").style.width = value;
 
         let element = document.getElementById("prgressContainer");
-        element.classList.add("scale-out")
-        element.classList.remove("scale-in");
+        element.classList.add("scale-in")
+        element.classList.remove("scale-out");
 }
 
-function updateProgressBar(message, valueChange){
-        console.log("updating progress bar: " + message);
+function updateProgressBar(message, value){
+        console.log("updating progress bar: " + message + " val: " + value);
         document.getElementById("progressText").innerHTML = message;
-        document.getElementById("progressBar").style.width += valueChange;
+        document.getElementById("progressBar").style.width = value + "%";
 }
 
 function closeProgressBar(){
@@ -439,8 +439,8 @@ function populateDefaultValues(){
         document.getElementById("rangeHphy").value = "5";
 
         document.getElementById("paramTheta").value = "1";
-        document.getElementById("paramLowColor").value = "ffeda0";
-        document.getElementById("paramHighColor").value = "f03b20";
+        document.getElementById("paramLowColor").value = "#ffeda0";
+        document.getElementById("paramHighColor").value = "#f03b20";
         document.getElementById("diffSamples").value = "1";
 
         document.getElementById("paramName").focus();

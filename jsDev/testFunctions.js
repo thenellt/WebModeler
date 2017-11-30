@@ -44,7 +44,7 @@ function printOfftake(village){
         console.log(text);
 }
 
-/*
+//debuging function. Draws every 1km x 1km cell 
 function drawgeoGrid(){
         let geoGrid = simResults.geoGrid;
         for(var y = 0; y < geoGrid.length - 1; y++){
@@ -72,7 +72,7 @@ function drawgeoGrid(){
                 }
         }
 }
-*/
+
 
 function readUserParameters(){
         simData.years = parseInt(document.getElementById("paramYears").value, 10) || simData.years;
@@ -132,24 +132,23 @@ function setupSimulation(){
         readUserParameters();
 
         //
-        workerThread = new Worker('model.js');
+        workerThread = new Worker('jsDev/model.js');
         workerThread.onmessage = function(oEvent) {
-                console.log("Worker message recieved");
                 handleWorkerMessage(oEvent.data);
         };
-
         workerThread.postMessage({type:"newSim", params:simData, towns:townData});
 }
 
-function handleWorkerMessage(msg){
-        switch(msg.type){
+function handleWorkerMessage(data){
+        switch(data.type){
         case 'progress':
-                updateProgressBar(msg.statusMsg, msg.statusValue);
+                updateProgressBar(data.statusMsg, data.statusValue);
                 break;
-        case 'finished':
+        case 'finished': {
                 //TODO code for getting data back
+                simResults = data.paramData;
                 updateProgressBar("Visualizing Data", 100);
-                simResults.grid = new Array(simData.years + 1);
+                //simResults.grid = new Array(simData.years + 1);
                 //generateCanvas(simData.years - 1, 1);
                 let temp = {type:'genImage', dest:'mapViewer', year:simData.years - 1, scale:1};
                 workerThread.postMessage(temp);
@@ -159,14 +158,17 @@ function handleWorkerMessage(msg){
                 //createCDFChart();
                 closeProgressBar();
                 break;
+        }
         case 'debug':
-                console.log("--Worker: " + msg.statusMsg);
+                console.log("--Worker: " + data.statusMsg);
                 break;
         case 'error':
                 //TODO fallback to setup, display error message as popup
                 break;
-        case 'imgData':
-                generateCanvas(msg.year, msg.scale, msg.data, msg.dest);
+        case 'imgData': {
+                console.log("array print test: " + data.array[10] + " size: " + data.array.length);
+                generateCanvas(data.year, data.scale, data.array, data.dest);
                 break;
+        }
         }
 }

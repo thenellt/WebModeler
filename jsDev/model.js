@@ -372,8 +372,9 @@ function runSimulation(){
         }
 
         //Send finished, send back data
+        let finishedData = {xSize:xSize, ySize:ySize, geoGrid:geoGrid};
 
-        let message = {type:'finished'};
+        let message = {type:'finished', paramData:finishedData};
         self.postMessage(message);
 }
 
@@ -384,7 +385,7 @@ function generateImageData(params){
 
         var pos = 0;
         //simResults.xSize * scale, simResults.ySize * scale
-        var imgData = new Uint8ClampedArray((xSize * scale) * (ySize * scale));
+        var imgData = new Uint8ClampedArray((xSize * scale) * (ySize * scale) * 4);
         for(var y = 0; y < ySize; y++) {
                 for(var row = 0; row < scale; row++){
                         for(var x = 0; x < xSize; x++) {
@@ -411,8 +412,9 @@ function generateImageData(params){
                         }
                 }
         }
+        logMessage("imgdata test: " + imgData.length + " correct length: " + (xSize * scale) * (ySize * scale) * 4);
 
-        self.postMessage({type:'imgData', year:params.year, scale:params.scale, dest:params.dest, data:imgData.buffer});
+        self.postMessage({type:'imgData', year:params.year, scale:params.scale, dest:params.dest, array:imgData}, [imgData.buffer]);
 }
 
 function setupGradient(){
@@ -427,7 +429,7 @@ function setupGradient(){
         coolColor[1] = parseInt(simData.lowColorCode.substring(3, 5) , 16);
         coolColor[2] = parseInt(simData.lowColorCode.substring(5, 7) , 16);
 
-        console.log("hot color: " + hotColor + " and cool color: " + coolColor);
+        //console.log("hot color: " + hotColor + " and cool color: " + coolColor);
 
         var redRange = hotColor[0] - coolColor[0];
         var greenRange = hotColor[1] - coolColor[1];
@@ -444,7 +446,7 @@ function setupGradient(){
                 gradient.push(tempColor.slice());
         }
 
-        console.log(gradient);
+        //console.log(gradient);
         return gradient;
 }
 

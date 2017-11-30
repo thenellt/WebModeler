@@ -1,3 +1,4 @@
+11/29/17 v18 - First multithreaded version with working web worker. Also adds support for Bing map satellite data. \n
 11/20/17 v17b - Additional fixes and work on the output page. \n
 11/17/17 v17a - More work to results pages and first working graph. \n
 11/15/17 v17 - Autosave system is working and has an interface. Last major feature to work on is the output page. \n
