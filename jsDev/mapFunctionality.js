@@ -216,14 +216,13 @@ function drawCanvasToMap(canvasImage){
 }
 
 function toggleVillageLabels(element){
-        let isChecked = element.checked;
-        
+        pointVector.setVisible(element.checked);
 }
 
 function updateOutputOpacity(element){
         let val = element.value;
         document.getElementById("opacityLabel").innerHTML = "Overlay Opacity: " + val + "%";
-       
+
         imageLayer.setOpacity(val/100);
 }
 

@@ -1,6 +1,7 @@
 /* global ol features uiData simData simResults lowColorCode:true highColorCode:true*/
 
 var workerThread;
+var workerFunctions = {};
 
 function town(long, lat, pop, killRate, name, growth, id){
         if(id === 0){
@@ -141,23 +142,34 @@ function setupSimulation(){
         workerThread.postMessage({type:"newSim", params:simData, towns:townData});
 }
 
+function mapWorkerFunctions(){
+        workerFunctions = {
+                'progress': function(data) {updateProgressBar(data.statusMsg, data.statusValue);},
+                'updateCDFChart': function(data) {createCDFChart(data.densities);},
+        };
+}
+
 function handleWorkerMessage(data){
         switch(data.type){
+        case 'mapped':
+                workerFunctions[data.fnc](data);
+                break;
+                /*
         case 'progress':
                 updateProgressBar(data.statusMsg, data.statusValue);
                 break;
+                */
         case 'finished': {
                 //TODO code for getting data back
                 simResults = data.paramData;
                 updateProgressBar("Visualizing Data", 100);
                 //simResults.grid = new Array(simData.years + 1);
                 //generateCanvas(simData.years - 1, 1);
-                let temp = {type:'genImage', dest:'mapViewer', year:simData.years - 1, scale:1};
-                workerThread.postMessage(temp);
+                workerThread.postMessage({type:'genImage', dest:'mapViewer', year:simData.years - 1, scale:1});
                 synchPersisObject();
                 changeToOutput();
                 setupOutputRanges();
-                //createCDFChart();
+                workerThread.postMessage({type:'getCDFData', year:simData.years - 1})
                 closeProgressBar();
                 break;
         }
@@ -174,3 +186,5 @@ function handleWorkerMessage(data){
         }
         }
 }
+
+mapWorkerFunctions();

@@ -237,100 +237,114 @@
                                         <div class="row">
                                                 <div class="col s6"><h4>Simulation Results</h4></div>
                                         </div>
-                                        <div class="divider" style="margin-bottom: 4px;"></div>
-                                        <div class="row">
-                                                <div class="col s12">
-                                                        The saved image will look exactly as you see it below. Zoom or pan the map preview to select the area to save.
-                                                </div>
-                                        </div>
-                                        <div class="row" style="margin-bottom: 0px;">
-                                                <div class="col s3" id="opacityLabel" style="margin-top: 12px;">
-                                                        Overlay Opacity:
-                                                </div>
-                                                <div class="col s4">
-                                                        <p class="range-field">
-                                                                <input type="range" id="opacitySlider" min="0" max="100" scale="1" oninput="updateOutputOpacity(this)"/>
-                                                        </p>
-                                                </div>
-                                                <div class="col s2 offset-s1">
-                                                        Village Names:
-                                                </div>
-                                                <div class="col s2">
-                                                        <div class="switch">
-                                                                <label>
-                                                                        Off
-                                                                        <input type="checkbox" onchange="toggleVillageLabels(this)" checked="true">
-                                                                        <span class="lever"></span>
-                                                                        On
-                                                                </label>
-                                                        </div>
-                                                </div>
-                                        </div>
-                                        <div class="row">
-                                                <div id="resultMapDiv"></div>
-                                        </div>
-                                        <div class="row">
-                                                <div class="col s2" style="margin-top: 12px;">
-                                                         Heatmap Year:
-                                                </div>
-                                                <div class="col s1">
-                                                        <input type="number" min="0" step="1" value="0" id="overlayYear">
-                                                </div>
-                                                <div class="col s3">
-                                                        <a class="waves-effect waves-light btn saveButton" onclick="saveImgToFile(1);">Save Image</a>
-                                                </div>
-                                        </div>
-                                        <div class="divider" style="margin-bottom: 4px;"></div>
-                                        <div class="row">
-                                                <div class="col s6">
-                                                        <h5>Save standalone heatmaps:</h5>
-                                                </div>
-                                        </div>
-                                        <div class="row">
-                                                <div class="col s4">
-                                                        <div id="rawHeatmapContainer"></div>
-                                                </div>
-                                                <div class="col s6">
+                                        <ul class="collapsible" data-collapsible="accordion">
+                                                <li>
+                                                <div class="collapsible-header active"><i class="material-icons">map</i>Heatmap with Sattelite Overlay</div>
+                                                <div class="collapsible-body">
                                                         <div class="row">
-                                                                <div class="col s6" style="margin-top: 10px;">
-                                                                        Set heatmap scale (1 is 100%):
+                                                                <div class="col s12">
+                                                                        The saved image will look exactly as you see it below. Zoom or pan the map preview to select the area to save.
+                                                                </div>
+                                                        </div>
+                                                        <div class="row" style="margin-bottom: 0px;">
+                                                                <div class="col s3" id="opacityLabel" style="margin-top: 12px;">
+                                                                        Overlay Opacity:
                                                                 </div>
                                                                 <div class="col s4">
-                                                                        <div id="rawHeatmapPixelSize"></div>
+                                                                        <p class="range-field">
+                                                                                <input type="range" id="opacitySlider" min="0" max="100" scale="1" oninput="updateOutputOpacity(this)"/>
+                                                                        </p>
+                                                                </div>
+                                                                <div class="col s2 offset-s1">
+                                                                        Village Names:
                                                                 </div>
                                                                 <div class="col s2">
-                                                                        <input type="number" min="1" max="8" step="1" value="1" id="heatmapScale" style="margin-bottom: 0px;" onchange="rawHWScaleInput(this.value)">
+                                                                        <div class="switch">
+                                                                                <label>
+                                                                                        Off
+                                                                                        <input type="checkbox" onchange="toggleVillageLabels(this)" checked="true" id="popLabelToggle">
+                                                                                        <span class="lever"></span>
+                                                                                        On
+                                                                                </label>
+                                                                        </div>
                                                                 </div>
                                                         </div>
                                                         <div class="row">
-                                                                <div class="col s3" style="margin-top: 10px;">
-                                                                        Year:
+                                                                <div id="resultMapDiv"></div>
+                                                        </div>
+                                                        <div class="row">
+                                                                <div class="col s2" style="margin-top: 12px;">
+                                                                         Heatmap Year:
                                                                 </div>
-                                                                <div class="col s2">
-                                                                        <input type="number" min="0" step="1" value="0" id="heatmapYear" style="margin-bottom: 0px;" onchange="rawHMYearInput(this.value)">
+                                                                <div class="col s1">
+                                                                        <input type="number" min="0" step="1" value="0" id="overlayYear">
                                                                 </div>
-                                                                <div class="col s6 offset-s1">
-                                                                        <a class="waves-effect waves-light btn" onclick="saveImgToFile(0);">Save Single Year</a>
+                                                                <div class="col s3">
+                                                                        <a class="waves-effect waves-light btn saveButton" onclick="saveImgToFile(1);">Save Image</a>
+                                                                </div>
+                                                        </div>
+                                                </div>
+                                                </li>
+                                                <li>
+                                                <div class="collapsible-header"><i class="material-icons">leak_add</i>Plain Heatmap</div>
+                                                <div class="collapsible-body">
+                                                        <div class="row">
+                                                                <div class="col s6">
+                                                                        <h5>Save standalone heatmaps:</h5>
                                                                 </div>
                                                         </div>
                                                         <div class="row">
-                                                                <div class="col s6 offset-s6">
-                                                                        <a class="waves-effect waves-light btn" onclick="saveImgToFile(0);">Save All Years</a>
+                                                                <div class="col s4">
+                                                                        <div id="rawHeatmapContainer"></div>
+                                                                </div>
+                                                                <div class="col s6">
+                                                                        <div class="row">
+                                                                                <div class="col s6" style="margin-top: 10px;">
+                                                                                        Set heatmap scale (1 is 100%):
+                                                                                </div>
+                                                                                <div class="col s4">
+                                                                                        <div id="rawHeatmapPixelSize"></div>
+                                                                                </div>
+                                                                                <div class="col s2">
+                                                                                        <input type="number" min="1" max="8" step="1" value="1" id="heatmapScale" style="margin-bottom: 0px;" onchange="rawHWScaleInput(this.value)">
+                                                                                </div>
+                                                                        </div>
+                                                                        <div class="row">
+                                                                                <div class="col s3" style="margin-top: 10px;">
+                                                                                        Year:
+                                                                                </div>
+                                                                                <div class="col s2">
+                                                                                        <input type="number" min="0" step="1" value="0" id="heatmapYear" style="margin-bottom: 0px;" onchange="rawHMYearInput(this.value)">
+                                                                                </div>
+                                                                                <div class="col s6 offset-s1">
+                                                                                        <a class="waves-effect waves-light btn" onclick="saveImgToFile(0);">Save Single Year</a>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div class="row">
+                                                                                <div class="col s6 offset-s6">
+                                                                                        <a class="waves-effect waves-light btn" onclick="saveImgToFile(0);">Save All Years</a>
+                                                                                </div>
+                                                                        </div>
+                                                                </div>
+                                                                <!--<div class="col s3">
+                                                                        <a class="waves-effect waves-light btn" onclick="saveImgToFile(1);">Save Map Image</a>
+                                                                </div> -->
+                                                        </div>
+                                                        <div class="row">
+                                                                <div class="col s2">
+                                                                        Preview of year:
+                                                                </div>
+                                                                <div class="col s1" id="previewYearText">
+                                                                        0
                                                                 </div>
                                                         </div>
                                                 </div>
-                                                <!--<div class="col s3">
-                                                        <a class="waves-effect waves-light btn" onclick="saveImgToFile(1);">Save Map Image</a>
-                                                </div> -->
-                                        </div>
-                                        <div class="row">
-                                                <div class="col s2">
-                                                        Preview of year:
-                                                </div>
-                                                <div class="col s1" id="previewYearText">
-                                                        0
-                                                </div>
-                                        </div>
+                                                </li>
+                                                <li>
+                                                <div class="collapsible-header"><i class="material-icons">whatshot</i>Third</div>
+                                                <div class="collapsible-body"><span>Lorem ipsum dolor sit amet.</span></div>
+                                                </li>
+                                        </ul>
                                 </div>
                                 <div class="tabcontent" id="statsPage">
                                         <div class="row">

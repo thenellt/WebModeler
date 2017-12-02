@@ -19,13 +19,29 @@ function uiRow(long, lat, pop, kill, name, growth, id, validity){
 
 }
 
+function isEmptyEntry(row){
+        for(let i = 0; i < 6; i++){
+                if(row.cells[i].innerHTML.trim().length)
+                        return false;
+        }
+
+        return true;
+}
+
 //temp row is a uiRow object
 function addEntry(tempRow){
-        console.log(JSON.stringify(tempRow));
-        console.log("tempRow id: " + tempRow.id);
-        addRow("popTable", tempRow.id);
         var table = document.getElementById("popTable");
         var row = table.rows[table.rows.length - 1];
+        if(isEmptyEntry(row)){
+                console.log("last row was empty, using it");
+                row.valid = true;
+                row.id = tempRow.id;
+        }
+        else{
+                console.log("last row wasn't empty, adding one");
+                addRow("popTable", tempRow.id);
+        }
+        row = table.rows[table.rows.length - 1];
 
         row.cells[0].innerHTML = tempRow.name;
         row.cells[1].innerHTML = tempRow.long;

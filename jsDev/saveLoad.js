@@ -1,27 +1,4 @@
-//save load system for parsing files and dealing with browser storage
-/*
-Goals
-- Save parameters as json
-- load text file with json
-- browser persistent storage
-
-*/
-
-/* parameters to handle plus populations
-var animalDiffRate;
-var animalGrowthRate;
-var killProb;
-var HpHy;
-var encounterRate;
-var huntRange;
-var theta;
-var carryCapacity;
-var years;
-var diffusionSamples;
-
-var lowColorCode;
-var highColorCode;
-*/
+/* global simData*/
 
 var appCache = window.applicationCache;
 var persistCompatibility = false;
@@ -132,7 +109,7 @@ function saveSimToFile(){
 
         var outputString = JSON.stringify(saveObject);
         var jsonBlob = new Blob([outputString], {type: "application/json"});
-        saveAs(jsonBlob, simName + ".cfg");
+        saveAs(jsonBlob, simData.simName + ".cfg");
 }
 
 function savePersistConfig(persistID){

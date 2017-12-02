@@ -1,5 +1,5 @@
 /*eslint no-unused-vars: ["error", { "vars": "local" }]*/
-/* global imageLayer uiData:true map source addPopFunction otherPopup:true ol */
+/* global imageLayer uiData:true map source addPopFunction otherPopup:true ol pointVector */
 
 var popupEvntFunction;
 var currentId;
@@ -350,6 +350,7 @@ function changeToPopulations(){
                 //map.updateSize();
                 addPopFunction = map.on('click', placePopulation);
                 imageLayer.setVisible(false);
+                pointVector.setVisible(true);
         }
         else{
                 changeTab('popSetup');
@@ -391,6 +392,9 @@ function changeToOutput(){
                 map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
                 map.updateSize();
         }
+
+        let labelCheckBox = document.getElementById('popLabelToggle');
+        pointVector.setVisible(labelCheckBox.checked);
 }
 
 function notifyMessage(text, time){

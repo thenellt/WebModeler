@@ -38,6 +38,9 @@ onmessage = function(oEvent) {
         case 'getCSVData':
                 //TODO passback csv data
                 break;
+        case 'getCDFData':
+                generateCDFBins(oEvent.data.year);
+                break;
         }
 };
 
@@ -367,7 +370,7 @@ function runSimulation(){
                         }
                 }
 
-                let message = {type:'progress', statusMsg:"Finished Year " + curYear, statusValue: 100 * (curYear / simData.years)};
+                let message = {type:'mapped', fnc:'progress', statusMsg:"Finished Year " + curYear, statusValue: 100 * (curYear / simData.years)};
                 self.postMessage(message);
         }
 
@@ -448,6 +451,39 @@ function setupGradient(){
 
         //console.log(gradient);
         return gradient;
+}
+
+function generateCDFBins(year){
+        var numCells = 0;
+        var dataValues = new Array(11);
+        for(let i = 0; i < dataValues.length; i++){
+                dataValues[i] = 0;
+        }
+
+        //console.log("dataValues starting: " + dataValues);
+
+        grid[year].forEach(function(element){
+                element.forEach(function(ele){
+                        numCells++;
+                        let temp = ele / (1.0 * simData.carryCapacity);
+                        if(temp > .99){
+                                dataValues[10]++;
+                        }
+                        else{
+                                dataValues[Math.floor(temp * 10)]++;
+                        }
+                });
+        });
+
+        //console.log("num cells counted: " + numCells);
+        //console.log("cell values: " + dataValues);
+        for(let i = 0; i < dataValues.length; i++){
+                dataValues[i] = parseFloat(dataValues[i] / (1.0 *numCells));
+        }
+
+        //console.log("cell post normalize: " + dataValues);
+
+        self.postMessage({type:'mapped', fnc:'updateCDFChart', densities:dataValues});
 }
 
 /******** Helper Functions **********/
