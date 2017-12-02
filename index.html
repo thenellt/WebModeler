@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" manifest="manifest.appcache"> 
+<html lang="en" manifest="manifest.appcache">
 <head>
         <meta charset="UTF-8">
         <link rel="stylesheet" href="https://openlayers.org/en/v4.2.0/css/ol.css" type="text/css">
@@ -244,7 +244,33 @@
                                                 </div>
                                         </div>
                                         <div class="row" style="margin-bottom: 0px;">
-                                                <div class="col s2 offset-s6">
+                                                <div class="col s3" id="opacityLabel" style="margin-top: 12px;">
+                                                        Overlay Opacity:
+                                                </div>
+                                                <div class="col s4">
+                                                        <p class="range-field">
+                                                                <input type="range" id="opacitySlider" min="0" max="100" scale="1" oninput="updateOutputOpacity(this)"/>
+                                                        </p>
+                                                </div>
+                                                <div class="col s2 offset-s1">
+                                                        Village Names:
+                                                </div>
+                                                <div class="col s2">
+                                                        <div class="switch">
+                                                                <label>
+                                                                        Off
+                                                                        <input type="checkbox" onchange="toggleVillageLabels(this)" checked="true">
+                                                                        <span class="lever"></span>
+                                                                        On
+                                                                </label>
+                                                        </div>
+                                                </div>
+                                        </div>
+                                        <div class="row">
+                                                <div id="resultMapDiv"></div>
+                                        </div>
+                                        <div class="row">
+                                                <div class="col s2" style="margin-top: 12px;">
                                                          Heatmap Year:
                                                 </div>
                                                 <div class="col s1">
@@ -253,9 +279,6 @@
                                                 <div class="col s3">
                                                         <a class="waves-effect waves-light btn saveButton" onclick="saveImgToFile(1);">Save Image</a>
                                                 </div>
-                                        </div>
-                                        <div class="row">
-                                                <div id="resultMapDiv"></div>
                                         </div>
                                         <div class="divider" style="margin-bottom: 4px;"></div>
                                         <div class="row">
@@ -413,9 +436,16 @@
                         <li class="collection-item">
                                 <div class="row" style="margin-bottom: 0;">
                                         <div class="col s8"><h5>Heatmap Depleted color:</h5></div>
-                                        <div class="col s1"><input type="color" value="#f03b20"style="margin-top: 6px;" id="paramHighColor"></div>
+                                        <div class="col s1"><input type="color" value="#f03b20" style="margin-top: 6px;" id="paramHighColor"></div>
                                         <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode(1);">Default</a></div>
                                         <div class="col s1"><a class="btn-floating waves-effect waves-light" id="highColorHelp"><i>?</i></a></div>
+                                </div>
+                        </li>
+                        <li class="collection-item">
+                                <div class="row" style="margin-bottom: 0;">
+                                        <div class="col s8"><h5>Heatmap Overlay Opacity:</h5></div>
+                                        <div class="col s3"><input type="text" id="imgOpacity" style="margin-bottom: 0;"></div>
+                                        <div class="col s1"><a class="btn-floating waves-effect waves-light" id="opacityHelp"><i>?</i></a></div>
                                 </div>
                         </li>
                 </ul>

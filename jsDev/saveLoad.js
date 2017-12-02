@@ -72,30 +72,32 @@ function parseConfigFile(fileString){
 }
 
 function loadSimConfig(fileData){
+        simData = {};
         let config = fileData.config;
-        simID = config.simID;
-        animalDiffRate = config.animalDiffRate;
-        animalGrowthRate = config.animalGrowthRate;
-        killProb = config.killProb;
-        HpHy = config.HpHy;
-        encounterRate = config.encounterRate;
-        carryCapacity = config.carryCapacity;
-        years = config.years;
-        simName = config.simName;
-        huntRange = config.huntRange;
+        simData.simID = config.simID;
+        simData.animalDiffRate = config.animalDiffRate;
+        simData.animalGrowthRate = config.animalGrowthRate;
+        simData.killProb = config.killProb;
+        simData.HpHy = config.HpHy;
+        simData.encounterRate = config.encounterRate;
+        simData.carryCapacity = config.carryCapacity;
+        simData.years = config.years;
+        simData.simName = config.simName;
+        simData.huntRange = config.huntRange;
 
         //advanced settings
-        theta = config.theta;
-        lowColorCode = config.lowColorCode;
-        highColorCode = config.highColorCode;
-        diffusionSamples = config.diffusionSamples;
+        simData.theta = config.theta;
+        simData.lowColorCode = config.lowColorCode;
+        simData.highColorCode = config.highColorCode;
+        simData.diffusionSamples = config.diffusionSamples;
+        simData.opacity = config.opacity || 0.8;
 
         //support saves with old color formatting
-        if(lowColorCode[0] !== '#'){
-                lowColorCode = "#" + lowColorCode;
+        if(simData.lowColorCode[0] !== '#'){
+                simData.lowColorCode = "#" + simData.lowColorCode;
         }
-        if(highColorCode[0] !== '#'){
-                highColorCode = "#" + highColorCode;
+        if(simData.highColorCode[0] !== '#'){
+                simData.highColorCode = "#" + simData.highColorCode;
         }
 
         emptyTable();
@@ -108,20 +110,21 @@ function loadSimConfig(fileData){
                 addEntry(tempRow);
         }
 
-        document.getElementById("paramYears").value = years;
-        document.getElementById("paramCarry").value = carryCapacity;
-        document.getElementById("paramDifRate").value = animalDiffRate;
-        document.getElementById("paramGrowthRate").value = animalGrowthRate;
-        document.getElementById("paramEncounterRate").value = encounterRate;
-        document.getElementById("paramKillProb").value = killProb;
-        document.getElementById("paramHphy").value = HpHy;
-        document.getElementById("rangeHphy").value = huntRange;
-        document.getElementById("paramName").value = simName;
+        document.getElementById("paramYears").value = simData.years;
+        document.getElementById("paramCarry").value = simData.carryCapacity;
+        document.getElementById("paramDifRate").value = simData.animalDiffRate;
+        document.getElementById("paramGrowthRate").value = simData.animalGrowthRate;
+        document.getElementById("paramEncounterRate").value = simData.encounterRate;
+        document.getElementById("paramKillProb").value = simData.killProb;
+        document.getElementById("paramHphy").value = simData.HpHy;
+        document.getElementById("rangeHphy").value = simData.huntRange;
+        document.getElementById("paramName").value = simData.simName;
 
-        document.getElementById("paramTheta").value = theta;
-        document.getElementById("paramLowColor").value = lowColorCode;
-        document.getElementById("paramHighColor").value = highColorCode;
-        document.getElementById("diffSamples").value = diffusionSamples;
+        document.getElementById("paramTheta").value = simData.theta;
+        document.getElementById("paramLowColor").value = simData.lowColorCode;
+        document.getElementById("paramHighColor").value = simData.highColorCode;
+        document.getElementById("diffSamples").value = simData.diffusionSamples;
+        document.getElementById("imgOpacity").value = simData.opacity;
 }
 
 function saveSimToFile(){
@@ -152,20 +155,21 @@ function savePersistConfig(persistID){
 
 function generateConfigObject(){
         var saveObject = {};
-        saveObject.simID = simID;
-        saveObject.simName = simName;
-        saveObject.animalDiffRate = animalDiffRate;
-        saveObject.animalGrowthRate = animalGrowthRate;
-        saveObject.killProb = killProb;
-        saveObject.HpHy = HpHy;
-        saveObject.encounterRate = encounterRate;
-        saveObject.huntRange = huntRange;
-        saveObject.theta = theta;
-        saveObject.carryCapacity = carryCapacity;
-        saveObject.years = years;
-        saveObject.diffusionSamples = diffusionSamples;
-        saveObject.lowColorCode = lowColorCode;
-        saveObject.highColorCode = highColorCode;
+        saveObject.simID = simData.simID;
+        saveObject.simName = simData.simName;
+        saveObject.animalDiffRate = simData.animalDiffRate;
+        saveObject.animalGrowthRate = simData.animalGrowthRate;
+        saveObject.killProb = simData.killProb;
+        saveObject.HpHy = simData.HpHy;
+        saveObject.encounterRate = simData.encounterRate;
+        saveObject.huntRange = simData.huntRange;
+        saveObject.theta = simData.theta;
+        saveObject.carryCapacity = simData.carryCapacity;
+        saveObject.years = simData.years;
+        saveObject.diffusionSamples = simData.diffusionSamples;
+        saveObject.lowColorCode = simData.lowColorCode;
+        saveObject.highColorCode = simData.highColorCode;
+        saveObject.opacity = simData.opacity;
         saveObject.popData = [];
 
         for(let i = 0; i < uiData.length; i++){
@@ -186,14 +190,14 @@ function saveImgToFile(type){
                         var tempCanvas = event.context.canvas;
 
                         tempCanvas.toBlob(function(blob) {
-                                saveAs(blob, simName + '_map.png');
+                                saveAs(blob, simData.simName + '_map.png');
                         });
                 });
                 map.renderSync();
         }
         else{
                 canvas.toBlob(function(blob) {
-                        saveAs(blob, simName + '_heatmap.png');
+                        saveAs(blob, simData.simName + '_heatmap.png');
                 });
         }
 }
@@ -202,7 +206,7 @@ function generatePersistObject(){
         var saveObject = generateConfigObject();
         var persistObject = {};
 
-        persistObject.id = simID;
+        persistObject.id = simData.simID;
         persistObject.name = saveObject.simName;
         persistObject.created = new Date();
         persistObject.modified = persistObject.created;
@@ -217,7 +221,7 @@ function synchPersisObject(){
         var pos = -1;
         if(currentSaves){
                 for(let i = 0; i < currentSaves.length; i++){
-                        if(currentSaves[i].id == simID){
+                        if(currentSaves[i].id == simData.simID){
                                 pos = i;
                                 break;
                         }

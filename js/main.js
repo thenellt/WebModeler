@@ -62,6 +62,7 @@ function resetSimulation(){
         document.getElementById("paramLowColor").value = "#ffeda0";
         document.getElementById("paramHighColor").value = "#f03b20";
         document.getElementById("diffSamples").value = "";
+        document.getElementById("imgOpacity").value = "";
 
         if(simulationRun){
                 simulationRun = 0;
@@ -442,6 +443,7 @@ function populateDefaultValues(){
         document.getElementById("paramLowColor").value = "#ffeda0";
         document.getElementById("paramHighColor").value = "#f03b20";
         document.getElementById("diffSamples").value = "1";
+        document.getElementById("imgOpacity").value = "0.8";
 
         document.getElementById("paramName").focus();
 }

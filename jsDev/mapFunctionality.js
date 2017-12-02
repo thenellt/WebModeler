@@ -201,7 +201,7 @@ function drawCanvasToMap(canvasImage){
         }
 
         imageLayer = new ol.layer.Image({
-                opacity: 0.8,
+                opacity: simData.opacity,
                 source: new ol.source.ImageStatic({
                     url: canvasImage.src,
                     imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
@@ -212,6 +212,19 @@ function drawCanvasToMap(canvasImage){
 
         imageLayer.set('name', 'imgLayer');
         map.addLayer(imageLayer);
+        setupOpacitySlider();
+}
+
+function toggleVillageLabels(element){
+        let isChecked = element.checked;
+        
+}
+
+function updateOutputOpacity(element){
+        let val = element.value;
+        document.getElementById("opacityLabel").innerHTML = "Overlay Opacity: " + val + "%";
+       
+        imageLayer.setOpacity(val/100);
 }
 
 function drawHeatmap(){

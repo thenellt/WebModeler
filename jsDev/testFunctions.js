@@ -33,6 +33,7 @@ function setupSimDefaults(){
         simData.lowColorCode = "ffeda0";
         simData.highColorCode = "f03b20";
         simData.simName = "defaultName";
+        simData.opacity = 0.8;
 }
 
 function printOfftake(village){
@@ -44,7 +45,7 @@ function printOfftake(village){
         console.log(text);
 }
 
-//debuging function. Draws every 1km x 1km cell 
+//debuging function. Draws every 1km x 1km cell
 function drawgeoGrid(){
         let geoGrid = simResults.geoGrid;
         for(var y = 0; y < geoGrid.length - 1; y++){
@@ -102,6 +103,7 @@ function readUserParameters(){
         simData.theta = parseFloat(document.getElementById("paramTheta").value) || simData.theta;
         console.log("diff sample input: " + document.getElementById("diffSamples").value);
         simData.diffusionSamples = parseInt(document.getElementById("diffSamples").value, 10) || simData.diffusionSamples;
+        simData.opacity = parseFloat(document.getElementById("imgOpacity").value) || simData.opacity;
 
         console.log("finished reading user input");
 }
