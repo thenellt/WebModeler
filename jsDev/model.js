@@ -47,6 +47,7 @@ onmessage = function(oEvent) {
 function startWork(data){
         unpackParams(data);
         let bounds = generateBounds(30 + simData.huntRange);
+        self.postMessage({type:'mapped', fnc:'extentDebug', data:bounds});
         generategeoGrid(bounds);
         allocateMemory();
         placeLocations(geoGrid, points);
@@ -204,10 +205,9 @@ function placeLocations(matrix, pointSet){
         //console.log("first point: " + pointSet[0]);
         //console.log("corner: " + matrix[0][0]);
         //for each location we find best fitting 1km x 1km square
-        var y = 0;
-        var x = 0;
-
         for(var i = 0; i < pointSet.length; i++){
+                let x = 0;
+                let y = 0;
                 while(matrix[y][0][0] > pointSet[i][1]){
                         y++;
                 }
@@ -221,9 +221,6 @@ function placeLocations(matrix, pointSet){
                 towns[i].y = (y - 1);
                 pointSet[i].push(x - 1);
                 towns[i].x = (x - 1);
-
-                x = 0;
-                y = 0;
         }
 }
 
@@ -375,7 +372,7 @@ function runSimulation(){
         }
 
         //Send finished, send back data
-        let finishedData = {xSize:xSize, ySize:ySize, geoGrid:geoGrid};
+        let finishedData = {xSize:xSize, ySize:ySize, geoGrid:geoGrid, townData:towns};
 
         let message = {type:'finished', paramData:finishedData};
         self.postMessage(message);

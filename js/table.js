@@ -35,6 +35,13 @@ function addEntry(tempRow){
         if(isEmptyEntry(row)){
                 console.log("last row was empty, using it");
                 row.valid = true;
+                for(let i = 0; i < uiData.length; i++){
+                        if(uiData[i].id == row.id){
+                                console.log("found emptry row in uiData");
+                                uiData[i].id = row.id;
+                                break;
+                        }
+                }
                 row.id = tempRow.id;
         }
         else{
@@ -109,9 +116,9 @@ function editFinished(cell, x, y, origValue){
 }
 
 function updateUIData(row, cell, newValue){
-        console.log("running updateUIData row: " + row);
-        console.log("uiData length: " + uiData.length);
         var tableRow = document.getElementById("popTable").rows[row];
+        console.log("running updateUIData row: " + row + " id: " + tableRow.id);
+        console.log("uiData length: " + uiData.length);
         var i;
         for(i = 0; i < uiData.length; i++){
                 if(uiData[i].id == tableRow.id){

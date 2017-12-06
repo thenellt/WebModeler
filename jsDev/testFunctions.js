@@ -146,6 +146,7 @@ function mapWorkerFunctions(){
         workerFunctions = {
                 'progress': function(data) {updateProgressBar(data.statusMsg, data.statusValue);},
                 'updateCDFChart': function(data) {createCDFChart(data.densities);},
+                'extentDebug': function(data) {drawDebugBounds(data.data);},
         };
 }
 
@@ -169,6 +170,7 @@ function handleWorkerMessage(data){
                 synchPersisObject();
                 changeToOutput();
                 setupOutputRanges();
+                drawgeoGrid();
                 workerThread.postMessage({type:'getCDFData', year:simData.years - 1})
                 closeProgressBar();
                 break;

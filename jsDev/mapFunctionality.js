@@ -62,6 +62,48 @@ function addPopToMap(popId, popName, long, lat){
         source.addFeature(tempFeature);
 }
 
+function drawgeoGrid(){
+        let towns = simResults.townData;
+        for(var y = 0; y < simResults.geoGrid.length - 1; y++){
+                for(var x = 0; x < simResults.geoGrid[y].length - 1; x++){
+                        var tempPolygon = new ol.geom.Polygon([[
+                                [simResults.geoGrid[y][x][1], simResults.geoGrid[y][x][0]],
+                                [simResults.geoGrid[y][x][1], simResults.geoGrid[y + 1][x][0]],
+                                [simResults.geoGrid[y + 1][x + 1][1], simResults.geoGrid[y + 1][x + 1][0]],
+                                [simResults.geoGrid[y][x + 1][1], simResults.geoGrid[y][x][0]],
+                                [simResults.geoGrid[y][x][1], simResults.geoGrid[y][x][0]]
+                        ]]);
+
+                        var tempFeature = new ol.Feature({
+                                name: ("pos" + x + "," + y),
+                                geometry: tempPolygon
+                        });
+
+                        let i;
+                        var testStyle;
+                        for(i = 0; i < towns.length; i++){
+                                if(towns[i].y === y && towns[i].x === x){
+                                        testStyle = new ol.style.Style({
+                                                stroke: new ol.style.Stroke({width: 1 }),
+                                                fill: new ol.style.Fill({ color: [244, 66, 203, 255]})
+                                                //stroke: new ol.style.Stroke({color: [255, 0, 0, (1 - (geoGrid[years][y][x] / carryCapacity))], width: 1})
+                                        });
+                                }
+                        }
+                        if(i === towns.length){
+                                testStyle = new ol.style.Style({
+                                        stroke: new ol.style.Stroke({width: 1 }),
+                                        //fill: new ol.style.Fill({ color: [255, 0, 0, (1 - (geoGrid[years][y][x] / carryCapacity))]})
+                                        //stroke: new ol.style.Stroke({color: [255, 0, 0, (1 - (geoGrid[years][y][x] / carryCapacity))], width: 1})
+                                });
+                        }
+
+                        tempFeature.setStyle(testStyle);
+                        features.addFeature(tempFeature);
+                }
+        }
+}
+
 //https://stackoverflow.com/questions/39006597/openlayers-3-add-text-label-to-feature
 function styleFunction() {
         return [new ol.style.Style({
@@ -140,13 +182,37 @@ function setupOlInputMap(){
                         fill: new ol.style.Fill({color: 'rgba(255, 255, 255, 0.2)'}),
                         stroke: new ol.style.Stroke({color: '#ffcc33', width: 2}),
                         image: new ol.style.Circle({radius: 7, fill: new ol.style.Fill({color: '#ffcc33'})})
-                })
+                }),
+                projection: 'EPSG:4326',
         });
         map.addLayer(pointVector);
 
         addPopFunction = map.on('click', placePopulation);
         map.updateSize();
 }
+
+function drawDebugBounds(bounds){
+        let topOffset = bounds[0];
+        let botOffset = bounds[1];
+
+        var tempPolygon1 = new ol.geom.Polygon([[
+                                [topOffset[1], topOffset[0]],
+                                [topOffset[1], botOffset[0]],
+                                [botOffset[1], botOffset[0]],
+                                [botOffset[1], topOffset[0]],
+                                [topOffset[1], topOffset[0]]
+                        ]]);
+
+        var tempFeature1 = new ol.Feature({
+                name: ("debugSquare"),
+                geometry: tempPolygon1
+        });
+
+        var teststyle1 = new ol.style.Style({ stroke: new ol.style.Stroke({width: 1 })});
+        tempFeature1.setStyle(teststyle1);
+        features.addFeature(tempFeature1);
+}
+
 
 function getExtent(){
         console.log("button clicked");
@@ -192,6 +258,7 @@ function drawCanvasToMap(canvasImage){
 
         var tempLength = simResults.geoGrid.length - 1;
         var tempPoint = simResults.geoGrid[tempLength][simResults.geoGrid[tempLength].length - 1];
+        console.log("calculating extent lengths: " + tempLength + ", " + simResults.geoGrid[tempLength].length - 1);
 
         console.log("top corner: " + simResults.geoGrid[0][0] + " bot corner: " + tempPoint);
         console.log("extent: " + [simResults.geoGrid[0][0][1], tempPoint[0], tempPoint[1], simResults.geoGrid[0][0][0]]);
@@ -204,7 +271,7 @@ function drawCanvasToMap(canvasImage){
                 opacity: simData.opacity,
                 source: new ol.source.ImageStatic({
                     url: canvasImage.src,
-                    imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
+                    //imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
                     projection: map.getView().getProjection(),
                     imageExtent: [simResults.geoGrid[0][0][1], tempPoint[0], tempPoint[1], simResults.geoGrid[0][0][0]]
                 })
