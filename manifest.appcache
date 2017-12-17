@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# manifest v18c
+# manifest v19
 
 CACHE:
 index.html
@@ -11,14 +11,15 @@ jsDev/mapFunctionality.js
 jsDev/saveLoad.js
 jsDev/dataProcessing.js
 
-js/FileSaver.min.js
 js/floatingContent.js
 js/main.js
-js/materialize.min.js
 js/table.js
 js/tabs.js
-js/chartist.min.js
 js/ol.js
+js/chartist.min.js
+js/materialize.min.js
+js/jquery-3.2.1.min.js
+js/FileSaver.min.js
 
 css/materialize.min.css
 css/otherStyle.css

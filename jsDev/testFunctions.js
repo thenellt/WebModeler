@@ -46,36 +46,6 @@ function printOfftake(village){
         console.log(text);
 }
 
-//debuging function. Draws every 1km x 1km cell
-function drawgeoGrid(){
-        let geoGrid = simResults.geoGrid;
-        for(var y = 0; y < geoGrid.length - 1; y++){
-                for(var x = 0; x < geoGrid[0].length - 1; x++){
-                         var tempPolygon = new ol.geom.Polygon([[
-                                [geoGrid[y][x][1], geoGrid[y][x][0]],
-                                [geoGrid[y][x][1], geoGrid[y + 1][x][0]],
-                                [geoGrid[y + 1][x + 1][1], geoGrid[y + 1][x + 1][0]],
-                                [geoGrid[y][x + 1][1], geoGrid[y][x][0]],
-                                [geoGrid[y][x][1], geoGrid[y][x][0]]
-                        ]]);
-
-                        var tempFeature = new ol.Feature({
-                                name: ("pos" + x + "," + y),
-                                geometry: tempPolygon
-                        });
-
-                        var teststyle = new ol.style.Style({
-                                stroke: new ol.style.Stroke({width: 1 }),
-                                //fill: new ol.style.Fill({ color: [255, 0, 0, (1 - (geoGrid[years][y][x] / carryCapacity))]})
-                                //stroke: new ol.style.Stroke({color: [255, 0, 0, (1 - (geoGrid[years][y][x] / carryCapacity))], width: 1})
-                        });
-                        tempFeature.setStyle(teststyle);
-                        features.addFeature(tempFeature);
-                }
-        }
-}
-
-
 function readUserParameters(){
         simData.years = parseInt(document.getElementById("paramYears").value, 10) || simData.years;
         simData.carryCapacity = parseInt(document.getElementById("paramCarry").value, 10) || simData.carryCapacity;
@@ -110,6 +80,10 @@ function readUserParameters(){
 }
 
 function setupSimulation(){
+        if(geoDebugMode){
+                debugSetupSimulation();
+                return;
+        }
         console.log("----------------Starting sim setup-------------------");
         //maybe move this to output display setup
         var cleanup = document.getElementById("rawHeatmapContainer");
@@ -124,11 +98,20 @@ function setupSimulation(){
                 }
         }
         if(!townData.length){
-                //TODO add error dialog
+                let title = "No Populations Found";
+                let msg = "Please enter at least one population before running the simulation.";
+                modalDialog(title, msg);
                 console.log("no populations found - aborting run");
                 return;
         }
         console.log("Found " + townData.length + " valid towns");
+        
+        if(source && geoGridFeatures){
+                console.log("Geogrid has " + geoGridFeatures.length + " squares before cleanup");
+                while(geoGridFeatures.length){
+                        geoGridFeatures.removeFeature(geoGridFeatures[geoGridFeatures.length - 1]);
+                }
+        }
 
         showProgressBar("Setting up simulation", 0);
         setupSimDefaults();
@@ -140,6 +123,43 @@ function setupSimulation(){
                 handleWorkerMessage(oEvent.data);
         };
         workerThread.postMessage({type:"newSim", params:simData, towns:townData});
+}
+
+function debugSetupSimulation(){
+        console.log("----------------Starting sim setup");
+        //maybe move this to output display setup
+        var cleanup = document.getElementById("rawHeatmapContainer");
+        while (cleanup.firstChild) {
+                cleanup.removeChild(cleanup.firstChild);
+        }
+
+        let townData = [];
+        for(let i = 0; i < uiData.length; i++){
+                if(uiData[i].valid){
+                        townData.push(buildTownFromData(i));
+                }
+        }
+        
+        if(!townData.length){
+                let title = "No Populations Found";
+                let msg = "Please enter at least one population before running the simulation.";
+                modalDialog(title, msg);
+                console.log("no populations found - aborting run");
+                return;
+        }
+
+        if(source && geoGridFeatures){
+                console.log("Geogrid has " + geoGridFeatures.length + " squares before cleanup");
+                while(geoGridFeatures.length){
+                        geoGridFeatures.removeFeature(geoGridFeatures[geoGridFeatures.length - 1]);
+                }
+        }
+
+        setupSimDefaults();
+        readUserParameters();
+        centerGridTest(townData);
+        synchPersisObject();
+        changeToOutput();
 }
 
 function mapWorkerFunctions(){
@@ -170,7 +190,6 @@ function handleWorkerMessage(data){
                 synchPersisObject();
                 changeToOutput();
                 setupOutputRanges();
-                drawgeoGrid();
                 workerThread.postMessage({type:'getCDFData', year:simData.years - 1})
                 closeProgressBar();
                 break;

@@ -19,17 +19,33 @@ function updateApp(){
 }
 
 function loadFromFile(fileName){
-        //TODO add warning dialog that current changes will be lost
-        //TODO how to reset file select elements
-        resetSimulation();
         var reader = new FileReader();
 
         if(fileName.files && fileName.files[0]) {
                 reader.onload = function (e) {
-                        parseConfigFile(e.target.result);
-                        newSimulation();
-                        document.getElementById("popSetupTab").disabled = false;
-                        synchPersisObject();
+                        let loadedObject = parseConfigFile(e.target.result);
+                        if(loadedObject.valid){
+                                if(typeof simData.simID === 'undefined' || simData.simID === -1){
+                                        loadSimConfig(loadedObject);
+                                        newSimulation();
+                                        document.getElementById("popSetupTab").disabled = false;
+                                        synchPersisObject();
+                                        return;
+                                }
+                                let title = "Load Simulation";
+                                let msg = "There is a currently active simulation. Loading a new simulation will overwrite all data from the current one.";
+                                modalConfirmation(title, msg, function(){
+                                        resetSimulation();
+                                        loadSimConfig(loadedObject);
+                                        newSimulation();
+                                        document.getElementById("popSetupTab").disabled = false;
+                                        synchPersisObject();
+                                });
+                        }
+                        
+                        //TODO fix reset file select
+                        let loadButton = $('#loadConfigFileButton');
+                        loadButton.replaceWith(loadButton.val('').clone(true));
                 };
                 reader.readAsText(fileName.files[0]);
         }
@@ -39,13 +55,15 @@ function parseConfigFile(fileString){
         var loadedObject = {};
         try{
                loadedObject = JSON.parse(fileString);
+               loadedObject.valid = true;
         } catch (e) {
-                //TODO add error dialog
-                console.log("problem parsing loaded string");
-                return;
+                let title = "Problem Loading File";
+                let msg = "The system couldn't parse the supplied file as a valid simulation configuration. Please supply a correctly formatted file.";
+                modalDialog(title, msg);
+                loadedObject.valid = false;
         }
 
-        loadSimConfig(loadedObject);
+        return loadedObject;
 }
 
 function loadSimConfig(fileData){
@@ -311,7 +329,7 @@ function buildHTMLSaveEntry(entry){
         var copyButton = document.createElement('a');
         copyButton.className = "waves-effect waves-light btn";
         copyButton.innerHTML = "Copy";
-        copyButton.onclick = function() {loadConfigByID(entry.id, true);};
+        copyButton.onclick = function() {confirmConfigCopy(entry.id);};
         copyContainer.appendChild(copyButton);
 
         var loadContainer = document.createElement('div');
@@ -320,7 +338,7 @@ function buildHTMLSaveEntry(entry){
         //loadButton.style.marginLeft = "2px";
         loadButton.className = "waves-effect waves-light btn";
         loadButton.innerHTML = "Load";
-        loadButton.onclick = function() {loadConfigByID(entry.id, false);};
+        loadButton.onclick = function() {confirmConfigLoad(entry.id);};
         loadContainer.appendChild(loadButton);
 
         topRow.appendChild(saveName);
@@ -336,7 +354,7 @@ function buildHTMLSaveEntry(entry){
         var deleteButton = document.createElement('a');
         deleteButton.className = "waves-effect waves-light btn red darken-2";
         deleteButton.innerHTML = "Delete";
-        deleteButton.onclick = function() {deleteConfigByID(entry.id);};
+        deleteButton.onclick = function() {confirmAutosaveDelete(entry.id);};
         deleteContainer.appendChild(deleteButton);
 
         var createdContainer = document.createElement('div');
@@ -367,6 +385,43 @@ function buildHTMLSaveEntry(entry){
         containerDiv.appendChild(divider);
 
         return containerDiv;
+}
+
+function confirmConfigCopy(id){
+        if(typeof simData.simID === 'undefined' || simData.simID === -1){
+                loadConfigByID(id, true);
+                return;
+        }
+        
+        let title = "Load Simulation Copy";
+        let msg = "An existing simulation has been detected. Loading an autosave copy will overwrite the current simulation.";
+        
+        modalConfirmation(title, msg, function(){
+                loadConfigByID(id, true);
+        });
+}
+
+function confirmConfigLoad(id){
+        if(typeof simData.simID === 'undefined' || simData.simID === -1){
+                loadConfigByID(id, false);
+                return;
+        }
+        
+        let title = "Load Simulation Autosave";
+        let msg = "An existing simulation has been detected. Loading an autosave will overwrite the current simulation.";
+        
+        modalConfirmation(title, msg, function(){
+                loadConfigByID(id, false);
+        });
+}
+
+function confirmAutosaveDelete(id){
+        let title = "Delete Autosave";
+        let msg = "This will permanently delete all data associated with this simulation configuration.";
+        
+        modalConfirmation(title, msg, function(){
+                deleteConfigByID(id);
+        });
 }
 
 function loadConfigByID(persistID, isCopy){

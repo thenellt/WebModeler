@@ -245,7 +245,6 @@ function destEllipse(lat1, lon1, bearing, distance) {
         var b = a - (a/298.257223563);
 
         s *= 1000;
-        //var ind = max(f1.model.selectedIndex, 1);
         var cs1, ds1, ss1, cs1m;
         var f = 1/298.257223563;
         var sb=Math.sin(brg[j]);
@@ -303,8 +302,8 @@ function runSimulation(){
                                                 center = grid[curYear][y][x] + diffusionGrid[y][x];
                                                 right  = grid[curYear][y][x+1] + diffusionGrid[y][x+1];
                                                 left   = grid[curYear][y][x-1] + diffusionGrid[y][x-1];
-                                                //diffusionGrid[y][x] += (animalDiffRate * (up + down + right + left) + (center - 4 * animalDiffRate * center)) / diffusionSamples;
-                                                diffusionGrid[y][x] = (simData.animalDiffRate * (up + down + left + right - (4 * center))) / simData.diffusionSamples;
+                                                diffusionGrid[y][x] += (simData.animalDiffRate * (up + down + right + left - (4 * center))) / simData.diffusionSamples;
+                                                //diffusionGrid[y][x] = (simData.animalDiffRate * (up + down + left + right - (4 * center))) / simData.diffusionSamples;
                                         }
                                         else{
                                                 //diffusionGrid[y][x] = (animalDiffRate*(a + b) + (1-4*animalDiffRate)*(c + animalDiffRate*(d + e)))/diffusionSamples;
@@ -313,8 +312,8 @@ function runSimulation(){
                                                 center = grid[curYear][y][x];
                                                 right  = grid[curYear][y][x+1];
                                                 left   = grid[curYear][y][x-1];
-                                                //diffusionGrid[y][x] = (animalDiffRate * (up + down + right + left) + (center - 4 * animalDiffRate * center)) / diffusionSamples;
-                                                diffusionGrid[y][x] = (simData.animalDiffRate * (up + down + left + right - (4 * center))) / simData.diffusionSamples;
+                                                diffusionGrid[y][x] = (simData.animalDiffRate * (up + down + right + left - (4 * center))) / simData.diffusionSamples;
+                                                //diffusionGrid[y][x] = (simData.animalDiffRate * (up + down + left + right - (4 * center))) / simData.diffusionSamples;
                                         }
                                 }
                         }

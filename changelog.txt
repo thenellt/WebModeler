@@ -1,3 +1,4 @@
+12/17/17 v19 - Large UI changes which use the materialize library much more heavily. Also starts to add tooltips and confirmation dialogs. \n
 12/2/17 v18a - More ways of communicating with the worker and started output page redesign. Some save features still broken. \n
 11/29/17 v18 - First multithreaded version with working web worker. Also adds support for Bing map satellite data. \n
 11/20/17 v17b - Additional fixes and work on the output page. \n

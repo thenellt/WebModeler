@@ -5,8 +5,22 @@ var popupEvntFunction;
 var currentId;
 var olmapLocation;
 var simulationRun;
+var advSettingsFnc;
 var simData = {};
 var simResults = {};
+
+$(document).ready(function() {
+    $('#projBackground').modal();
+    $('#changelogPopup').modal();
+    $('#sysDialog').modal();
+    $('#advancedSettings').modal({
+            dismissible: false,
+            ready: showAdvancedSettings
+    });
+    $('#floatingPopEditor').modal({
+            dismissible: false,
+    });
+});
 
 function setupTabs(){
         var tabs = document.getElementsByClassName("tablinks");
@@ -116,220 +130,6 @@ function resetColorCode(isHighColor){
         }
 }
 
-function showAdvancedSettings(){
-        otherPopup = 1;
-        var changeDiv = document.getElementById('advancedSettings');
-        var hidepage = document.getElementById("hidepage");
-
-        console.log("unhiding advanced settings");
-        fadeIn(hidepage);
-        changeDiv.classList.add('scale-in');
-        changeDiv.classList.remove('scale-out');
-}
-
-function closeAdvancedSettings(clear){
-        if(!clear && !checkAdvancedSettings()){ //tried to save invalid settings
-                return;
-        }
-
-        otherPopup = 0;
-        var changeDiv = document.getElementById('advancedSettings');
-        changeDiv.classList.remove('scale-in');
-        changeDiv.classList.add('scale-out');
-        var hidepage = document.getElementById("hidepage");
-        fadeOut(hidepage);
-}
-
-function checkAdvancedSettings(){
-        //TODO advanced settings check
-        return true;
-}
-
-function showPopEditor(position){
-        if(typeof position !== 'undefined'){
-                document.getElementById("floatLat").value = position[1];
-                document.getElementById("floatLong").value = position[0];
-        }
-        else{
-                return;
-        }
-
-        otherPopup = 1;
-        var changeDiv = document.getElementById('floatingPopEditor');
-        var hidepage = document.getElementById("hidepage");
-
-        fadeIn(hidepage);
-        changeDiv.classList.add('scale-in');
-        changeDiv.classList.remove('scale-out');
-
-        popupEvntFunction = function(e){
-                e = e || window.event;
-                if(e.keyCode == 27){ //cancel and close if escape key
-                        closePopEditor(1);
-                }
-                else if(e.keyCode == 13){
-                        if(checkPopEditor()){
-                                closePopEditor(0);
-                        }
-                }
-        };
-
-        window.addEventListener('keyup', popupEvntFunction);
-        document.getElementById("floatPopName").focus();
-}
-
-function showPopUpdater(index){
-        otherPopup = 1;
-        var changeDiv = document.getElementById('floatingPopUpdater');
-        var hidepage = document.getElementById("hidepage");
-        var village = uiData[index];
-
-        currentId = village.id;
-        document.getElementById("floatULat").value = village.lat;
-        document.getElementById("floatULong").value = village.long;
-        document.getElementById("floatPopUName").value = village.name;
-        document.getElementById("floatUPop").value = village.population;
-        document.getElementById("floatUKill").value = village.killRate;
-        document.getElementById("floatUGrowth").value = village.growthRate;
-
-        fadeIn(hidepage);
-        changeDiv.classList.add('scale-in');
-        changeDiv.classList.remove('scale-out');
-
-        popupEvntFunction = function(e){
-                e = e || window.event;
-                if(e.keyCode == 27){ //cancel and close if escape key
-                        closePopEditor(1);
-                }
-
-                else if(e.keyCode == 13){
-                        if(checkPopUpdater()){
-                                closePopUpdater(2);
-                        }
-                }
-        };
-
-        window.addEventListener('keyup', popupEvntFunction);
-        document.getElementById("floatPopUName").focus();
-}
-
-function closePopUpdater(input){
-        if(input === 2 && !checkPopUpdater()){
-                //TODO maybe add an error message
-                return;
-        }
-
-        otherPopup = 0;
-        window.removeEventListener('keyup', popupEvntFunction);
-        popupEvntFunction = 0;
-
-        if(input === 2){ //update village
-                var tempLat = document.getElementById("floatULat").value;
-                var tempLong = document.getElementById("floatULong").value;
-                var tempName = document.getElementById("floatPopUName").value;
-                var tempPop = document.getElementById("floatUPop").value;
-                var tempKill = document.getElementById("floatUKill").value;
-                var tempGrowth =  document.getElementById("floatUGrowth").value;
-
-                var i;
-                for(i = 0; i < uiData.length; i++){
-                        if(uiData[i].id == currentId){
-                                break;
-                        }
-                }
-
-                if(tempName !== uiData[i].name){
-                        var features = source.getFeatures();
-                        for(let x = 0; x < features.length; x++){
-                                if(features[x].get('description') == uiData[i].id){
-                                        features[x].set('description', tempName);
-                                        break;
-                                }
-                        }
-                }
-
-                uiData[i].lat = tempLat;
-                uiData[i].long = tempLong;
-                uiData[i].name = tempName;
-                uiData[i].population = tempPop;
-                uiData[i].killRate = tempKill;
-                uiData[i].growthRate = tempGrowth;
-
-                updateTableRow(i);
-        }
-        else if(!input){ //delete village
-                for(let x = 0; x < uiData.length; x++){
-                        if(uiData[x].id == currentId){
-                                uiData.splice(x, 1);
-                                break;
-                        }
-                }
-
-                removePopFromMapById(currentId);
-                deleteTableRowById(currentId);
-        }
-
-        //clear dialog
-        document.getElementById("floatULat").value = "";
-        document.getElementById("floatULong").value = "";
-        document.getElementById("floatPopUName").value = "";
-        document.getElementById("floatUPop").value = "";
-        document.getElementById("floatUKill").value = "";
-        document.getElementById("floatUGrowth").value = "";
-
-        var changeDiv = document.getElementById('floatingPopUpdater');
-        changeDiv.classList.remove('scale-in');
-        changeDiv.classList.add('scale-out');
-        var hidepage = document.getElementById("hidepage");
-        fadeOut(hidepage);
-        //oldName = "";
-}
-
-function closePopEditor(clear){
-        if(!clear && !checkPopEditor()){
-                //TODO added error highlighting
-                return;
-        }
-
-        otherPopup = 0;
-
-        window.removeEventListener('keyup', popupEvntFunction);
-        popupEvntFunction = 0;
-
-        if(!clear){ //user hit add
-                //check parameters
-                var tempLat = document.getElementById("floatLat").value;
-                var tempLong = document.getElementById("floatLong").value;
-                var tempName = document.getElementById("floatPopName").value;
-                var tempPop = document.getElementById("floatPop").value;
-                var tempKill = document.getElementById("floatKill").value;
-                var tempGrowth =  document.getElementById("floatGrowth").value;
-                let tempDate = new Date();
-                var tempId = tempDate.valueOf();
-                //add the new population to model
-                //(long, lat, pop, killRate, name, growth, id, validity)
-                var tempRow = new uiRow(tempLong, tempLat, tempPop, tempKill, tempName,
-                                        tempGrowth, tempId, true);
-                addPopToMap(tempId, tempName, parseFloat(tempLong), parseFloat(tempLat));
-                addEntry(tempRow);
-
-        }
-
-        //clear dialog
-        document.getElementById("floatLat").value = "";
-        document.getElementById("floatLong").value = "";
-        document.getElementById("floatPopName").value = "";
-        document.getElementById("floatPop").value = "";
-        document.getElementById("floatKill").value = "";
-        document.getElementById("floatGrowth").value = "";
-
-        var changeDiv = document.getElementById('floatingPopEditor');
-        changeDiv.classList.remove('scale-in');
-        changeDiv.classList.add('scale-out');
-        var hidepage = document.getElementById("hidepage");
-        fadeOut(hidepage);
-}
-
 function changeToPopulations(){
         console.log("changed to population page");
         if(document.getElementById("popSetupTab").disabled){
@@ -349,8 +149,9 @@ function changeToPopulations(){
                 //map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
                 //map.updateSize();
                 addPopFunction = map.on('click', placePopulation);
-                imageLayer.setVisible(false);
+                //imageLayer.setVisible(false);
                 pointVector.setVisible(true);
+                geoLayer.setVisible(false);
         }
         else{
                 changeTab('popSetup');
@@ -381,7 +182,8 @@ function changeToOutput(){
         ol.Observable.unByKey(addPopFunction);
 
         if(simulationRun){
-                imageLayer.setVisible(true);
+                //imageLayer.setVisible(true);
+                geoLayer.setVisible(true);
         }
         else{
                 simulationRun = 1;
@@ -433,6 +235,63 @@ function closeProgressBar(){
         element.classList.remove("scale-in");
 }
 
+function modalDialog(title, msg, callback){
+        $('#sysCancel').css('display', 'none');
+        $('#sysTitle').text(title);
+        $('#sysContent').html(msg);
+        
+        $('#sysConfirm').click(function(){
+                $('#sysDialog').modal('close');
+                if(typeof callback !== 'undefined' && typeof callback === 'function'){
+                        callback();
+                }
+                
+                $('#sysConfirm').prop('onclick', null).off('click');
+        });
+        
+        $('#sysDialog').modal('open');
+}
+
+function modalConfirmation(title, msg, confCallback, cancelCallback){
+        $('#sysCancel').css('display', 'inline');
+        $('#sysTitle').text(title);
+        $('#sysContent').html(msg);
+        
+        $('#sysConfirm').click(function(){
+                $('#sysDialog').modal('close');
+                if(typeof confCallback !== 'undefined' && typeof confCallback === 'function'){
+                        confCallback();
+                }
+                
+                $('#sysConfirm').prop('onclick', null).off('click');
+                $('#sysCancel').prop('onclick', null).off('click');
+        });
+        
+        $('#sysCancel').click(function(){
+                $('#sysDialog').modal('close');
+                if(typeof cancelCallback !== 'undefined' && typeof cancelCallback === 'function'){
+                        cancelCallback();
+                }
+                
+                $('#sysConfirm').prop('onclick', null).off('click');
+                $('#sysCancel').prop('onclick', null).off('click');
+        });
+        
+        $('#sysDialog').modal('open');
+}
+
+function promptForReset(){
+        let title = "Clear Simulation";
+        let msg = "Upon confirmation all settings and population data will be erased from the current simulation. This does not impact any autosaves which may exist for <b>" + simData.simName + "</b>.";
+        modalConfirmation(title, msg, resetSimulation);
+}
+
+function promptForDefaults(){
+        let title = "Confirm Overwriting all Settings";
+        let msg = "Selecting OK will result in all settings and advanced settings being overwritten with default values. This does not impact population data."
+        modalConfirmation(title, msg, populateDefaultValues);
+}
+
 function populateDefaultValues(){
         document.getElementById("paramYears").value = "10";
         document.getElementById("paramCarry").value = "25";
@@ -450,40 +309,6 @@ function populateDefaultValues(){
         document.getElementById("imgOpacity").value = "0.8";
 
         document.getElementById("paramName").focus();
-}
-
-function checkPopEditor(){
-        if(isNaN(parseFloat(document.getElementById("floatLat").value, 10)))
-                return false;
-        if(isNaN(parseFloat(document.getElementById("floatLong").value, 10)))
-                return false;
-        if(document.getElementById("floatPopName").value.length === 0)
-                return false;
-        if(isNaN(parseInt(document.getElementById("floatPop").value)))
-                return false;
-        if(isNaN(parseFloat(document.getElementById("floatKill").value, 10)))
-                return false;
-        if(isNaN(parseFloat(document.getElementById("floatGrowth").value, 10)))
-                return false;
-
-        return true;
-}
-
-function checkPopUpdater(){
-        if(isNaN(parseFloat(document.getElementById("floatULat").value, 10)))
-                return false;
-        if(isNaN(parseFloat(document.getElementById("floatULong").value, 10)))
-                return false;
-        if(document.getElementById("floatPopUName").value.length === 0)
-                return false;
-        if(isNaN(parseInt(document.getElementById("floatUPop").value)))
-                return false;
-        if(isNaN(parseFloat(document.getElementById("floatUKill").value, 10)))
-                return false;
-        if(isNaN(parseFloat(document.getElementById("floatUGrowth").value, 10)))
-                return false;
-
-        return true;
 }
 
 function checkSettings(){

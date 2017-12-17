@@ -1,102 +1,238 @@
-var logVisibility = 0;
-var backgroundVisibility = 0;
-var otherPopup = 0;
+editorModes = {
+        NEW: 0,
+        UPDATE: 1,
+};
+var popEditorMode = editorModes.NEW;
 
-//fade and unfade from: https://stackoverflow.com/questions/6121203/how-to-do-fade-in-and-fade-out-with-javascript-and-css
-function fadeOut(element) {
-        var op = 1;  // initial opacity
-        var timer = setInterval(function () {
-                if (op <= 0.1){
-                        clearInterval(timer);
-                        element.style.visibility = "hidden";
-                }
-                element.style.opacity = op;
-                element.style.filter = 'alpha(opacity=' + op * 100 + ")";
-                op -= op * 0.1;
-        }, 10);
-}
-
-function fadeIn(element) {
-        var op = 0.1;  // initial opacity
-        element.style.opacity = op;
-        element.style.visibility = "visible";
-        var timer = setInterval(function () {
-                if (op >= 0.8){
-                        clearInterval(timer);
-                }
-                element.style.opacity = op;
-                element.style.filter = 'alpha(opacity=' + op * 100 + ")";
-                op += op * 0.1;
-        }, 10);
-}
-
-function toggleChangelog() {
-        console.log("toggleChangelog called");
-        var changeDiv = document.getElementById('changelogContent');
-        var hidepage = document.getElementById("hidepage");
-        if(backgroundVisibility){
-                var backgroundDiv = document.getElementById("backgroundContent");
-                backgroundVisibility = 0;
-                logVisibility = 1;
-                backgroundDiv.classList.add('scale-out');
-                backgroundDiv.classList.remove('scale-in');
-                changeDiv.classList.add('scale-in');
-                changeDiv.classList.remove('scale-out');
-        }
-        else if(logVisibility === 0){
-                console.log("unhiding");
-                logVisibility = 1;
-                if(!otherPopup){
-                        fadeIn(hidepage);
-                }
-                changeDiv.classList.add('scale-in');
-                changeDiv.classList.remove('scale-out');
+function popEditorPassthrough(mode){
+        console.log("popEditorPassthrough. Mode: " + popEditorMode + " input: " + mode);
+        if(popEditorMode == editorModes.NEW){
+                closePopEditor(mode);
         }
         else{
-                console.log("hiding");
-                logVisibility = 0;
-                changeDiv.classList.add('scale-out');
-                changeDiv.classList.remove('scale-in');
-                if(!otherPopup){
-                        fadeOut(hidepage);
-                }
+                closePopUpdater(mode);
         }
 }
 
-function toggleBackground() {
-        console.log("toggleBackground called");
-        var backgroundDiv = document.getElementById("backgroundContent");
-        var hidepage = document.getElementById("hidepage");
-        if(logVisibility){
-                var changeDiv = document.getElementById("changelogContent");
-                backgroundVisibility = 1;
-                logVisibility = 0;
-                backgroundDiv.classList.add('scale-in');
-                backgroundDiv.classList.remove('scale-out');
-                changeDiv.classList.add('scale-out');
-                changeDiv.classList.remove('scale-in');
-        }
-        else if(backgroundVisibility === 0){
-                console.log("unhiding");
-                backgroundVisibility = 1;
-                backgroundDiv.classList.add('scale-in');
-                backgroundDiv.classList.remove('scale-out');
-                if(!otherPopup){
-                        fadeIn(hidepage);
-                }
+function clearPopEditor(){
+        document.getElementById("floatLat").value = "";
+        document.getElementById("floatLong").value = "";
+        document.getElementById("floatPopName").value = "";
+        document.getElementById("floatPop").value = "";
+        document.getElementById("floatKill").value = "";
+        document.getElementById("floatGrowth").value = "";
+}
+
+function showPopEditor(position){
+        popEditorMode = editorModes.NEW;
+        clearPopEditor();
+        if(typeof position !== 'undefined'){
+                document.getElementById("floatLat").value = position[1];
+                document.getElementById("floatLong").value = position[0];
         }
         else{
-                console.log("hiding");
-                backgroundVisibility = 0;
-                backgroundDiv.classList.add('scale-out');
-                backgroundDiv.classList.remove('scale-in');
-                if(!otherPopup){
-                        fadeOut(hidepage);
-                }
+                return;
         }
+        
+        popupEvntFunction = function(e){
+                e = e || window.event;
+                if(e.keyCode == 27){ //cancel and close if escape key
+                        closePopEditor(1);
+                }
+                else if(e.keyCode == 13){
+                        if(checkPopEditor()){
+                                closePopEditor(0);
+                        }
+                }
+        };
+
+        window.addEventListener('keyup', popupEvntFunction);
+        $('#floatingPopEditor').modal('open');
+        $('#floatPopName').focus();
 }
 
-//taken from a handy stack overflow: https://stackoverflow.com/questions/27840222/how-can-i-load-the-contents-of-a-small-text-file-into-a-javascript-var-wo-jquery
+function closePopEditor(clear){
+        if(!clear && !checkPopEditor()){
+                return;
+        }
+
+        window.removeEventListener('keyup', popupEvntFunction);
+
+        if(!clear){ //user hit add and parameters have been checked
+                var tempLat = document.getElementById("floatLat").value;
+                var tempLong = document.getElementById("floatLong").value;
+                var tempName = document.getElementById("floatPopName").value;
+                var tempPop = document.getElementById("floatPop").value;
+                var tempKill = document.getElementById("floatKill").value;
+                var tempGrowth =  document.getElementById("floatGrowth").value;
+                let tempDate = new Date();
+                var tempId = tempDate.valueOf();
+                //add the new population to model
+                var tempRow = new uiRow(tempLong, tempLat, tempPop, tempKill, tempName,
+                                        tempGrowth, tempId, true);
+                addPopToMap(tempId, tempName, parseFloat(tempLong), parseFloat(tempLat));
+                addEntry(tempRow);
+        }
+
+        $('#floatingPopEditor').modal('close');
+}
+
+function showPopUpdater(index){
+        console.log("showing popeditor in update mode");
+        popEditorMode = editorModes.UPDATE;
+        $('#editorDeleteButton').css('display', 'inline');
+        
+        let village = uiData[index];
+        currentId = village.id;
+        document.getElementById("floatLat").value = village.lat;
+        document.getElementById("floatLong").value = village.long;
+        document.getElementById("floatPopName").value = village.name;
+        document.getElementById("floatPop").value = village.population;
+        document.getElementById("floatKill").value = village.killRate;
+        document.getElementById("floatGrowth").value = village.growthRate;
+
+        popupEvntFunction = function(e){
+                e = e || window.event;
+                if(e.keyCode == 27){ //cancel and close if escape key
+                        closePopEditor(1);
+                }
+
+                else if(e.keyCode == 13){
+                        if(checkPopUpdater()){
+                                closePopUpdater(2);
+                        }
+                }
+        };
+
+        window.addEventListener('keyup', popupEvntFunction);
+        $('#floatingPopEditor').modal('open');
+        $('#floatPopUName').focus();
+}
+
+function closePopUpdater(input){ //0 - cancel, 1 - update village, 2 delete village
+        if(input === 1 && !checkPopEditor()){ //trying to update but something wasn't valid
+                return;
+        }
+
+        window.removeEventListener('keyup', popupEvntFunction);
+
+        if(input === 1){ //update village
+                var tempLat = document.getElementById("floatLat").value;
+                var tempLong = document.getElementById("floatLong").value;
+                var tempName = document.getElementById("floatPopName").value;
+                var tempPop = document.getElementById("floatPop").value;
+                var tempKill = document.getElementById("floatKill").value;
+                var tempGrowth =  document.getElementById("floatGrowth").value;
+
+                var i;
+                for(i = 0; i < uiData.length; i++){
+                        if(uiData[i].id == currentId){
+                                break;
+                        }
+                }
+
+                if(tempName !== uiData[i].name){
+                        var features = source.getFeatures();
+                        for(let x = 0; x < features.length; x++){
+                                if(features[x].get('description') == uiData[i].id){
+                                        features[x].set('description', tempName);
+                                        break;
+                                }
+                        }
+                }
+
+                uiData[i].lat = tempLat;
+                uiData[i].long = tempLong;
+                uiData[i].name = tempName;
+                uiData[i].population = tempPop;
+                uiData[i].killRate = tempKill;
+                uiData[i].growthRate = tempGrowth;
+
+                updateTableRow(i);
+        }
+        else if(input === 2){ //delete village
+                for(let x = 0; x < uiData.length; x++){
+                        if(uiData[x].id == currentId){
+                                uiData.splice(x, 1);
+                                break;
+                        }
+                }
+
+                removePopFromMapById(currentId);
+                deleteTableRowById(currentId);
+        }
+
+        $('#editorDeleteButton').css('display', 'none');
+        $('#floatingPopEditor').modal('close');
+        clearPopEditor();
+}
+
+function checkPopEditor(){
+        if(isNaN(parseFloat(document.getElementById("floatLat").value, 10))){
+                notifyMessage("Latitude is invalid", 2);
+                $('#floatLat').focus();
+                return false;
+        }
+        if(isNaN(parseFloat(document.getElementById("floatLong").value, 10))){
+                notifyMessage("Longitude is invalid", 2);
+                $('#floatLong').focus();
+                return false;
+        }
+        if(document.getElementById("floatPopName").value.length === 0){
+                notifyMessage("Population must have a name", 2);
+                $('#floatPopName').focus();
+                return false;
+        }
+        if(isNaN(parseInt(document.getElementById("floatPop").value))){
+                notifyMessage("Population must be a postive integer", 2);
+                $('#floatPop').focus();
+                return false;
+        }
+        let killValue = parseFloat(document.getElementById("floatKill").value, 10);
+        if(isNaN(killValue) || killValue < 0 || killValue > 1){
+                notifyMessage("Kill rate must be between 0.0 and 1.0", 3);
+                $('#floatKill').focus();
+                return false;
+        }
+        let growthValue = parseFloat(document.getElementById("floatGrowth").value, 10);
+        if(isNaN(growthValue) || growthValue < 0){
+                notifyMessage("Growth rate must be a positive decimal", 2);
+                $('#floatGrowth').focus();
+                return false;
+        }
+
+        return true;
+}
+
+function showAdvancedSettings(){
+        advSettingsFnc = function(e){
+                e = e || window.event;
+                if(e.keyCode == 27){
+                        closeAdvancedSettings(1);
+                }
+        };
+
+        window.addEventListener('keyup', advSettingsFnc);
+}
+
+function closeAdvancedSettings(clear){
+        if(clear){
+                
+        }
+        else if(!clear && !checkAdvancedSettings()){ //tried to save invalid settings
+                return;
+        }
+        
+        window.removeEventListener('keyup', advSettingsFnc);
+        $('#advancedSettings').modal('close');
+}
+
+function checkAdvancedSettings(){
+        //TODO advanced settings check
+        return true;
+}
+
+//based on a stack overflow: https://stackoverflow.com/questions/27840222/how-can-i-load-the-contents-of-a-small-text-file-into-a-javascript-var-wo-jquery
 function readLocalFile(url, type, callback) {
         var xhr = new XMLHttpRequest();
         xhr.onload = function () {
@@ -131,15 +267,6 @@ readLocalFile("./changelog.txt", 'GET', function(responseText) {
                 list.appendChild(item);
         }
 
-        document.getElementById("changelogTitle").appendChild(document.createTextNode("Project Change Log:"));
         document.getElementById('changeLogEntries').appendChild(list);
 });
 
-function createFloatingDialog(title, message, type, response){ //0 - ok/cancel. 1 - ok
-        var hidepage = document.getElementById("hidepage");
-        var dialogBox = document.createElement('div');
-        dialogBox.classList.add("hide floatingDialog card blue-grey lighten-4 scale-transition scale-in");
-
-
-        document.body.appendChild(dialogBox);
-}
