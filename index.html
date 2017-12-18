@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"> <!-- manifest="manifest.appcache" -->
+<html lang="en" manifest="manifest.appcache">
 <head>
         <meta charset="UTF-8">
         
@@ -92,7 +92,7 @@
 
                                                 </div>
                                         </div>
-                                        <div class="row" id="persistSaveContainer"></div>
+                                        <div class="row" id="persistSaveContainer" class="collection"></div>
                                         <div class="row" id="javascriptError">
                                                 <h3 style="color:red;">If you can see this, javascript isn't being allowed to run in your browser and this application won't work.</h3>
                                         </div>
@@ -382,7 +382,7 @@
                 style="width: 90%; max-height: 80% !important; height: 80% !important; max-width: 1000px;">
                 <div class="modal-content">
                         <h4>Advanced Settings:</h4>
-                        <p>Changing these settings can have a <strong>huge</strong> impact on simulation results and/or runtime.</p>
+                        <p>Changing these settings can have a <b>huge</b> impact on simulation results and/or runtime.</p>
                         <ul class="collection">
                                 <li class="collection-item">
                                         <div class="row" style="margin-bottom: 0;">
@@ -393,10 +393,10 @@
                                 </li>
                                 <li class="collection-item">
                                         <div class="row" style="margin-bottom: 0;">
-                                                <div class="col s7"><h5>Diffusion Samples (alpha):</h5></div>
+                                                <div class="col s7"><h5>Diffusion Samples:</h5></div>
                                                 <div class="col s1"></div>
                                                 <div class="col s3"><input type="text" id="diffSamples" style="margin-bottom: 0;"></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light" id="diffSamplesHelp"><i>?</i></a></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Subdivides diffusion calculations each year. Very large performance impact." id="diffSamplesHelp"><i>?</i></a></div>
                                         </div>
                                 </li>
                                 <li class="collection-item">
@@ -405,7 +405,7 @@
                                                 <!-- <input type="text" id="paramLowColor" style="margin-bottom: 0;">-->
                                                 <div class="col s1"><input type="color" value="#ffeda0" style="margin-top: 6px;" id="paramLowColor"></div>
                                                 <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode(0);">Default</a></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light" id="lowColorHelp"><i>?</i></a></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Color of the undepleted end of the heatmap gradient."><i>?</i></a></div>
                                         </div>
                                 </li>
                                 <li class="collection-item">
@@ -413,14 +413,14 @@
                                                 <div class="col s8"><h5>Heatmap Depleted color:</h5></div>
                                                 <div class="col s1"><input type="color" value="#f03b20" style="margin-top: 6px;" id="paramHighColor"></div>
                                                 <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode(1);">Default</a></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light" id="highColorHelp"><i>?</i></a></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Color of the depleted end of the heatmap gradient."><i>?</i></a></div>
                                         </div>
                                 </li>
                                 <li class="collection-item">
                                         <div class="row" style="margin-bottom: 0;">
-                                                <div class="col s8"><h5>Heatmap Overlay Opacity:</h5></div>
+                                                <div class="col s8"><h5>Heatmap Overlay Opacity (0.0 - 1.0):</h5></div>
                                                 <div class="col s3"><input type="text" id="imgOpacity" style="margin-bottom: 0;"></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light" id="opacityHelp"><i>?</i></a></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Sets how transparent the heatmap overlay is over the background map."><i>?</i></a></div>
                                         </div>
                                 </li>
                         </ul>

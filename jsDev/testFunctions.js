@@ -80,6 +80,9 @@ function readUserParameters(){
 }
 
 function setupSimulation(){
+        if(!checkSettings()){
+                return;
+        }
         if(geoDebugMode){
                 debugSetupSimulation();
                 return;

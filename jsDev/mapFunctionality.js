@@ -256,9 +256,13 @@ function setupOlInputMap(){
                 layers: [
                         /*
                         new ol.layer.Tile({
-                                source: new ol.source.OSM({wrapX: false})
+                                source: new ol.source.OSM({
+                                        projection: 'EPSG:4326',
+                                        wrapX: false,
+                                })
                         }),
                         */
+                        
                         new ol.layer.Tile({
                                 source: new ol.source.BingMaps({
                                         imagerySet: 'Aerial',
@@ -266,26 +270,15 @@ function setupOlInputMap(){
                                         projection: 'EPSG:4326',
                                         wrapX: false
                                 })
-                                /*new ol.source.TileWMS({
-                                        url: 'https://ahocevar.com/geoserver/wms',
-                                        //crossOrigin: '',
-
-                                        params: {
-                                                'LAYERS': 'ne:NE1_HR_LC_SR_W_DR',
-                                                'TILED': true
-                                        },
-                                        projection: 'EPSG:4326',
-                                        wrapX: false
-                                })
-                                */
                         }),
+                        
                         new ol.layer.Vector({
                                 source: features,
                                 style: teststyle
                         })
                 ],
                 view: new ol.View({
-                        projection: 'EPSG:4326',
+                        projection: 'EPSG:4326', //9835', 3410
                         center: [37.41, 8.82],
                         zoom: 2
                 }),

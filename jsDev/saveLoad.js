@@ -305,7 +305,7 @@ function deleteConfigByID(persistID){
 
 function buildHTMLSaveEntry(entry){
         var containerDiv = document.createElement('div');
-        containerDiv.className = "row persistSave";
+        containerDiv.className = "row persistSave collection-item"; //persistSave
         containerDiv.id = entry.id;
 
         var topRow = document.createElement('div');
@@ -320,7 +320,7 @@ function buildHTMLSaveEntry(entry){
         fileContainer.className = "col s4 saveButton";
         var fileButton = document.createElement('a');
         fileButton.className = "waves-effect waves-light btn teal darken-3";
-        fileButton.innerHTML = "Save Config File";
+        fileButton.innerHTML = "Download Config";
         fileButton.onclick = function() {savePersistConfig(entry.id);};
         fileContainer.appendChild(fileButton);
 
@@ -382,7 +382,7 @@ function buildHTMLSaveEntry(entry){
 
         containerDiv.appendChild(topRow);
         containerDiv.appendChild(botRow);
-        containerDiv.appendChild(divider);
+        //containerDiv.appendChild(divider);
 
         return containerDiv;
 }

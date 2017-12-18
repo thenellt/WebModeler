@@ -46,6 +46,7 @@ function newSimulation(){
         addRow("popTable", -1);
         console.log("new simulation setup with ID: " + simData.simID);
         document.getElementById("parameterSetupTab").disabled = false;
+        document.getElementById("popSetupTab").disabled = false;
         document.getElementById("resetButton").classList.remove("hide");
         document.getElementById("newSimButton").classList.add("hide");
         document.getElementById("continueSimButton").classList.remove("hide");
@@ -131,16 +132,6 @@ function resetColorCode(isHighColor){
 }
 
 function changeToPopulations(){
-        console.log("changed to population page");
-        if(document.getElementById("popSetupTab").disabled){
-                if(checkSettings()){
-                        document.getElementById("popSetupTab").disabled = false;
-                        changeTab('popSetup');
-                }
-
-                return;
-        }
-
         if(olmapLocation){ //move the map from output page back to pop page
                 document.getElementById("popMapRow").appendChild(document.getElementById("popMapDiv"));
                 olmapLocation = 0;
@@ -149,13 +140,14 @@ function changeToPopulations(){
                 //map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
                 //map.updateSize();
                 addPopFunction = map.on('click', placePopulation);
-                //imageLayer.setVisible(false);
+                imageLayer.setVisible(false);
                 pointVector.setVisible(true);
                 geoLayer.setVisible(false);
         }
         else{
                 changeTab('popSetup');
         }
+        map.updateSize();
 }
 
 function changeToGetStarted(){
@@ -312,8 +304,71 @@ function populateDefaultValues(){
 }
 
 function checkSettings(){
-        //will check for valid numbers for all parameters
+        if($('#paramName').val().length === 0){
+                modalDialog("Settings Error", "One or more settings has an invalid value. Please fix it and try again.", function(){
+                        changeTab('parameterSetup');
+                        $('#paramName').focus();
+                });
+                return false;
+        }
+        //id, min value, max value, isAdvanced
+        let intParams = [["paramYears", 0, 200, 0], ['paramCarry', 0, 1000, 0], ['diffSamples', 1, 365, 1]];
+        let floatParams = [['imgOpacity', 0, 1, 1], ['paramTheta', 0, 100, 1], ['rangeHphy', 1, 1000, 0],
+                           ['paramHphy', 0, 365, 0], ['paramKillProb', 0, 1, 0], ['paramEncounterRate', 0, 1, 0],
+                           ['paramDifRate', 0, 1, 0], ['paramGrowthRate', 0, 1, 0]];
+        
+        for(let i = 0; i < intParams.length; i++){
+                if(!checkInt(intParams[i][0], intParams[i][1], intParams[i][2])){
+                        modalDialog("Settings Error", "One or more settings has an invalid value. Please fix it and try again.", function(){
+                                changeTab('parameterSetup');
+                                if(intParams[i][3]){
+                                        $('#advancedSettings').modal('open');
+                                }
+                                $('#'+intParams[i][0]).focus();
+                        });
+                        return false;
+                }
+        }
+        for(let i = 0; i < intParams.length; i++){
+                if(!checkFloat(floatParams[i][0], floatParams[i][1], floatParams[i][2])){
+                        modalDialog("Settings Error", "One or more settings has an invalid value. Please fix it and try again.", function(){
+                                changeTab('parameterSetup');
+                                if(floatParams[i][3]){
+                                        $('#advancedSettings').modal('open');
+                                }
+                                $('#'+floatParams[i][0]).focus();
+                        });
+                        return false;
+                }
+        }
+
         return true;
+}
+
+function checkFloat(element, min, max){
+        let rawValue = $('#' + element).val();
+        let value = parseFloat(rawValue, 10);
+        if(isNaN(value) || value < min || value > max){
+                return false;
+        }
+        
+        return true;
+}
+
+function checkInt(element, min, max){
+        let rawValue = $('#' + element).val();
+        let floatValue = parseFloat(rawValue);
+        //console.log("checking int. floatvalue: " + floatValue + " min: " + min + " max: " + max);
+
+        if(!isNaN(floatValue) && floatValue % 1 === 0){
+                let value = parseInt(floatValue);
+                console.log("checking int. value: " + value + " min: " + min + " max: " + max);
+                if(value >= min || value <= max){
+                        return true;
+                }
+        }
+        
+        return false;
 }
 
 setupTabs();
