@@ -49,6 +49,10 @@ function loadFromFile(fileName){
                 };
                 reader.readAsText(fileName.files[0]);
         }
+        
+        let fileLoaderCopy = $('#loadConfigFileButton').clone();
+        $('#loadConfigFileButton').remove();
+        $('#getStarted').append(fileLoaderCopy);
 }
 
 function parseConfigFile(fileString){

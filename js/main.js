@@ -6,6 +6,7 @@ var currentId;
 var olmapLocation;
 var simulationRun;
 var advSettingsFnc;
+var modalEventFnc;
 var simData = {};
 var simResults = {};
 
@@ -236,7 +237,16 @@ function modalDialog(title, msg, callback){
         $('#sysTitle').text(title);
         $('#sysContent').html(msg);
         
+        modalEventFnc = function(e){
+                e = e || window.event;
+                if(e.keyCode == 13){
+                        $('#sysConfirm').trigger('click');
+                }
+        }
+        window.addEventListener('keyup', modalEventFnc);
+        
         $('#sysConfirm').click(function(){
+                window.removeEventListener('keyup', modalEventFnc);
                 $('#sysDialog').modal('close');
                 if(typeof callback !== 'undefined' && typeof callback === 'function'){
                         callback();
@@ -351,6 +361,9 @@ function checkSettings(){
 
 function checkFloat(element, min, max){
         let rawValue = $('#' + element).val();
+        if(!(/^\d*(\.\d+)?$/.test(rawValue))){
+                return false;
+        }
         let value = parseFloat(rawValue, 10);
         if(isNaN(value) || value < min || value > max){
                 return false;
@@ -361,12 +374,13 @@ function checkFloat(element, min, max){
 
 function checkInt(element, min, max){
         let rawValue = $('#' + element).val();
+        if(!(/^\d*(\.\d+)?$/.test(rawValue))){
+                return false;
+        }
         let floatValue = parseFloat(rawValue);
-        //console.log("checking int. floatvalue: " + floatValue + " min: " + min + " max: " + max);
 
         if(!isNaN(floatValue) && floatValue % 1 === 0){
                 let value = parseInt(floatValue);
-                console.log("checking int. value: " + value + " min: " + min + " max: " + max);
                 if(value >= min || value <= max){
                         return true;
                 }
