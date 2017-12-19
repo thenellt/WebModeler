@@ -1,3 +1,4 @@
+12/19/17 v19b - More bug fixes and changed persist save copy behavior to be more intuitive. \n
 12/18/17 v19a - Minor bug fixes and added validation of all parameters. \n
 12/17/17 v19 - Large UI changes which use the materialize library much more heavily. Also starts to add tooltips and confirmation dialogs. \n
 12/2/17 v18a - More ways of communicating with the worker and started output page redesign. Some save features still broken. \n

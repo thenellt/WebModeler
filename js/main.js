@@ -10,28 +10,33 @@ var simData = {};
 var simResults = {};
 
 $(document).ready(function() {
-    $('#projBackground').modal();
-    $('#changelogPopup').modal();
-    $('#sysDialog').modal();
-    $('#advancedSettings').modal({
-            dismissible: false,
-            ready: showAdvancedSettings
-    });
-    $('#floatingPopEditor').modal({
-            dismissible: false,
-    });
+        checkCompatibility();
+        $('#projBackground').modal();
+        $('#changelogPopup').modal();
+        $('#sysDialog').modal({
+                dismissible: false,
+        });
+        $('#advancedSettings').modal({
+                dismissible: false,
+                ready: showAdvancedSettings
+        });
+        $('#floatingPopEditor').modal({
+                dismissible: false,
+        });
+        
+        setupTabs();
+        setupPersistConfigs();
+        populatePersistSaves();
 });
 
 function setupTabs(){
         var tabs = document.getElementsByClassName("tablinks");
         for(let i = 0; i < tabs.length; i++){
                 if(!tabs[i].classList.contains("defaultOpen")){
-                        console.log("found non-default tab: " + tabs[i].id);
                         tabs[i].disabled = true;
                 }
                 else{
                         var contentName = tabs[i].id;
-                        console.log("Setup content name: " + contentName.substring(0, contentName.length - 3));
                         changeTab(contentName.substring(0, contentName.length - 3));
                 }
         }
@@ -55,7 +60,6 @@ function newSimulation(){
 }
 
 function resetSimulationCheck(){
-        console.log("Prompting for reset");
         var title = "Are you sure want to start over?";
         var message = "All unsaved work will be lost.";
         createFloatingDialog(title, message, 0, resetSimulation);
@@ -371,4 +375,3 @@ function checkInt(element, min, max){
         return false;
 }
 
-setupTabs();

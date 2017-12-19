@@ -131,21 +131,26 @@ function saveSimToFile(){
 }
 
 function savePersistConfig(persistID){
+        let entry = findConfig(persistID);
+        if(entry){
+                var outputString = JSON.stringify(entry);
+                var jsonBlob = new Blob([outputString], {type: "application/json"});
+                saveAs(jsonBlob, entry.name + ".cfg");
+        }
+}
+
+function findConfig(persistID){
         let entries = getPersistObjects();
         var pos = -1;
         if(entries.length){
                 for(let i = 0; i < entries.length; i++){
                         if(entries[i].id == persistID){
-                                pos = i;
-                                break;
+                                return entries[i];
                         }
                 }
         }
-        if(pos != -1){
-                var outputString = JSON.stringify(entries[pos]);
-                var jsonBlob = new Blob([outputString], {type: "application/json"});
-                saveAs(jsonBlob, entries[pos].name + ".cfg");
-        }
+        
+        return false;
 }
 
 function generateConfigObject(){
@@ -270,21 +275,17 @@ function setupPersistConfigs(){
 }
 
 function deleteConfigByID(persistID){
-        console.log("delete config called with id: " + persistID);
         let entries = getPersistObjects();
         var pos = -1;
         if(entries.length){
-                console.log("length: " + entries.length);
                 for(let i = 0; i < entries.length; i++){
                         if(entries[i].id == persistID){
-                                console.log("found config at pos: " + i);
                                 pos = i;
                                 break;
                         }
                 }
         }
         if(pos !== -1){
-                console.log("delete triggered");
                 var numEntries = parseInt(localStorage.getItem('numEntries'));
                 localStorage.removeItem('entry' + pos);
                 localStorage.setItem('numEntries', (numEntries - 1));
@@ -300,40 +301,40 @@ function deleteConfigByID(persistID){
 
                 setupPersistConfigs();
                 populatePersistSaves();
+                console.log("persist config deleted with id: " + persistID);
         }
 }
 
 function buildHTMLSaveEntry(entry){
-        var containerDiv = document.createElement('div');
-        containerDiv.className = "row persistSave collection-item"; //persistSave
+        var containerDiv = document.createElement('li');
         containerDiv.id = entry.id;
-
+        
+        var topRowContainer = document.createElement('div');
+        topRowContainer.className = "collapsible-header";
+        topRowContainer.style.cssText = "padding: 2px 2px 0px 2px;";
+        
         var topRow = document.createElement('div');
         topRow.className = "row";
+        topRow.style.marginTop = "8px";
+        topRow.style.marginBottom = "8px";
+        
         var saveName = document.createElement('div');
-        saveName.className = "col s4 saveName";
+        saveName.className = "col s4";
         var nameText = document.createElement('h5');
         nameText.innerHTML = entry.name;
         saveName.appendChild(nameText);
-
-        var fileContainer = document.createElement('div');
-        fileContainer.className = "col s4 saveButton";
-        var fileButton = document.createElement('a');
-        fileButton.className = "waves-effect waves-light btn teal darken-3";
-        fileButton.innerHTML = "Download Config";
-        fileButton.onclick = function() {savePersistConfig(entry.id);};
-        fileContainer.appendChild(fileButton);
-
-        var copyContainer = document.createElement('div');
-        copyContainer.className = "col s2 saveButton";
-        var copyButton = document.createElement('a');
-        copyButton.className = "waves-effect waves-light btn";
-        copyButton.innerHTML = "Copy";
-        copyButton.onclick = function() {confirmConfigCopy(entry.id);};
-        copyContainer.appendChild(copyButton);
+        
+        var modifiedContainer = document.createElement('div');
+        modifiedContainer.className = "col s4";
+        var modified = new Date(entry.modified);
+        modifiedContainer.innerHTML = "<strong> Modified: </strong>" + modified.toLocaleTimeString() + " " + modified.toLocaleDateString();
+        
+        var popContainer = document.createElement('div');
+        popContainer.className = "col s2";
+        popContainer.innerHTML = "Populations: " + entry.config.popData.length;
 
         var loadContainer = document.createElement('div');
-        loadContainer.className = "col s2 saveButton";
+        loadContainer.className = "col s2";
         var loadButton = document.createElement('a');
         //loadButton.style.marginLeft = "2px";
         loadButton.className = "waves-effect waves-light btn";
@@ -342,68 +343,65 @@ function buildHTMLSaveEntry(entry){
         loadContainer.appendChild(loadButton);
 
         topRow.appendChild(saveName);
-        topRow.appendChild(fileContainer);
-        topRow.appendChild(copyContainer);
+        topRow.appendChild(modifiedContainer);
+        topRow.appendChild(popContainer);
         topRow.appendChild(loadContainer);
+        
+        topRowContainer.appendChild(topRow);
+
+        var botRowContainer = document.createElement('div');
+        botRowContainer.className = "collapsible-body";
+        botRowContainer.style.cssText = "padding: 8px 2px 0px 2px;";
 
         var botRow = document.createElement('div');
         botRow.className = "row";
+        botRow.style.cssText = "margin-bottom: 8px;";
 
+        var createdContainer = document.createElement('div');
+        createdContainer.className = "col s4";
+        var created = new Date(entry.created);
+        createdContainer.innerHTML = "<strong> Created: </strong>" + created.toLocaleTimeString() + " " + created.toLocaleDateString();
+        
+        var fileContainer = document.createElement('div');
+        fileContainer.className = "col s4";
+        var fileButton = document.createElement('a');
+        fileButton.className = "waves-effect waves-light btn teal darken-3";
+        fileButton.innerHTML = "Download Config";
+        fileButton.onclick = function() {savePersistConfig(entry.id);};
+        fileContainer.appendChild(fileButton);
+        
         var deleteContainer = document.createElement('div');
-        deleteContainer.className = "col s2 offset-s1";
+        deleteContainer.className = "col s2";
         var deleteButton = document.createElement('a');
         deleteButton.className = "waves-effect waves-light btn red darken-2";
         deleteButton.innerHTML = "Delete";
         deleteButton.onclick = function() {confirmAutosaveDelete(entry.id);};
         deleteContainer.appendChild(deleteButton);
-
-        var createdContainer = document.createElement('div');
-        createdContainer.className = "col s3 saveText";
-        var created = new Date(entry.created);
-        createdContainer.innerHTML = "<strong> Created: </strong>" + created.toLocaleTimeString() + " " + created.toLocaleDateString();
-
-        var modifiedContainer = document.createElement('div');
-        modifiedContainer.className = "col s3 saveText";
-        var modified = new Date(entry.modified);
-        modifiedContainer.innerHTML = "<strong> Modified: </strong>" + modified.toLocaleTimeString() + " " + modified.toLocaleDateString();
-
-        var popContainer = document.createElement('div');
-        popContainer.className = "col s3 saveText";
-        popContainer.innerHTML = "<strong> Populations: </strong>" + entry.config.popData.length;
+        
+        var copyContainer = document.createElement('div');
+        copyContainer.className = "col s2";
+        var copyButton = document.createElement('a');
+        copyButton.className = "waves-effect waves-light btn";
+        copyButton.innerHTML = "Copy";
+        copyButton.onclick = function() {copyConfigByID(entry.id);};
+        copyContainer.appendChild(copyButton);
 
         botRow.appendChild(createdContainer);
-        botRow.appendChild(modifiedContainer);
-        botRow.appendChild(popContainer);
+        botRow.appendChild(fileContainer);
         botRow.appendChild(deleteContainer);
+        botRow.appendChild(copyContainer);
+        
+        botRowContainer.appendChild(botRow);
 
-        var divider = document.createElement('div');
-        divider.className = "divider";
-        divider.style.marginBottom = "2px";
-
-        containerDiv.appendChild(topRow);
-        containerDiv.appendChild(botRow);
-        //containerDiv.appendChild(divider);
-
+        containerDiv.appendChild(topRowContainer);
+        containerDiv.appendChild(botRowContainer);
+        
         return containerDiv;
-}
-
-function confirmConfigCopy(id){
-        if(typeof simData.simID === 'undefined' || simData.simID === -1){
-                loadConfigByID(id, true);
-                return;
-        }
-        
-        let title = "Load Simulation Copy";
-        let msg = "An existing simulation has been detected. Loading an autosave copy will overwrite the current simulation.";
-        
-        modalConfirmation(title, msg, function(){
-                loadConfigByID(id, true);
-        });
 }
 
 function confirmConfigLoad(id){
         if(typeof simData.simID === 'undefined' || simData.simID === -1){
-                loadConfigByID(id, false);
+                loadConfigByID(id);
                 return;
         }
         
@@ -411,7 +409,7 @@ function confirmConfigLoad(id){
         let msg = "An existing simulation has been detected. Loading an autosave will overwrite the current simulation.";
         
         modalConfirmation(title, msg, function(){
-                loadConfigByID(id, false);
+                loadConfigByID(id);
         });
 }
 
@@ -424,40 +422,48 @@ function confirmAutosaveDelete(id){
         });
 }
 
-function loadConfigByID(persistID, isCopy){
-        console.log("load config called with id: " + persistID);
-        let entries = getPersistObjects();
-        var pos = -1;
-        if(entries.length){
-                for(let i = 0; i < entries.length; i++){
-                        if(entries[i].id == persistID){
-                                console.log("found config at pos: " + i);
-                                pos = i;
-                                break;
-                        }
-                }
-        }
-        if(pos !== -1){
+function loadConfigByID(persistID){
+        let entry = findConfig(persistID);
+        if(entry){
                 resetSimulation();
-                loadSimConfig(entries[pos]);
+                loadSimConfig(entry);
+                addRow("popTable", -1);
                 document.getElementById("popSetupTab").disabled = false;
-                if(isCopy){
-                        newSimulation();
-                        synchPersisObject();
-                }
-                else{
-                        addRow("popTable", -1);
-                        document.getElementById("parameterSetupTab").disabled = false;
-                        document.getElementById("resetButton").classList.remove("hide");
-                        document.getElementById("continueSimButton").classList.remove("hide");
-                        document.getElementById("newSimButton").classList.add("hide");
-                        changeTab("parameterSetup");
-                }
+                document.getElementById("parameterSetupTab").disabled = false;
+                document.getElementById("resetButton").classList.remove("hide");
+                document.getElementById("continueSimButton").classList.remove("hide");
+                document.getElementById("newSimButton").classList.add("hide");
+                changeTab("parameterSetup");
+                console.log("Persist config loaded with id: " + persistID);
+        }
+}
+
+function copyConfigByID(persistID){
+        let entry = findConfig(persistID);
+        if(entry){
+                let tempDate = new Date();
+                let freshID = tempDate.valueOf();
+                
+                entry.modified = new Date();
+                entry.config.simName = entry.config.simName + " Copy";
+                entry.name = entry.config.simName;
+                entry.config.simID = freshID;
+                entry.id = freshID;
+                
+                let numEntries = parseInt(localStorage.getItem('numEntries'));
+                localStorage.setItem('entry' + numEntries, JSON.stringify(entry));
+                localStorage.setItem('numEntries', numEntries + 1);
+                
+                setupPersistConfigs();
+                populatePersistSaves();
         }
 }
 
 function populatePersistSaves(){
         var saveContainer = document.getElementById("persistSaveContainer");
+        while (saveContainer.firstChild){
+                        saveContainer.removeChild(saveContainer.firstChild);
+        }
         var saves = getPersistObjects();
         if(saves && saves.length > 1){
                 saves.sort(function (a, b) {
@@ -471,9 +477,7 @@ function populatePersistSaves(){
                         let element = buildHTMLSaveEntry(saves[i]);
                         saveContainer.appendChild(element);
                 }
+                
+                $('#persistSaveContainer').collapsible('open', 0);
         }
 }
-
-checkCompatibility();
-setupPersistConfigs();
-populatePersistSaves();
