@@ -14,6 +14,9 @@ $(document).ready(function() {
         checkCompatibility();
         $('#projBackground').modal();
         $('#changelogPopup').modal();
+        $('#fullScreenMap').modal({
+                dismissible: false,
+        });
         $('#sysDialog').modal({
                 dismissible: false,
         });
@@ -55,7 +58,7 @@ function newSimulation(){
         document.getElementById("popSetupTab").disabled = false;
         document.getElementById("resetButton").classList.remove("hide");
         document.getElementById("newSimButton").classList.add("hide");
-        document.getElementById("continueSimButton").classList.remove("hide");
+        document.getElementById("quickSaveButton").classList.remove("hide");
 
         changeTab("parameterSetup");
 }
@@ -102,9 +105,7 @@ function resetSimulation(){
                 }
         }
 
-        for(var k = 0; k < uiData.length; k++){
-                deleteTableRowById(uiData[k].id);
-        }
+        emptyTable();
 
         uiData = [];
 
@@ -121,7 +122,7 @@ function resetSimulation(){
         document.getElementById("popSetupTab").disabled = true;
         document.getElementById("resultsPageTab").disabled = true;
         document.getElementById("resetButton").classList.add("hide");
-        document.getElementById("continueSimButton").classList.add("hide");
+        document.getElementById("quickSaveButton").classList.add("hide");
         document.getElementById("newSimButton").classList.remove("hide");
 
         emptyTable();
@@ -158,6 +159,7 @@ function changeToPopulations(){
 function changeToGetStarted(){
         let contentDiv = document.getElementById("getStarted");
         if(contentDiv.style.display == "none"){
+                //TODO only update saves when necessary
                 console.log("updating persist display");
                 var saveContainer = document.getElementById("persistSaveContainer");
                 while (saveContainer.firstChild) {
@@ -179,8 +181,8 @@ function changeToOutput(){
         ol.Observable.unByKey(addPopFunction);
 
         if(simulationRun){
-                //imageLayer.setVisible(true);
-                geoLayer.setVisible(true);
+                imageLayer.setVisible(true);
+                //geoLayer.setVisible(true);
         }
         else{
                 simulationRun = 1;
@@ -189,11 +191,14 @@ function changeToOutput(){
                 console.log("resize map clientHeight: " + parentDiv.clientHeight);
 
                 map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
-                map.updateSize();
         }
 
         let labelCheckBox = document.getElementById('popLabelToggle');
         pointVector.setVisible(labelCheckBox.checked);
+        setTimeout(function(){
+                //$('#visualCollapsable').collapsible('open', 0);
+                map.updateSize();
+        }, 50);
 }
 
 function notifyMessage(text, time){
@@ -332,7 +337,8 @@ function checkSettings(){
                            ['paramDifRate', 0, 1, 0], ['paramGrowthRate', 0, 1, 0]];
         
         for(let i = 0; i < intParams.length; i++){
-                if(!checkInt(intParams[i][0], intParams[i][1], intParams[i][2])){
+                let tempValue = $('#' + intParams[i][0]).val();
+                if(!checkInt(tempValue, intParams[i][1], intParams[i][2])){
                         modalDialog("Settings Error", "One or more settings has an invalid value. Please fix it and try again.", function(){
                                 changeTab('parameterSetup');
                                 if(intParams[i][3]){
@@ -344,7 +350,8 @@ function checkSettings(){
                 }
         }
         for(let i = 0; i < intParams.length; i++){
-                if(!checkFloat(floatParams[i][0], floatParams[i][1], floatParams[i][2])){
+                let tempValue = $('#' + floatParams[i][0]).val();
+                if(!checkFloat(tempValue, floatParams[i][1], floatParams[i][2])){
                         modalDialog("Settings Error", "One or more settings has an invalid value. Please fix it and try again.", function(){
                                 changeTab('parameterSetup');
                                 if(floatParams[i][3]){
@@ -359,8 +366,7 @@ function checkSettings(){
         return true;
 }
 
-function checkFloat(element, min, max){
-        let rawValue = $('#' + element).val();
+function checkFloat(rawValue, min, max){
         if(!(/^\d*(\.\d+)?$/.test(rawValue))){
                 return false;
         }
@@ -372,8 +378,7 @@ function checkFloat(element, min, max){
         return true;
 }
 
-function checkInt(element, min, max){
-        let rawValue = $('#' + element).val();
+function checkInt(rawValue, min, max){
         if(!(/^\d*(\.\d+)?$/.test(rawValue))){
                 return false;
         }

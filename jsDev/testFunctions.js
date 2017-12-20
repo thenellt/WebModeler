@@ -4,13 +4,6 @@ var workerThread;
 var workerFunctions = {};
 
 function town(long, lat, pop, killRate, name, growth, id){
-        if(id === 0){
-                let tempDate = new Date();
-                this.id = tempDate.valueOf();
-        }
-        else{
-                this.id = id;
-        }
         this.long = long;
         this.lat = lat;
         this.growthRate = growth;
@@ -79,6 +72,25 @@ function readUserParameters(){
         console.log("finished reading user input");
 }
 
+function buildTownFromData(pos){
+        let data = uiData[pos];
+        let tempLong = parseFloat(data.long);
+        let tempLat = parseFloat(data.lat);
+        let tempPop = parseFloat(data.population);
+        let tempGrowth = parseFloat(data.growthRate);
+        let tempKill;
+        if(data.killRate && !isNaN(parseFloat(data.killRate))){
+                tempKill = parseFloat(data.killRate);
+        }
+        else{
+                tempKill = simData.killProb;
+        }
+
+        let temp = new town(tempLong, tempLat, tempPop, tempKill,
+                            data.name, tempGrowth, data.id);
+        return temp;
+}
+
 function setupSimulation(){
         if(!checkSettings()){
                 return;
@@ -93,6 +105,9 @@ function setupSimulation(){
         while (cleanup.firstChild) {
                 cleanup.removeChild(cleanup.firstChild);
         }
+        
+        setupSimDefaults();
+        readUserParameters();
 
         let townData = [];
         for(let i = 0; i < uiData.length; i++){
@@ -104,7 +119,6 @@ function setupSimulation(){
                 let title = "No Populations Found";
                 let msg = "Please enter at least one population before running the simulation.";
                 modalDialog(title, msg);
-                console.log("no populations found - aborting run");
                 return;
         }
         console.log("Found " + townData.length + " valid towns");
@@ -117,8 +131,6 @@ function setupSimulation(){
         }
 
         showProgressBar("Setting up simulation", 0);
-        setupSimDefaults();
-        readUserParameters();
 
         //
         workerThread = new Worker('jsDev/model.js');

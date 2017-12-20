@@ -151,15 +151,7 @@ function closePopUpdater(input){ //0 - cancel, 1 - update village, 2 delete vill
                 updateTableRow(i);
         }
         else if(input === 2){ //delete village
-                for(let x = 0; x < uiData.length; x++){
-                        if(uiData[x].id == currentId){
-                                uiData.splice(x, 1);
-                                break;
-                        }
-                }
-
-                removePopFromMapById(currentId);
-                deleteTableRowById(currentId);
+                removeRow('popTable', currentID);
         }
 
         $('#editorDeleteButton').css('display', 'none');
@@ -188,11 +180,14 @@ function checkPopEditor(){
                 $('#floatPop').focus();
                 return false;
         }
-        let killValue = parseFloat(document.getElementById("floatKill").value, 10);
-        if(isNaN(killValue) || killValue < 0 || killValue > 1){
-                notifyMessage("Kill rate must be between 0.0 and 1.0", 3);
-                $('#floatKill').focus();
-                return false;
+        let killString = document.getElementById("floatKill").value;
+        if(killString.length){
+                let killValue = parseFloat(document.getElementById("floatKill").value, 10);
+                if(isNaN(killValue) || killValue < 0 || killValue > 1){
+                        notifyMessage("Kill rate must be between 0.0 and 1.0", 3);
+                        $('#floatKill').focus();
+                        return false;
+                }
         }
         let growthValue = parseFloat(document.getElementById("floatGrowth").value, 10);
         if(isNaN(growthValue) || growthValue < 0){
@@ -217,19 +212,26 @@ function showAdvancedSettings(){
 
 function closeAdvancedSettings(clear){
         if(clear){
-                
-        }
-        else if(!clear && !checkAdvancedSettings()){ //tried to save invalid settings
-                return;
+                //TODO revert settings
         }
         
         window.removeEventListener('keyup', advSettingsFnc);
         $('#advancedSettings').modal('close');
 }
 
-function checkAdvancedSettings(){
-        //TODO advanced settings check
-        return true;
+function openFullscreenViewer(){
+        document.getElementById("viewerMapContainer").appendChild(document.getElementById("popMapDiv"));
+        document.getElementById("viewerControlsContainer").appendChild(document.getElementById("viewerControls"));
+        $('#fullScreenMap').modal('open');
+        map.updateSize();
+}
+
+function closeFullscreenViewer(){
+        document.getElementById("resultsMapContainer").appendChild(document.getElementById("popMapDiv"));
+        document.getElementById("viewControlsContainer").appendChild(document.getElementById("viewerControls"));
+
+        $('#fullScreenMap').modal('close');
+        map.updateSize();
 }
 
 //based on a stack overflow: https://stackoverflow.com/questions/27840222/how-can-i-load-the-contents-of-a-small-text-file-into-a-javascript-var-wo-jquery
@@ -269,4 +271,5 @@ readLocalFile("./changelog.txt", 'GET', function(responseText) {
 
         document.getElementById('changeLogEntries').appendChild(list);
 });
+
 

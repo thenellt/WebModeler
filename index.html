@@ -58,7 +58,10 @@
                                 </div>
                         </td>
                         <td class="content">
-                                <div class="tabcontent" id="getStarted">
+                                <div class="row" id="javascriptError"><h3 style="color:red;">
+                                        If you can see this, javascript isn't being allowed to run in your browser and this application won't work.
+                                </h3></div>
+                                <div class="tabcontent hide" id="getStarted">
                                         <h4 class="header">Start or Continue a Simulation</h4>
                                         <div class="divider" style="margin-bottom: 10px;"></div>
 
@@ -70,8 +73,8 @@
                                                 <div class="col s3" id="newSimButton">
                                                         <a class="waves-effect waves-light btn" onclick="newSimulation()">New Simulation</a>
                                                 </div>
-                                                <div class="col s3 hide" id="continueSimButton">
-                                                        <a class="waves-effect waves-light btn" onclick="changeTab('parameterSetup');">Continue</a>
+                                                <div class="col s3 hide" id="quickSaveButton">
+                                                        <a class="waves-effect waves-light btn" onclick="quickSave();">Quicksave</a>
                                                 </div>
                                         </div>
                                         <div class="row">
@@ -88,18 +91,12 @@
                                                 <div class="col s6">
                                                         <h5>Load a cached simulation:</h5>
                                                 </div>
-                                                <div class="col s6" id="persistMessage" style="margin-top: 18px;">
-
-                                                </div>
+                                                <div class="col s6" id="persistMessage" style="margin-top: 18px;"></div>
                                         </div>
                                         <ul id="persistSaveContainer" class="collapsible popout" data-collapsible="accordion"></ul>
-                                        <div class="row" id="javascriptError">
-                                                <h3 style="color:red;">If you can see this, javascript isn't being allowed to run in your browser and this application won't work.</h3>
-                                        </div>
-
                                         <input id="loadConfigFileButton" type="file" onchange='loadFromFile(this)' style="display: none;">
                                 </div>
-                                <div class="tabcontent" id="parameterSetup">
+                                <div class="tabcontent" id="parameterSetup" style="display: none;">
                                         <div class="row">
                                                 <div class="col s9"><h4>Enter Simulation Parameters</h4></div>
                                                 <div class="col s3" style="margin-top: 16.5px">
@@ -166,7 +163,7 @@
                                                 </a></div>
                                         </div>
                                 </div>
-                                <div class="tabcontent" id="popSetup">
+                                <div class="tabcontent" id="popSetup" style="display: none;">
                                         <div class="row">
                                                 <div class="col s6"><h4>Setup Populations</h4></div>
                                                 <div class="col s3" style="padding: 16px 0px 0px 0px"><a class="waves-effect waves-light btn" style="padding" id="importPopData">Import Data</a></div>
@@ -180,16 +177,19 @@
 
                                         </div>
                                         <div id="popMapContent" class="hide" style="height: 80%; width 100%;">
+                                                <div class="row">
+                                                        <div class="col s9"><i>Click on the map to add a population to that location. Click on an existing population to edit it.</i></div>
+                                                </div>
                                                 <div class="divider" style="margin-bottom: 4px;"></div>
                                                 <div class="row" id="popMapRow">
                                                         <div id="popMapDiv" class="map" style="height: 500px; min-width: 600px;"></div>
                                                 </div>
                                                 <div class="divider" style="margin-top: 4px; margin-bottom: 8px;"></div>
-                                                <div class="row">
-                                                        <div class="col s9"><i>Click on the map to add a population to that location. Click on an existing population to edit it.</i></div>
-                                                </div>
                                         </div>
                                         <div id="popTableContent" style="min-height: 500px; min-width: 600px;">
+                                                <div class="row">
+                                                        <div class="col s12"><i>Kill Rate (percentage chance to kill an animal during an encounter) can be left blank in order to use the one from the parameters page.</i></div>
+                                                </div>
                                                 <table class="bordered striped highlight" id="popTable" style="margin-bottom: 8px;">
                                                         <thead>
                                                                 <tr>
@@ -197,7 +197,7 @@
                                                                         <th>Longitude</th>
                                                                         <th>Latitude</th>
                                                                         <th>Population</th>
-                                                                        <th>Growth Factor</th>
+                                                                        <th>Growth R Value</th>
                                                                         <th>Kill Rate</th>
                                                                 </tr>
                                                         </thead>
@@ -219,33 +219,38 @@
                                                 </div>
                                         </div>
                                 </div>
-                                <div class="tabcontent" id="resultsPage">
-                                        <div class="row">
+                                <div class="tabcontent" id="resultsPage" style="display: none;">
+                                        <div class="row" style="margin-bottom: 8px;">
                                                 <div class="col s6"><h4>Simulation Results</h4></div>
                                         </div>
-                                        <ul class="collapsible" data-collapsible="accordion">
+                                        <ul class="collapsible" data-collapsible="accordion" id="visualCollapsable">
                                                 <li>
                                                 <div class="collapsible-header active"><i class="material-icons">map</i>Heatmap with Sattelite Overlay</div>
                                                 <div class="collapsible-body">
-                                                        <div class="row">
-                                                                <div class="col s12">
-                                                                        The saved image will look exactly as you see it below. Zoom or pan the map preview to select the area to save.
+                                                        <div class="row" style="margin-bottom: 4px;">
+                                                                <div class="col s10">
+                                                                        The saved image will look as you see it below. Zoom or pan the map preview to select the area to save.
+                                                                </div>
+                                                                <div class="col s2">
+                                                                        <a class="waves-effect waves-light btn" onclick="openFullscreenViewer()">Fullscreen</a>
                                                                 </div>
                                                         </div>
-                                                        <div class="row" style="margin-bottom: 0px;">
-                                                                <div class="col s3" id="opacityLabel" style="margin-top: 12px;">
-                                                                        Overlay Opacity:
-                                                                </div>
+                                                        <div class="row" id="resultsMapContainer">
+                                                                <div id="resultMapDiv"></div>
+                                                        </div>
+                                                        <div id="viewControlsContainer">
+                                                        <div class="row" style="margin-bottom: 0px;" id="viewerControls">
                                                                 <div class="col s4">
-                                                                        <p class="range-field">
+                                                                        <div id="opacityLabel">
+                                                                                Overlay Opacity:
+                                                                        </div>
+                                                                        <p class="range-field" style="margin: 0px;">
                                                                                 <input type="range" id="opacitySlider" min="0" max="100" scale="1" oninput="updateOutputOpacity(this)"/>
                                                                         </p>
                                                                 </div>
-                                                                <div class="col s2 offset-s1">
+                                                                <div class="col s3">
                                                                         Village Names:
-                                                                </div>
-                                                                <div class="col s2">
-                                                                        <div class="switch">
+                                                                        <div class="switch" style="margin-top: 4px;">
                                                                                 <label>
                                                                                         Off
                                                                                         <input type="checkbox" onchange="toggleVillageLabels(this)" checked="true" id="popLabelToggle">
@@ -254,21 +259,14 @@
                                                                                 </label>
                                                                         </div>
                                                                 </div>
-                                                        </div>
-                                                        <div class="row">
-                                                                <div id="resultMapDiv"></div>
-                                                        </div>
-                                                        <div class="row">
-                                                                <div class="col s2" style="margin-top: 12px;">
+                                                                <div class="col s2">
                                                                          Heatmap Year:
+                                                                         <input type="number" min="0" step="1" value="0" id="overlayYear" style="margin: 0px; height: 30px;">
                                                                 </div>
-                                                                <div class="col s1">
-                                                                        <input type="number" min="0" step="1" value="0" id="overlayYear">
+                                                                <div class="col s3" style="margin-top: 8px;">
+                                                                        <a class="waves-effect waves-light btn saveButton right" onclick="saveImgToFile(1);">Save Image</a>
                                                                 </div>
-                                                                <div class="col s3">
-                                                                        <a class="waves-effect waves-light btn saveButton" onclick="saveImgToFile(1);">Save Image</a>
-                                                                </div>
-                                                        </div>
+                                                        </div></div>
                                                 </div>
                                                 </li>
                                                 <li>
@@ -328,7 +326,7 @@
                                                 </li>
                                         </ul>
                                 </div>
-                                <div class="tabcontent" id="statsPage">
+                                <div class="tabcontent" id="statsPage" style="display: none;">
                                         <div class="row">
                                                 <div class="col s12" style="margin-bottom: 0px;">
                                                         <h4>Graphs</h4>
@@ -433,6 +431,11 @@
                 style="width: 90%; max-height: 80% !important; height: 80% !important;">
                 <div class="modal-content">
                         <h4>Population Properties</h4>
+                        <div class="row"><div class="col s12">
+                                <i>
+                                        Kill Rate (percentage chance to kill an animal during an encounter) can be left blank in order to use the one from the parameters page.
+                                </i>
+                        </div></div>
                         <ul class="collection">
                                 <li class="collection-item" style="padding: 5px 5px 5px 5px;">
                                         <div class="row" style="margin-bottom: 0px; padding: 5px 5px 5px 5px;" >
@@ -484,7 +487,22 @@
                 </div>
                 <div class="modal-footer">
                         <a href="#!" class="waves-effect waves-green btn" style="margin-right: 8px;" id="sysConfirm">Ok</a>
-                        <a href="#!" class="waves-effect waves-red btn red darken-2" style="margin-right: 24px;" id="sysCancel">Cancel</a></div>
+                        <a href="#!" class="waves-effect waves-red btn red darken-2" style="margin-right: 24px;" id="sysCancel">Cancel</a>
+                </div>
+        </div>
+
+        <div id="fullScreenMap" class="modal modal-fixed-footer" style="max-width: 96%; width: 96%; max-height: 96%; height: 96%;">
+                <div class="modal-content">
+                        <h4 id="mapViewerTitle">Fullscreen Map Viewer</h4>
+                        <div id="mapViewerContent">
+                                <div id="viewerMapContainer"></div>
+                                <div class="divider" style="margin: 4px 0px 4px 0px;"></div>
+                                <div id="viewerControlsContainer"></div>
+                        </div>
+                </div>
+                <div class="modal-footer">
+                        <a href="#!" class="waves-effect waves-green btn" style="margin-right: 8px;" onclick="closeFullscreenViewer()"><i class="material-icons left">fullscreen_exit</i>Done</a>
+                </div>
         </div>
 
         <div class="notification scale-transition scale-out" id="notificationContainer">

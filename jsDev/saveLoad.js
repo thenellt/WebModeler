@@ -6,6 +6,7 @@ var persistCompatibility = false;
 function checkCompatibility(){
         console.log("checking for browser support...");
         document.getElementById("javascriptError").style.display = "none";
+        document.getElementById('getStarted').classList.remove("hide");
         persistCompatibility = true;
 }
 
@@ -14,8 +15,9 @@ appCache.addEventListener('updateready', updateApp, false);
 
 function updateApp(){
         console.log("update app triggered");
-        alert('An update to the app is avaliable, the page will now reload.');
-        window.location.reload();
+        modalDialog('Application Update', 'An update to the app is avaliable, the page will now reload to finish the update.', function(){
+                window.location.reload();
+        });
 }
 
 function loadFromFile(fileName){
@@ -245,6 +247,13 @@ function synchPersisObject(){
         }
 }
 
+function quickSave(){
+        setupSimDefaults();
+        readUserParameters();
+        synchPersisObject();
+        populatePersistSaves();
+}
+
 function getPersistObjects(){
         var numEntries = localStorage.getItem('numEntries');
 
@@ -435,7 +444,7 @@ function loadConfigByID(persistID){
                 document.getElementById("popSetupTab").disabled = false;
                 document.getElementById("parameterSetupTab").disabled = false;
                 document.getElementById("resetButton").classList.remove("hide");
-                document.getElementById("continueSimButton").classList.remove("hide");
+                document.getElementById("quickSaveButton").classList.remove("hide");
                 document.getElementById("newSimButton").classList.add("hide");
                 changeTab("parameterSetup");
                 console.log("Persist config loaded with id: " + persistID);
@@ -481,7 +490,10 @@ function populatePersistSaves(){
                         let element = buildHTMLSaveEntry(saves[i]);
                         saveContainer.appendChild(element);
                 }
+                //$('#persistSaveContainer').collapsible('close');
                 
-                $('#persistSaveContainer').collapsible('open', 0);
+                setTimeout(function(){
+                        $('#persistSaveContainer').collapsible('open', 0);
+                }, 100);
         }
 }

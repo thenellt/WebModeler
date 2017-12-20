@@ -20,7 +20,6 @@ function changeTab(tabName) {
 
     document.getElementById(tabName).style.display = "block";
     document.getElementById(tabButtonName).className += " active";
-    //evt.currentTarget.className += " active";
     document.body.scrollTop = document.documentElement.scrollTop = 0;
 }
 
@@ -39,6 +38,5 @@ function togglePopulationView(mode){
                 document.getElementById("popMapContent").classList.remove("hide");
                 document.getElementById("popTableContent").classList.add("hide");
                 map.updateSize();
-                //map.calculateBounds();
         }
 }

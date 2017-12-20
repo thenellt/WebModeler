@@ -47,7 +47,7 @@ onmessage = function(oEvent) {
 function startWork(data){
         unpackParams(data);
         let bounds = generateBounds(30 + simData.huntRange);
-        self.postMessage({type:'mapped', fnc:'extentDebug', data:bounds});
+        //self.postMessage({type:'mapped', fnc:'extentDebug', data:bounds});
         generategeoGrid(bounds);
         allocateMemory();
         placeLocations(geoGrid, points);

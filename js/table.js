@@ -16,7 +16,6 @@ function uiRow(long, lat, pop, kill, name, growth, id, validity){
         this.name = name;
         this.growthRate = growth;
         this.valid = validity;
-
 }
 
 function isEmptyEntry(row){
@@ -72,8 +71,7 @@ function addRow(tableId, rowId){
         newRowData.valid = false;
         newRowData.id = tempId;
         uiData.push(newRowData);
-        console.log("uiData length: " + uiData.length);
-        //build a new table row for dom
+        //build a new table row for DOM
         var cellNum = 0;
         var table = document.getElementById(tableId);
         var body = table.getElementsByTagName('tbody')[0];
@@ -95,16 +93,15 @@ function addRow(tableId, rowId){
         deleteCell.appendChild(delButton);
 
         for(var i = 0; i < row.cells.length; i++){
-                row.cells[i].ondblclick =(function() {
+                row.cells[i].ondblclick = function() {
                         cellClicked(this);
-                });
+                };
         }
 }
 
 function editFinished(cell, x, y, origValue){
         var input = cell.lastChild;
         var value = input.value;
-        console.log("input.value is: " + input.value);
         //TODO check value against origValue for sanity
         cell.removeChild(input);
         updateUIData(y, x, value);
@@ -112,13 +109,12 @@ function editFinished(cell, x, y, origValue){
                 cell.innerHTML = value;
         }
 
-        console.log("edit finished: " + x + ", " + y);
+        console.log("edit finished at pos: " + x + ", " + y + " value: " + value);
 }
 
 function updateUIData(row, cell, newValue){
         var tableRow = document.getElementById("popTable").rows[row];
         console.log("running updateUIData row: " + row + " id: " + tableRow.id);
-        console.log("uiData length: " + uiData.length);
         var i;
         for(i = 0; i < uiData.length; i++){
                 if(uiData[i].id == tableRow.id){
@@ -127,7 +123,7 @@ function updateUIData(row, cell, newValue){
         }
 
         if(i === uiData.length){
-                console.log("couldn't find row");
+                console.log("######CRITICAL####### - couldn't find row");
                 return;
         }
 
@@ -145,7 +141,7 @@ function updateUIData(row, cell, newValue){
                 case 5: uiData[i].killRate = newValue;
         }
 
-        let status = checkRowData(i);
+        let status = checkRowData(uiData[i]);
         if(status && !uiData[i].valid){
                 //data point has become complete -> add it to map and towns
                 addPopToMap(uiData[i].id, uiData[i].name, parseFloat(uiData[i].long),
@@ -153,23 +149,21 @@ function updateUIData(row, cell, newValue){
                 uiData[i].valid = true;
                 console.log("row " + row + " has become valid");
         }
-        else if(status && uiData[i].valid && (cell < 3)){ //update map
-                //synchronize changes of complete data point with rest of system
+        else if(status && uiData[i].valid && (cell < 3)){
+                //update map with name, lat, or long change
                 removePopFromMapById(uiData[i].id);
                 addPopToMap(uiData[i].id, uiData[i].name, parseFloat(uiData[i].long),
                             parseFloat(uiData[i].lat));
         }
         else if(!status && uiData[i].valid){
-                //data point is no longer complete -> remove from other locations
+                //data point is no longer complete -> remove from map
                 removePopFromMapById(uiData[i].id);
-                uiData.valid = false;
+                uiData[i].valid = false;
                 console.log("row " + row + " has become invalid");
         }
 }
 
-//param is index from uiData array
-function checkRowData(rowIndex){
-        var rowData = uiData[rowIndex];
+function checkRowData(rowData){
         if(isNaN(parseFloat(rowData.lat))){
                 //console.log("check failed at lat: " + rowData.lat);
                 return false;
@@ -182,11 +176,11 @@ function checkRowData(rowIndex){
                 //console.log("check failed at name");
                 return false;
         }
-        if(isNaN(parseInt(rowData.population))){
+        if(!checkInt(rowData.population, 0, Number.MAX_SAFE_INTEGER)){
                 //console.log("check failed at pop");
                 return false;
         }
-        if(isNaN(parseFloat(rowData.killRate, 10))){
+        if(rowData.killRate && isNaN(parseFloat(rowData.killRate, 10)) && rowData.killRate.length > 0){
                 //console.log("check failed at killrate");
                 return false;
         }
@@ -241,10 +235,10 @@ function cellClicked(cell){
                         return;
                 }
 
-                if(check === 3){
+                if(check === 3){ //enter
                         this.blur();
                 }
-                else if(check === 1){
+                else if(check === 1){ //tab
                         this.blur();
                         if(cell.cellIndex != 5){
                                 cellClicked(cell.nextElementSibling);
@@ -260,7 +254,7 @@ function cellClicked(cell){
                         }
 
                 }
-                else if(check === 2){
+                else if(check === 2){ //shift+tab
                         this.blur();
                         if(cell.cellIndex !== 0){
                                 cellClicked(cell.previousElementSibling);
@@ -272,6 +266,7 @@ function cellClicked(cell){
                                 }
                         }
                 }
+                /*
                 else if(check === 4){ //left
                         if(cell.cellIndex !== 0){
                                 this.blur();
@@ -298,6 +293,7 @@ function cellClicked(cell){
                                 cellClicked(downRow.children[cell.cellIndex]);
                         }
                 }
+                */
         });
 
         cell.appendChild(input);
@@ -320,51 +316,22 @@ function removeRow(tableId, rowId){
                         break;
                 }
         }
-
-        //remove from ui and data storage
+        //remove from map and ui storage
         for(let k = 0; k < uiData.length; k++){
                 if(uiData[k].id === rowId){
                         if(uiData[k].valid){
-                                removeRowData(rowId);
+                                removePopFromMapById(rowId);
                         }
                         uiData.splice(k, 1);
-                        break;
-                }
-        }
-
-        //remove from table
-}
-
-function removeRowData(dataId){
-        //remove population visual from map
-        if(source){
-                var features = source.getFeatures();
-
-                for(var j = 0; j < features.length; j++){
-                        console.log(features[j].get('description'));
-                        if(features[j].get('description') == dataId){
-                                source.removeFeature(features[j]);
-                                break;
-                        }
-                }
-        }
-}
-
-//assumes uiData has already been cleaned
-function deleteTableRowById(rowId){
-        var table = document.getElementById("popTable");
-        for(var i = 0; i < table.rows.length; i++){
-                if(table.rows[i].id == rowId){
-                        table.deleteRow(i);
                         break;
                 }
         }
 }
 
 //assumes uiData has been updated already
-function updateTableRow(rowNum){
+function updateTableRow(uiDataPosition){
         var table = document.getElementById("popTable");
-        var villageData = uiData[rowNum];
+        var villageData = uiData[uiDataPosition];
         var row;
         for(var i = 0; i < table.rows.length; i++){
                 if(table.rows[i].id == villageData.id){
@@ -379,18 +346,4 @@ function updateTableRow(rowNum){
         row.cells[3].innerHTML = villageData.population;
         row.cells[4].innerHTML = villageData.growthRate;
         row.cells[5].innerHTML = villageData.killRate;
-}
-
-//assumes validity has already been checked
-function buildTownFromData(pos){
-        let data = uiData[pos];
-        let tempLong = parseFloat(data.long);
-        let tempLat = parseFloat(data.lat);
-        let tempPop = parseFloat(data.population);
-        let tempKill = parseFloat(data.killRate);
-        let tempGrowth = parseFloat(data.growthRate);
-
-        let temp = new town(tempLong, tempLat, tempPop, tempKill,
-                            data.name, tempGrowth, data.id);
-        return temp;
 }

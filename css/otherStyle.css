@@ -114,6 +114,10 @@ div.tab button.active {
         margin: 0px 4px 0px 4px;
 }
 
+#fullScreenMap {
+        top: 2% !important;
+}
+
 li.active .collapsible-header {
         background-color: #eceff1;
 }
