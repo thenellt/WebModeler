@@ -14,23 +14,24 @@ $(document).ready(function() {
         checkCompatibility();
         $('#projBackground').modal();
         $('#changelogPopup').modal();
-        $('#fullScreenMap').modal({
-                dismissible: false,
-        });
-        $('#sysDialog').modal({
-                dismissible: false,
-        });
+        $('#popImportDialog').modal();
+        $('#yearlyPopEditor').modal({dismissible: false});
+        $('#fullScreenMap').modal({dismissible: false});
+        $('#sysDialog').modal({dismissible: false});
         $('#advancedSettings').modal({
                 dismissible: false,
                 ready: showAdvancedSettings
         });
-        $('#floatingPopEditor').modal({
-                dismissible: false,
-        });
+        $('#floatingPopEditor').modal({dismissible: false});
         
         setupTabs();
         setupPersistConfigs();
         populatePersistSaves();
+        setTimeout(function(){
+                document.body.scrollTop = document.documentElement.scrollTop = 0;
+                document.getElementById('getStarted').classList.add('scale-in');
+                //$('#popImportDialog').modal('open');
+        }, 250);
 });
 
 function setupTabs(){

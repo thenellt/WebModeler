@@ -114,8 +114,20 @@ div.tab button.active {
         margin: 0px 4px 0px 4px;
 }
 
-#fullScreenMap {
+.modal-fullscreen {
         top: 2% !important;
+        max-width: 96%;
+        width: 96%;
+        max-height: 96%;
+        height: 96% !important;
+}
+
+#popImportDialog {
+        top: 5% !important;
+}
+
+.example-pop td{
+        padding: 3px 2px 3px 2px;
 }
 
 li.active .collapsible-header {

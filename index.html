@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" manifest="manifest.appcache">
+<html lang="en"> <!--manifest="manifest.appcache"-->
 <head>
         <meta charset="UTF-8">
         
@@ -58,10 +58,21 @@
                                 </div>
                         </td>
                         <td class="content">
-                                <div class="row" id="javascriptError"><h3 style="color:red;">
-                                        If you can see this, javascript isn't being allowed to run in your browser and this application won't work.
-                                </h3></div>
-                                <div class="tabcontent hide" id="getStarted">
+                                <div id="javascriptError" class="center" style="margin-top: 150px;">
+                                        <div class="preloader-wrapper active">
+                                        <div class="spinner-layer spinner-red-only">
+                                        <div class="circle-clipper left">
+                                        <div class="circle"></div>
+                                        </div><div class="gap-patch">
+                                        <div class="circle"></div>
+                                        </div><div class="circle-clipper right">
+                                        <div class="circle"></div>
+                                        </div>
+                                        </div>
+                                        </div>
+                                        <div class="row"> If you can see this for more than 10 seconds there was a problem downloading or running javascript. This application requires javascript to run.</div>
+                                </div>
+                                <div class="tabcontent scale-transition scale-out" id="getStarted">
                                         <h4 class="header">Start or Continue a Simulation</h4>
                                         <div class="divider" style="margin-bottom: 10px;"></div>
 
@@ -166,7 +177,7 @@
                                 <div class="tabcontent" id="popSetup" style="display: none;">
                                         <div class="row">
                                                 <div class="col s6"><h4>Setup Populations</h4></div>
-                                                <div class="col s3" style="padding: 16px 0px 0px 0px"><a class="waves-effect waves-light btn" style="padding" id="importPopData">Import Data</a></div>
+                                                <div class="col s3" style="padding: 16px 0px 0px 0px"><a class="waves-effect waves-light btn" style="padding" id="importPopData" onclick="$('#popImportDialog').modal('open')">Import Data</a></div>
                                                 <div class="col s3" style="padding: 16px 0px 0px 0px">
                                                         <a class='dropdown-button btn' href='#' data-activates='viewDropdown'>Change View</a>
                                                         <ul id='viewDropdown' class='dropdown-content'>
@@ -204,7 +215,12 @@
                                                         <tbody id="popTableBody"></tbody>
                                                 </table>
                                                 <div class="row">
-                                                        <div class="col s3 offset-s9">
+                                                        <div class="col s3 offset-s6">
+                                                                <a class="waves-effect waves-light btn" id="addRowButton" onclick='addYearlyRow()'>
+                                                                        Yearly Row
+                                                                </a>
+                                                        </div>
+                                                        <div class="col s3">
                                                                 <a class="waves-effect waves-light btn" id="addRowButton" onclick='addRow("popTable", -1)'>
                                                                         Add Row
                                                                 </a>
@@ -452,13 +468,20 @@
                                                 <div class="col s2"><input type="text" id="floatLat" style="margin-bottom: 5px;"></div>
                                         </div>
                                 </li>
-                                <li class="collection-item" style="padding: 5px 5px 5px 5px;">
+                                <li class="collection-item hide" style="padding: 5px 5px 5px 5px;" id="mapEditorYearlyPop">
+                                        <div class="row" style="margin-bottom: 0px;">
+                                                <div class="col s9"><h5>Population:</h5></div>
+                                                <div class="col s3"><a class="waves-effect waves-light btn saveButton" onclick="openYearlyEditor(currentId);"> Save Parameters
+                                                </a></div>
+                                        </div>
+                                </li>
+                                <li class="collection-item" style="padding: 5px 5px 5px 5px;" id="mapEditorExpPop">
                                         <div class="row" style="margin-bottom: 0px;">
                                                 <div class="col s9"><h5>Population:</h5></div>
                                                 <div class="col s3"><input type="text" id="floatPop" style="margin-bottom: 5px;"></div>
                                         </div>
                                 </li>
-                                <li class="collection-item" style="padding: 5px 5px 5px 5px;">
+                                <li class="collection-item" style="padding: 5px 5px 5px 5px;" id="mapEditorExpGrowth">
                                         <div class="row" style="margin-bottom: 0px;">
                                                 <div class="col s9"><h5>Growth:</h5></div>
                                                 <div class="col s3"><input type="text" id="floatGrowth" style="margin-bottom: 5px;"></div>
@@ -491,7 +514,7 @@
                 </div>
         </div>
 
-        <div id="fullScreenMap" class="modal modal-fixed-footer" style="max-width: 96%; width: 96%; max-height: 96%; height: 96%;">
+        <div id="fullScreenMap" class="modal modal-fixed-footer modal-fullscreen">
                 <div class="modal-content">
                         <h4 id="mapViewerTitle">Fullscreen Map Viewer</h4>
                         <div id="mapViewerContent">
@@ -502,6 +525,110 @@
                 </div>
                 <div class="modal-footer">
                         <a href="#!" class="waves-effect waves-green btn" style="margin-right: 8px;" onclick="closeFullscreenViewer()"><i class="material-icons left">fullscreen_exit</i>Done</a>
+                </div>
+        </div>
+        
+        <div id="popImportDialog" class="modal modal-fixed-footer" style="max-width: 80%; width: 80%; max-height: 90%; height: 90% !important;">
+                <div class="modal-content">
+                        <h4>Import Population Data</h4>
+                        <div class="row" style="margin-bottom: 8px;">
+                                There are three types of supported file formats from which population data can be imported: simulation save files, and two forms of CSV files.
+                        </div>
+                        <ul class="collapsible" data-collapsible="accordion">
+                                <li>
+                                        <div class="collapsible-header active">Exponential Growth CSV Files</div>
+                                        <div class="collapsible-body" style="padding: 16px;">
+                                                <div class="row" style="margin-bottom: 12px;">Each line in this file format represents a single population. Data for each population includes a name, location, chance that an encounter results in a kill (this value is dictated by the level of technology of the village from bows to modern hunting rifles), a starting population, and the <b>r</b> value for how fast the population is growing.
+                                                </div>
+                                                <div class="row" style="margin-bottom: 4px;">
+                                                Line format: <i>name, longitude, latitude, killRate, StartingPopulation, growthRate</i></div>
+                                                <h5 style="margin: 8px 0px 4px 0px;">Example File Contents:</h5>
+                                                <div class="row" style="margin: 0px;"><div class="col s12"><div class="card blue-grey" style="margin: 8px;">
+                                                        <div class="card-content white-text" style="padding: 8px;">
+                                                                <table>
+                                                                        <tr class="example-pop">
+                                                                                <td>Village1,</td><td>32.483,</td><td>24.657</td><td>.9,</td><td>55,</td><td>.1,</td>
+                                                                        </tr>
+                                                                        <tr class="example-pop">
+                                                                                <td>Village2,</td><td>28.726,</td><td>27.014</td><td>.2,</td><td>104,</td><td>.17,</td>
+                                                                        </tr>
+                                                                        <tr class="example-pop">
+                                                                                <td>Village3,</td><td>29.472,</td><td>29.473</td><td>-1,</td><td>86,</td><td>.13,</td>
+                                                                        </tr>
+                                                                </table>
+                                                        </div>
+                                                </div></div></div>
+                                                <div class="row" style="margin-bottom: 4px; margin-top: 4px;">
+                                                        <b>Note:</b> The last village in the example file, <i>Village3</i>, is an example where the killRate is ommited. Leaving the kill rate column blank or filling it with the value of <i>-1</i> indicates that a population should use the global kill rate from the parameters page.
+                                                </div>
+                                        </div>
+                                </li>
+                                <li>
+                                        <div class="collapsible-header active">Yearly Defined Growth CSV Files</div>
+                                        <div class="collapsible-body" style="padding: 16px;">
+                                                <div class="row" style="margin-bottom: 12px;">
+                                                The more powerful alternative is a format in which the population of every village is given as a discrete number for every year. This allows for modeling of populations that don't a formulaic trend. The basic format is the same as the exponential growth layout except that instead of ending in with a starting population and an <b>r</b> value, each line ends with the population each year for any number of years.
+                                                </div>
+                                                <div class="row" style="margin-bottom: 4px;">
+                                                Line format: <i>name, longitude, latitude, killRate, PopulationYear1, PopulationYear2, PopulationYear3, </i></div>
+                                                <h5 style="margin: 8px 0px 4px 0px;">Example File Contents:</h5>
+                                                <div class="row" style="margin: 0px;"><div class="col s12"><div class="card blue-grey" style="margin: 8px;">
+                                                        <div class="card-content white-text" style="padding: 8px;">
+                                                                <table>
+                                                                        <tr class="example-pop">
+                                                                                <td>Village1,</td><td>32.483,</td><td>24.657</td><td>.2,</td><td>55,</td><td>58,</td><td>62,</td><td>65,</td><td>35,</td><td>36,</td>
+                                                                        </tr>
+                                                                        <tr class="example-pop">
+                                                                                <td>New Village,</td><td>32.126,</td><td>25.014</td><td>.2,</td><td>0,</td><td>0,</td><td>0,</td><td>0,</td><td>30,</td><td>32,</td>
+                                                                        </tr>
+                                                                </table>
+                                                        </div>
+                                                </div></div></div>
+                                                <div class="row" style="margin-bottom: 4px;">
+                                                        Shown above is an example of using the flexibility of this format to simulate the splitting of a population into two smaller populations during the 5th year.
+                                                </div>
+                                        </div>
+                                </li>
+                                <li>
+                                        <div class="collapsible-header">Simulation Save Files</div>
+                                        <div class="collapsible-body" style="padding: 16px;">
+                                        <div class="row" style="margin-bottom: 8px;">Importing from a save file will take the populations from the file without loading any other parameters from the file. This can be used to pull the populations out of multiple saved simulations to combine them into a single new simulation.</div>
+                                        <div class="row" style="margin-bottom: 4px;">
+                                                <b>Note:</b> Loading both the parameters and the populations from a save file is done from the <b>Get Started</b> page.
+                                        </div>
+                                        </div>
+                                </li>
+                        </ul>
+                </div>
+                <div class="modal-footer">
+                        <a href="#!" class="waves-effect waves-red btn blue left" onclick="" style="margin-left: 18px; margin-right: 16px;" id="importDiagSelectFile">Import</a>
+                        <p class="left" style="margin-top: 12px;">
+                                <input type="checkbox" id="duplicateCheckToggle"/>
+                                <label for="duplicateCheckToggle">Check for Duplicates</label>
+                        </p>
+                        <a href="#!" class="modal-action modal-close waves-effect waves-green btn" style="margin-right: 18px;" id="importDiagConfirm">Done</a>
+                </div>
+        </div>
+
+        <div id="yearlyPopEditor" class="modal modal-fixed-footer" style="max-width: 65%; width: 65%; max-height: 50%; height: 50% !important;">
+                <div class="modal-content">
+                        <h4 id="yearlyEditorTitle"></h4>
+                        <div class="row"><div class="col s12">
+                                
+                        </div></div>
+                        <div class="row"><div class="col s12" id="yearlyEditorYears">
+                                
+                        </div></div>
+                        <div class="row" style="height: 100px;"><div class="col s12">
+                        <textarea id="yearlyEditorInput" rows="5" style="height: 100%;">
+                                
+                        </textarea>
+                        </div></div>
+                </div>
+                <div class="modal-footer">
+                        <a href="#!" class="waves-effect waves-green btn" onclick="closeYearlyEditor('save')" style="margin-right: 8px;">Done</a>
+                        <a href="#!" class="waves-effect waves-red btn red lighten-2" onclick="closeYearlyEditor('clear')"
+                                style="margin-right: 24px;">Cancel</a>
                 </div>
         </div>
 

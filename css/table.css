@@ -9,17 +9,6 @@
         padding: 0;
 }
 
-/*
-#popTable th {
-        padding-top: 12px;
-        padding-bottom: 12px;
-        text-align: left;
-}
-
-#popTable tbody tr:hover {
-        background-color: #E3E3E3;
-}
-*/
 #popTable tr input {
         border: 0;
         width: 100%;
@@ -28,11 +17,15 @@
         -moz-box-sizing: border-box;
         box-sizing: border-box;
         padding: 0;
-        margin: 0 0 2px 0;
+        margin: 0 0 0 0;
+}
+
+.tableYearlyPopButton{
+        width: 90% !important;
 }
 
 #popTable td:nth-child(1), #popTable th:nth-child(1){
-        width: 25%;
+        width: 20%;
 }
 
 #popTable td:nth-child(2), #popTable th:nth-child(2){
@@ -44,7 +37,7 @@
 }
 
 #popTable td:nth-child(4), #popTable th:nth-child(4){
-        width: 10%;
+        width: 15%;
 }
 
 #popTable td:nth-child(5), #popTable th:nth-child(5){

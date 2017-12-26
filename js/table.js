@@ -16,6 +16,24 @@ function uiRow(long, lat, pop, kill, name, growth, id, validity){
         this.name = name;
         this.growthRate = growth;
         this.valid = validity;
+        this.type = "exp";
+}
+
+function uiYearlyRow(name, long, lat, yearlyPop, kill, id, validity){
+        if(id === 0){
+                let tempDate = new Date();
+                this.id = tempDate.valueOf();
+        }
+        else{
+                this.id = parseInt(id);
+        }
+        this.long = long;
+        this.lat = lat;
+        this.population = yearlyPop.slice();
+        this.killRate = kill;
+        this.name = name;
+        this.valid = validity;
+        this.type = "yearly";
 }
 
 function isEmptyEntry(row){
@@ -59,17 +77,77 @@ function addEntry(tempRow){
         uiData[uiData.length - 1] = tempRow;
 }
 
+//data is option uiYearlyData object
+function addYearlyRow(data){
+        let body = document.getElementById('popTableBody');
+        let lastRow = body.children[body.children.length - 1];
+        if(isEmptyEntry(lastRow)){
+                removeRow("popTable", lastRow.id);
+        }
+        
+        var tempId;
+        if(data){
+                tempId = data.id;
+        }
+        else{
+                let tempDate = new Date();
+                tempId = tempDate.valueOf();
+        }
+        
+        let newRow = document.createElement('tr');
+        newRow.type = "yearly";
+        newRow.id = tempId;
+        newRow.insertCell(-1);
+        newRow.insertCell(-1);
+        newRow.insertCell(-1);
+        
+        let popCell = newRow.insertCell(-1);
+        let popButton = document.createElement('input');
+        popButton.type = "button";
+        popButton.className = "tableYearlyPopButton";
+        popButton.value = "Edit Population";
+        popButton.onclick = function() {openYearlyEditor(tempId);}
+        popCell.append(popButton);
+        popCell.colSpan = "2";
+        
+        newRow.insertCell(-1);
+        
+        var deleteCell = newRow.insertCell(-1);
+        var delButton = document.createElement('input');
+        delButton.type = "button";
+        delButton.className = "tableDelButton";
+        delButton.value = "Delete";
+        delButton.onclick = (function () {removeRow("popTable", tempId);});
+        deleteCell.appendChild(delButton);
+        
+        newRow.cells[0].ondblclick = function() {cellClicked(this);};
+        newRow.cells[1].ondblclick = function() {cellClicked(this);};
+        newRow.cells[2].ondblclick = function() {cellClicked(this);};
+        newRow.cells[4].ondblclick = function() {cellClicked(this);};
+        
+        if(data){
+                newRow.cells[0].innerHTML = uiData[uiData.length - 1].name;
+                newRow.cells[1].innerHTML = uiData[uiData.length - 1].long;
+                newRow.cells[2].innerHTML = uiData[uiData.length - 1].lat;
+                newRow.cells[4].innerHTML = uiData[uiData.length - 1].killRate;
+        }
+        else{
+                var newRowData = uiYearlyRow("", "", "", "", "", tempId, false);
+                uiData.push(newRowData);
+        }
+        
+        document.getElementById('popTable').getElementsByTagName('tbody')[0].appendChild(newRow);
+}
+
 function addRow(tableId, rowId){
-        //generate a new id
+        //generate a new id or assign existing one
         let tempId = rowId;
         if(rowId === -1){
                 let tempDate = new Date();
                 tempId = tempDate.valueOf();
         }
         //add space for data storage
-        var newRowData = {};
-        newRowData.valid = false;
-        newRowData.id = tempId;
+        var newRowData = uiRow("", "", "", "", "", "", tempId, false);
         uiData.push(newRowData);
         //build a new table row for DOM
         var cellNum = 0;
@@ -114,7 +192,7 @@ function editFinished(cell, x, y, origValue){
 
 function updateUIData(row, cell, newValue){
         var tableRow = document.getElementById("popTable").rows[row];
-        console.log("running updateUIData row: " + row + " id: " + tableRow.id);
+        //console.log("running updateUIData row: " + row + " id: " + tableRow.id);
         var i;
         for(i = 0; i < uiData.length; i++){
                 if(uiData[i].id == tableRow.id){
@@ -203,18 +281,18 @@ function checkKey(e){
                 else{
                         return 1;
                 }
-        case 37: e.preventDefault();
-                 return 4;
-        case 38: return 5;
-        case 39: return 6;
-        case 40: return 7;
         default: return 0;
         }
 }
 
 //change clicked cell to edit mode
 function cellClicked(cell){
-        console.log("Cell: " + cell.cellIndex + ", " + cell.parentNode.rowIndex);
+        if(cell.parentNode.type === "yearly"){
+                if(cell.cellIndex === 3){
+                        return;
+                }
+        }
+        //console.log("Cell: " + cell.cellIndex + ", " + cell.parentNode.rowIndex + " id: " + cell.parentNode.id);
         var value = cell.innerHTML;
         cell.innerHTML = "";
         var input = document.createElement('input');
@@ -240,7 +318,18 @@ function cellClicked(cell){
                 }
                 else if(check === 1){ //tab
                         this.blur();
-                        if(cell.cellIndex != 5){
+                        if(cell.parentNode.type === "yearly"){
+                                if(cell.cellIndex === 2){
+                                        cellClicked(cell.parentNode.children[4]);
+                                }
+                                else if(cell.cellIndex === 4){
+                                        return;
+                                }
+                                else{
+                                        cellClicked(cell.nextElementSibling);
+                                }
+                        }
+                        else if(cell.cellIndex != 5){
                                 cellClicked(cell.nextElementSibling);
                         }
                         else{
@@ -256,7 +345,10 @@ function cellClicked(cell){
                 }
                 else if(check === 2){ //shift+tab
                         this.blur();
-                        if(cell.cellIndex !== 0){
+                        if(cell.parentNode.type === "yearly" && cell.cellIndex === 4){
+                                cellClicked(cell.parentNode.children[2]);
+                        }
+                        else if(cell.cellIndex !== 0){
                                 cellClicked(cell.previousElementSibling);
                         }
                         else{
@@ -266,34 +358,6 @@ function cellClicked(cell){
                                 }
                         }
                 }
-                /*
-                else if(check === 4){ //left
-                        if(cell.cellIndex !== 0){
-                                this.blur();
-                                cellClicked(cell.previousElementSibling);
-                        }
-                }
-                else if(check === 5){ //up
-                        var upRow = cell.parentNode.previousElementSibling;
-                        if(upRow){
-                                this.blur();
-                                cellClicked(upRow.children[cell.cellIndex]);
-                        }
-                }
-                else if(check === 6){ //right
-                        if(cell.cellIndex != 5){
-                                this.blur();
-                                cellClicked(cell.nextElementSibling);
-                        }
-                }
-                else if(check === 7){ //down
-                        var downRow = cell.parentNode.nextElementSibling;
-                        if(downRow){
-                                this.blur();
-                                cellClicked(downRow.children[cell.cellIndex]);
-                        }
-                }
-                */
         });
 
         cell.appendChild(input);

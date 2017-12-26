@@ -181,9 +181,9 @@ function generateConfigObject(){
         for(let i = 0; i < uiData.length; i++){
                 //console.log(uiData[i].valid);
                 //console.log(JSON.stringify(uiData[i]));
-                if(uiData[i].valid){
+                //if(uiData[i].valid){
                         saveObject.popData.push(uiData[i]);
-                }
+                //}
         }
 
         console.log("found " + saveObject.popData.length + " valid populations");

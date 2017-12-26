@@ -24,12 +24,20 @@ function placePopulation(e){
                 showPopEditor(e.coordinate);
         }
         else{
-                var tempId = tempFeatures[0].get('description');
-                console.log("existing feature clicked. Id: " + tempId);
-                for(var t = 0; t < uiData.length; t++){
-                        if(uiData[t].id == tempId){
-                                showPopUpdater(t);
-                                break;
+                for(let i = 0; i < tempFeatures.length; i++){
+                        var tempId = tempFeatures[i].get('description');
+                        console.log("existing feature clicked. Id: " + tempId);
+                        for(var t = 0; t < uiData.length; t++){
+                                if(uiData[t].id == tempId){
+                                        if(uiData[t].type === "exp"){
+                                                showPopUpdater(t);
+                                                break;
+                                        }
+                                        else if(uiData[t].type === "yearly"){
+                                                showMapEditorYearly(t);
+                                                break;
+                                        }
+                                }
                         }
                 }
         }
@@ -37,10 +45,6 @@ function placePopulation(e){
 
 
 function removePopFromMapById(popId){
-        if(!source){
-                return;
-        }
-
         var features = source.getFeatures();
         for(var j = 0; j < features.length; j++){
                 if(features[j].get('description') == popId){
@@ -50,10 +54,7 @@ function removePopFromMapById(popId){
         }
 }
 
-function addPopToMap(popId, popName, long, lat){
-        if(!source){
-                return;
-        }
+function addPopToMap(popId, popName, long, lat, isYearly){
         var tempPoint = new ol.geom.Point(
                 [long, lat]
         );
@@ -61,7 +62,12 @@ function addPopToMap(popId, popName, long, lat){
         var tempFeature = new ol.Feature(tempPoint);
         tempFeature.set('description', popId);
         tempFeature.set('name', popName);
-        tempFeature.setStyle(styleFunction);
+        if(isYearly){
+                tempFeature.setStyle(styleYearly);
+        }
+        else{
+                tempFeature.setStyle(styleFunction);
+        }
         source.addFeature(tempFeature);
 }
 
@@ -235,6 +241,30 @@ function styleFunction() {
                         image: new ol.style.Circle({
                                 radius: 6,
                                 fill: new ol.style.Fill({ color: "#2196F3"}),//'rgba(255,0,0,1)'}),
+                                stroke: new ol.style.Stroke({
+                                        color: '#000000',
+                                        width: 1
+                                })
+                        })
+                })
+        ];
+}
+
+function styleYearly() { //e57373
+        return [new ol.style.Style({
+                        text: new ol.style.Text({
+                                font: '12px Calibri,sans-serif',
+                                fill: new ol.style.Fill({ color: '#FFFFFF' }),
+                                stroke: new ol.style.Stroke({
+                                        color: '#000000',
+                                        width: 1
+                                }),
+                                text: this.get('name'),
+                                offsetY: 13
+                        }),
+                        image: new ol.style.Circle({
+                                radius: 6,
+                                fill: new ol.style.Fill({ color: "#e57373"}),//'rgba(255,0,0,1)'}),
                                 stroke: new ol.style.Stroke({
                                         color: '#000000',
                                         width: 1

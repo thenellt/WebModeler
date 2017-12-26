@@ -1,8 +1,10 @@
 editorModes = {
         NEW: 0,
         UPDATE: 1,
+        YEARLY: 2,
 };
 var popEditorMode = editorModes.NEW;
+var yearlyEditorId = -1;
 
 function popEditorPassthrough(mode){
         console.log("popEditorPassthrough. Mode: " + popEditorMode + " input: " + mode);
@@ -79,7 +81,6 @@ function closePopEditor(clear){
 
 function showPopUpdater(index){
         console.log("showing popeditor in update mode");
-        popEditorMode = editorModes.UPDATE;
         $('#editorDeleteButton').css('display', 'inline');
         
         let village = uiData[index];
@@ -87,9 +88,18 @@ function showPopUpdater(index){
         document.getElementById("floatLat").value = village.lat;
         document.getElementById("floatLong").value = village.long;
         document.getElementById("floatPopName").value = village.name;
-        document.getElementById("floatPop").value = village.population;
-        document.getElementById("floatKill").value = village.killRate;
         document.getElementById("floatGrowth").value = village.growthRate;
+        if(village.type === "exp"){
+                document.getElementById("floatPop").value = village.population;
+                document.getElementById("floatKill").value = village.killRate;
+                popEditorMode = editorModes.UPDATE;
+        }
+        else if(village.type === "yearly"){
+                document.getElementById("mapEditorExpPop").classList.add('hide');
+                document.getElementById("mapEditorExpGrowth").classList.add('hide');
+                document.getElementById("mapEditorYearlyPop").classList.remove('hide');
+                popEditorMode = editorModes.YEARLY;
+        }
 
         popupEvntFunction = function(e){
                 e = e || window.event;
@@ -110,13 +120,12 @@ function showPopUpdater(index){
 }
 
 function closePopUpdater(input){ //0 - cancel, 1 - update village, 2 delete village
-        if(input === 1 && !checkPopEditor()){ //trying to update but something wasn't valid
-                return;
-        }
-
-        window.removeEventListener('keyup', popupEvntFunction);
-
-        if(input === 1){ //update village
+        if(input === 0){ //update village
+                if((popEditorMode === editorModes.UPDATE && !checkPopEditor()) ||
+                                (popEditorMode === editorModes.YEARLY && !checkPopYearlyMode())){
+                        console.log("update pop failed check");
+                        return;
+                }
                 var tempLat = document.getElementById("floatLat").value;
                 var tempLong = document.getElementById("floatLong").value;
                 var tempName = document.getElementById("floatPopName").value;
@@ -131,32 +140,71 @@ function closePopUpdater(input){ //0 - cancel, 1 - update village, 2 delete vill
                         }
                 }
 
-                if(tempName !== uiData[i].name){
-                        var features = source.getFeatures();
-                        for(let x = 0; x < features.length; x++){
-                                if(features[x].get('description') == uiData[i].id){
-                                        features[x].set('description', tempName);
-                                        break;
-                                }
+                if(tempName !== uiData[i].name || tempLat !== uiData[i].lat || tempLong !== uiData[i].long){
+                        removePopFromMapById(currentId);
+                        if(popEditorMode === editorModes.YEARLY){
+                                addPopToMap(currentId, tempName, tempLong, tempLat, true);
+                        }
+                        else if(popEditorMode === editorModes.UPDATE){
+                                addPopToMap(currentId, tempName, tempLong, tempLat, false);
                         }
                 }
+                
+                if(popEditorMode === editorModes.YEARLY){
+                        popUpdatorYearlyHelper();
+                }
+                else if(popEditorMode === editorModes.UPDATE){
+                        uiData[i].lat = tempLat;
+                        uiData[i].long = tempLong;
+                        uiData[i].name = tempName;
+                        uiData[i].population = tempPop;
+                        uiData[i].killRate = tempKill;
+                        uiData[i].growthRate = tempGrowth;
 
-                uiData[i].lat = tempLat;
-                uiData[i].long = tempLong;
-                uiData[i].name = tempName;
-                uiData[i].population = tempPop;
-                uiData[i].killRate = tempKill;
-                uiData[i].growthRate = tempGrowth;
-
-                updateTableRow(i);
+                        updateTableRow(i);
+                }
         }
         else if(input === 2){ //delete village
                 removeRow('popTable', currentID);
         }
 
+        window.removeEventListener('keyup', popupEvntFunction);
         $('#editorDeleteButton').css('display', 'none');
         $('#floatingPopEditor').modal('close');
         clearPopEditor();
+}
+
+function checkPopYearlyMode(){
+        if(isNaN(parseFloat(document.getElementById("floatLat").value, 10))){
+                notifyMessage("Latitude is invalid", 2);
+                $('#floatLat').focus();
+                return false;
+        }
+        if(isNaN(parseFloat(document.getElementById("floatLong").value, 10))){
+                notifyMessage("Longitude is invalid", 2);
+                $('#floatLong').focus();
+                return false;
+        }
+        if(document.getElementById("floatPopName").value.length === 0){
+                notifyMessage("Population must have a name", 2);
+                $('#floatPopName').focus();
+                return false;
+        }
+        let killString = document.getElementById("floatKill").value;
+        if(killString.length){
+                let killValue = parseFloat(document.getElementById("floatKill").value, 10);
+                if(isNaN(killValue) || killValue < 0 || killValue > 1){
+                        notifyMessage("Kill rate must be between 0.0 and 1.0", 3);
+                        $('#floatKill').focus();
+                        return false;
+                }
+        }
+        
+        return true;
+}
+
+function popUpdatorYearlyHelper(){
+        
 }
 
 function checkPopEditor(){
@@ -234,6 +282,130 @@ function closeFullscreenViewer(){
         map.updateSize();
 }
 
+function openYearlyEditor(id){
+        for(let i = 0; i < uiData.length; i++){
+                if(uiData[i].id === id && uiData[i].type === "yearly"){
+                        var data = uiData[i];
+                        break;
+                }
+                if(i === uiData.length - 1){
+                        console.log("#########Critital: YearlyEditor couldn't find " + id + " in uiData!");
+                        return;
+                }
+        }
+        
+        var showName = "No Name";
+        if(data.name && data.name.length > 0){
+                showName = data.name;
+        }
+        document.getElementById('yearlyEditorTitle').innerHTML = "Edit Populations of <i>" + showName + "</i>";
+        
+        yearlyEditorId = id;
+        var valueString = "";
+        if(data.population){
+                for(let i = 0; i < data.population.length; i++){
+                        valueString += data.population[i].toString();
+                        if(i !== data.population.length - 1){
+                                valueString += ", ";
+                        }
+                }
+        }
+        document.getElementById('yearlyEditorInput').value = valueString;
+        
+        $('#yearlyPopEditor').modal('open');
+        document.getElementById('yearlyEditorInput').focus();
+}
+
+function closeYearlyEditor(mode){
+        if(mode === 'save'){
+                let results = checkYearlyPops(document.getElementById('yearlyEditorInput').value);
+                if(Array.isArray(results)){
+                        let pos = -1;
+                        for(let i = 0; i < uiData.length; i++){
+                                if(uiData[i].id === yearlyEditorId && uiData[i].type === "yearly"){
+                                        pos = i;
+                                        break;
+                                }
+                                if(i === uiData.length - 1){
+                                        console.log("#########Critital: YearlyEditor couldn't find " + id + " in uiData!");
+                                        return;
+                                }
+                        }
+                        
+                        if(pos > -1){
+                                uiData[pos].population = results;
+                                checkYearlyTableEntry(pos);
+                                $('#yearlyPopEditor').modal('close');
+                                notifyMessage("Found " + results.length + " years of data", 3);
+                        }
+                }
+        }
+        else{
+                $('#yearlyPopEditor').modal('close');
+        }
+}
+
+function checkYearlyTableEntry(pos){
+        let isGood = true;
+        let rowData = uiData[pos];
+        if(isNaN(parseFloat(rowData.lat))){
+                console.log("check failed at lat: " + rowData.lat);
+                isGood = false;
+        }
+        if(isNaN(parseFloat(rowData.long))){
+                console.log("check failed at long");
+                isGood = false;
+        }
+        if(!rowData.name || rowData.name.length === 0){
+                console.log("check failed at name");
+                isGood = false;
+        }
+        if(rowData.killRate && isNaN(parseFloat(rowData.killRate, 10)) && rowData.killRate.length > 0){
+                console.log("check failed at killrate");
+                isGood = false;
+        }
+        
+        if(isGood && !rowData.valid){ //just became valid
+                
+        }
+        else if(isGood && rowData.valid){ //update already valid entry
+                
+        }
+        else if(!isGood && rowData.valid){ //no longer valid
+                
+        }
+        else if(!isGood){ //wasn't valid and still isnt'
+                
+        }
+}
+
+//returns the count of valid data points, or false for invalid text
+function checkYearlyPops(text){
+        console.log("text type: " + typeof(text) + " text: " + text);
+        var results = [];
+        let splicedData = text.split(',');
+        for(let i = 0; i < splicedData.length; i++){
+                let data = splicedData[i].trim();
+                if(checkInt(data, 0, Number.MAX_SAFE_INT)){
+                        results.push(parseInt(data));
+                }
+                else if(i === splicedData.length - 1 && data.length === 0){
+                        break;
+                }
+                else{
+                        notifyMessage("Please check value " + (i + 1), 4);
+                        return false;
+                }
+        }
+        
+        if(results.length < 1){
+                return false;
+        }
+        else{
+                return results;
+        }
+}
+
 //based on a stack overflow: https://stackoverflow.com/questions/27840222/how-can-i-load-the-contents-of-a-small-text-file-into-a-javascript-var-wo-jquery
 function readLocalFile(url, type, callback) {
         var xhr = new XMLHttpRequest();
@@ -271,5 +443,3 @@ readLocalFile("./changelog.txt", 'GET', function(responseText) {
 
         document.getElementById('changeLogEntries').appendChild(list);
 });
-
-
