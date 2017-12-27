@@ -24,6 +24,14 @@
         width: 90% !important;
 }
 
+.validRow {
+        background-color: #e6e6e6;
+}
+
+tbody.highlight tr:hover{
+        background-color: #dddddd;
+}
+
 #popTable td:nth-child(1), #popTable th:nth-child(1){
         width: 20%;
 }

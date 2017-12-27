@@ -19,7 +19,7 @@ td.tab {
 
 td.content {
         padding: 0px 8px 0px 0px;
-        margin: 0px;
+        margin: auto;
         border-collapse: collapse;
         top: 0;
         vertical-align: top;

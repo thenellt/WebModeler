@@ -1,4 +1,4 @@
-editorModes = {
+const editorModes = {
         NEW: 0,
         UPDATE: 1,
         YEARLY: 2,
@@ -88,10 +88,10 @@ function showPopUpdater(index){
         document.getElementById("floatLat").value = village.lat;
         document.getElementById("floatLong").value = village.long;
         document.getElementById("floatPopName").value = village.name;
-        document.getElementById("floatGrowth").value = village.growthRate;
+        document.getElementById("floatKill").value = village.killRate;
         if(village.type === "exp"){
                 document.getElementById("floatPop").value = village.population;
-                document.getElementById("floatKill").value = village.killRate;
+                document.getElementById("floatGrowth").value = village.growthRate;
                 popEditorMode = editorModes.UPDATE;
         }
         else if(village.type === "yearly"){
@@ -142,27 +142,19 @@ function closePopUpdater(input){ //0 - cancel, 1 - update village, 2 delete vill
 
                 if(tempName !== uiData[i].name || tempLat !== uiData[i].lat || tempLong !== uiData[i].long){
                         removePopFromMapById(currentId);
-                        if(popEditorMode === editorModes.YEARLY){
-                                addPopToMap(currentId, tempName, tempLong, tempLat, true);
-                        }
-                        else if(popEditorMode === editorModes.UPDATE){
-                                addPopToMap(currentId, tempName, tempLong, tempLat, false);
-                        }
+                        addPopToMap(currentId, tempName, tempLong, tempLat, popEditorMode === editorModes.YEARLY);
                 }
                 
-                if(popEditorMode === editorModes.YEARLY){
-                        popUpdatorYearlyHelper();
-                }
-                else if(popEditorMode === editorModes.UPDATE){
-                        uiData[i].lat = tempLat;
-                        uiData[i].long = tempLong;
-                        uiData[i].name = tempName;
+                uiData[i].lat = tempLat;
+                uiData[i].long = tempLong;
+                uiData[i].name = tempName;
+                uiData[i].killRate = tempKill;
+                if(popEditorMode === editorModes.UPDATE){
                         uiData[i].population = tempPop;
-                        uiData[i].killRate = tempKill;
                         uiData[i].growthRate = tempGrowth;
-
-                        updateTableRow(i);
                 }
+
+                updateTableRow(i);
         }
         else if(input === 2){ //delete village
                 removeRow('popTable', currentID);
@@ -201,10 +193,6 @@ function checkPopYearlyMode(){
         }
         
         return true;
-}
-
-function popUpdatorYearlyHelper(){
-        
 }
 
 function checkPopEditor(){

@@ -3,16 +3,6 @@
 var workerThread;
 var workerFunctions = {};
 
-function town(long, lat, pop, killRate, name, growth, id){
-        this.long = long;
-        this.lat = lat;
-        this.growthRate = growth;
-        this.population = pop;
-        this.killRate = killRate;
-        this.name = name;
-        this.offtake = []; //new Array(years).fill(0.0);
-}
-
 function setupSimDefaults(){
         simData.animalDiffRate = 0.1;
         simData.animalGrowthRate = 0.07;
@@ -28,15 +18,6 @@ function setupSimDefaults(){
         simData.highColorCode = "f03b20";
         simData.simName = "defaultName";
         simData.opacity = 0.8;
-}
-
-function printOfftake(village){
-        var text = ' ';
-        for(var i = 0; i < simData.years; i++){
-                text += village.offtake[i].toFixed(2) + " ";
-        }
-        console.log("Village: " + village.name + " offtake: ");
-        console.log(text);
 }
 
 function readUserParameters(){
@@ -72,23 +53,75 @@ function readUserParameters(){
         console.log("finished reading user input");
 }
 
-function buildTownFromData(pos){
-        let data = uiData[pos];
-        let tempLong = parseFloat(data.long);
-        let tempLat = parseFloat(data.lat);
-        let tempPop = parseFloat(data.population);
-        let tempGrowth = parseFloat(data.growthRate);
-        let tempKill;
-        if(data.killRate && !isNaN(parseFloat(data.killRate))){
-                tempKill = parseFloat(data.killRate);
-        }
-        else{
-                tempKill = simData.killProb;
+function setupTowns(){
+        var townArray = [];
+
+        if(!checkYearlyPopDuration()){
+                return false;
         }
 
-        let temp = new town(tempLong, tempLat, tempPop, tempKill,
-                            data.name, tempGrowth, data.id);
-        return temp;
+        for(let i = 0; i < uiData.length; i++){
+                if(uiData[i].valid){
+                        townArray.push(sanitizeTownData(uiData[i]));
+                }
+        }
+
+        if(!townArray.length){
+                const title = "No Valid Populations Found";
+                const msg = "Please enter at least one population before running the simulation.";
+                modalDialog(title, msg);
+                return false;
+        }
+        else{
+                return townArray;
+        }
+}
+
+function checkYearlyPopDuration(){
+        var nameString = ""
+        for(let i = 0; i < uiData.length; i++){
+                if(uiData[i].type === "yearly" && uiData[i].population.length < simData.years){
+                        if(!nameString.length){
+                                nameString = uiData[i].name;
+                        }
+                        else{
+                                nameString += ", " + uiData[i].name;
+                        }
+                }
+        }
+
+        if(nameString.length){
+                //TODO add the option to hold populations steady.
+                const title = "Insufficient Population Data";
+                let msg = "The specified simulation duration is longer than the amount of population data supplied. Population(s) <i>";
+                msg += nameString + "</i> have less than <b>" + simData.years + "</b> years worth of data. </br></br>Please adjust the simulation duration or provide additional data.";
+                modalDialog(title, msg);
+                return false;
+        }
+        else{
+                return true;
+        }
+}
+
+function sanitizeTownData(uiTown){
+        let data = jQuery.extend(true, {}, uiTown);
+        data.offtake = [];
+        data.long = parseFloat(data.long);
+        data.lat = parseFloat(data.lat);
+
+        if(data.type === 'exp'){
+                data.population = parseInt(data.population);
+                data.growthRate = parseFloat(data.growthRate);
+        }
+
+        if(data.killRate && !isNaN(parseFloat(data.killRate))){
+                data.killRate = parseFloat(data.killRate);
+        }
+        else{
+                data.killRate = simData.killProb;
+        }
+
+        return data;
 }
 
 function setupSimulation(){
@@ -109,22 +142,12 @@ function setupSimulation(){
         setupSimDefaults();
         readUserParameters();
 
-        let townData = [];
-        for(let i = 0; i < uiData.length; i++){
-                if(uiData[i].valid){
-                        townData.push(buildTownFromData(i));
-                }
-        }
-        if(!townData.length){
-                let title = "No Populations Found";
-                let msg = "Please enter at least one population before running the simulation.";
-                modalDialog(title, msg);
+        let townData = setupTowns();
+        if(!townData){
                 return;
         }
-        console.log("Found " + townData.length + " valid towns");
         
-        if(source && geoGridFeatures){
-                console.log("Geogrid has " + geoGridFeatures.length + " squares before cleanup");
+        if(geoGridFeatures){
                 while(geoGridFeatures.length){
                         geoGridFeatures.removeFeature(geoGridFeatures[geoGridFeatures.length - 1]);
                 }

@@ -24,20 +24,12 @@ function placePopulation(e){
                 showPopEditor(e.coordinate);
         }
         else{
-                for(let i = 0; i < tempFeatures.length; i++){
-                        var tempId = tempFeatures[i].get('description');
-                        console.log("existing feature clicked. Id: " + tempId);
-                        for(var t = 0; t < uiData.length; t++){
-                                if(uiData[t].id == tempId){
-                                        if(uiData[t].type === "exp"){
-                                                showPopUpdater(t);
-                                                break;
-                                        }
-                                        else if(uiData[t].type === "yearly"){
-                                                showMapEditorYearly(t);
-                                                break;
-                                        }
-                                }
+                var tempId = tempFeatures[0].get('description');
+                console.log("existing feature clicked. Id: " + tempId);
+                for(var t = 0; t < uiData.length; t++){
+                        if(uiData[t].id === tempId){
+                                showPopUpdater(t);
+                                break;
                         }
                 }
         }

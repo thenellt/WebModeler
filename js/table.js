@@ -73,11 +73,14 @@ function addEntry(tempRow){
         row.cells[3].innerHTML = tempRow.population;
         row.cells[4].innerHTML = tempRow.growthRate;
         row.cells[5].innerHTML = tempRow.killRate;
+        if(tempRow.valid){
+                row.classList.add('validRow');
+        }
 
         uiData[uiData.length - 1] = tempRow;
 }
 
-//data is option uiYearlyData object
+//data is optional uiYearlyData object
 function addYearlyRow(data){
         let body = document.getElementById('popTableBody');
         let lastRow = body.children[body.children.length - 1];
@@ -95,11 +98,14 @@ function addYearlyRow(data){
         }
         
         let newRow = document.createElement('tr');
+        if(data && data.valid){
+                newRow.classList.add("validRow");
+        }
         newRow.type = "yearly";
         newRow.id = tempId;
-        newRow.insertCell(-1);
-        newRow.insertCell(-1);
-        newRow.insertCell(-1);
+        newRow.insertCell(-1).cellType = "name";
+        newRow.insertCell(-1).cellType = "long";
+        newRow.insertCell(-1).cellType = "lat";
         
         let popCell = newRow.insertCell(-1);
         let popButton = document.createElement('input');
@@ -110,7 +116,7 @@ function addYearlyRow(data){
         popCell.append(popButton);
         popCell.colSpan = "2";
         
-        newRow.insertCell(-1);
+        newRow.insertCell(-1).cellType = "killRate";
         
         var deleteCell = newRow.insertCell(-1);
         var delButton = document.createElement('input');
@@ -126,13 +132,14 @@ function addYearlyRow(data){
         newRow.cells[4].ondblclick = function() {cellClicked(this);};
         
         if(data){
-                newRow.cells[0].innerHTML = uiData[uiData.length - 1].name;
-                newRow.cells[1].innerHTML = uiData[uiData.length - 1].long;
-                newRow.cells[2].innerHTML = uiData[uiData.length - 1].lat;
-                newRow.cells[4].innerHTML = uiData[uiData.length - 1].killRate;
+                newRow.cells[0].innerHTML = data.name || "";
+                newRow.cells[1].innerHTML = data.long || "";
+                newRow.cells[2].innerHTML = data.lat || "";
+                newRow.cells[4].innerHTML = data.killRate || "";
+                uiData.push(data);
         }
         else{
-                var newRowData = uiYearlyRow("", "", "", "", "", tempId, false);
+                var newRowData = new uiYearlyRow("", "", "", [], "", tempId, false);
                 uiData.push(newRowData);
         }
         
@@ -147,21 +154,20 @@ function addRow(tableId, rowId){
                 tempId = tempDate.valueOf();
         }
         //add space for data storage
-        var newRowData = uiRow("", "", "", "", "", "", tempId, false);
+        var newRowData = new uiRow("", "", "", "", "", "", tempId, false);
         uiData.push(newRowData);
         //build a new table row for DOM
-        var cellNum = 0;
         var table = document.getElementById(tableId);
         var body = table.getElementsByTagName('tbody')[0];
         var row = body.insertRow(table.rows.length - 1);
         row.id = tempId;
-        row.insertCell(cellNum++);
-        row.insertCell(cellNum++);
-        row.insertCell(cellNum++);
-        row.insertCell(cellNum++);
-        row.insertCell(cellNum++);
-        row.insertCell(cellNum++);
-        var deleteCell = row.insertCell(cellNum++);
+        row.insertCell(-1).cellType = "name";
+        row.insertCell(-1).cellType = "long";
+        row.insertCell(-1).cellType = "lat";
+        row.insertCell(-1).cellType = "population";
+        row.insertCell(-1).cellType = "growth";
+        row.insertCell(-1).cellType = "killRate";
+        var deleteCell = row.insertCell(-1);
 
         var delButton = document.createElement('input');
         delButton.type = "button";
@@ -178,11 +184,12 @@ function addRow(tableId, rowId){
 }
 
 function editFinished(cell, x, y, origValue){
+        console.log("cell type is: " + cell.cellType);
         var input = cell.lastChild;
         var value = input.value;
         //TODO check value against origValue for sanity
         cell.removeChild(input);
-        updateUIData(y, x, value);
+        updateUIData(y, x, cell.cellType, value);
         if(value.length > 0){
                 cell.innerHTML = value;
         }
@@ -190,9 +197,9 @@ function editFinished(cell, x, y, origValue){
         console.log("edit finished at pos: " + x + ", " + y + " value: " + value);
 }
 
-function updateUIData(row, cell, newValue){
-        var tableRow = document.getElementById("popTable").rows[row];
-        //console.log("running updateUIData row: " + row + " id: " + tableRow.id);
+function updateUIData(rowPos, cellPos, cellType, newValue){
+        var tableRow = document.getElementById("popTable").rows[rowPos];
+        console.log("running updateUIData row: " + rowPos + " id: " + tableRow.id);
         var i;
         for(i = 0; i < uiData.length; i++){
                 if(uiData[i].id == tableRow.id){
@@ -205,43 +212,42 @@ function updateUIData(row, cell, newValue){
                 return;
         }
 
-        switch(cell){
-                case 0: uiData[i].name = newValue;
+        switch(cellType){
+                case "name": uiData[i].name = newValue;
                         break;
-                case 1: uiData[i].long = newValue;
+                case "long": uiData[i].long = newValue;
                         break;
-                case 2: uiData[i].lat = newValue;
+                case "lat": uiData[i].lat = newValue;
                         break;
-                case 3: uiData[i].population = newValue;
+                case "population": uiData[i].population = newValue;
                         break;
-                case 4: uiData[i].growthRate = newValue;
+                case "growth": uiData[i].growthRate = newValue;
                         break;
-                case 5: uiData[i].killRate = newValue;
+                case "killRate": uiData[i].killRate = newValue;
         }
 
-        let status = checkRowData(uiData[i]);
-        if(status && !uiData[i].valid){
-                //data point has become complete -> add it to map and towns
+        let status = (uiData[i].type === "exp") ? checkRowData(uiData[i], rowPos) : checkYearlyRowData(uiData[i], rowPos);
+        if(status && !uiData[i].valid){ //data point has become complete -> add it to map and towns
                 addPopToMap(uiData[i].id, uiData[i].name, parseFloat(uiData[i].long),
-                            parseFloat(uiData[i].lat));
+                            parseFloat(uiData[i].lat), uiData[i].type === "yearly");
                 uiData[i].valid = true;
-                console.log("row " + row + " has become valid");
+                $('#' + tableRow.id).addClass("validRow");
+                console.log("row " + rowPos + " has become valid");
         }
-        else if(status && uiData[i].valid && (cell < 3)){
-                //update map with name, lat, or long change
+        else if(status && uiData[i].valid && (cellPos < 3)){ //update map with name, lat, or long change
                 removePopFromMapById(uiData[i].id);
                 addPopToMap(uiData[i].id, uiData[i].name, parseFloat(uiData[i].long),
-                            parseFloat(uiData[i].lat));
+                            parseFloat(uiData[i].lat), uiData[i].type === "yearly");
         }
-        else if(!status && uiData[i].valid){
-                //data point is no longer complete -> remove from map
+        else if(!status && uiData[i].valid){ //data point is no longer complete -> remove from map
                 removePopFromMapById(uiData[i].id);
                 uiData[i].valid = false;
-                console.log("row " + row + " has become invalid");
+                $('#' + tableRow.id).removeClass("validRow");
+                console.log("row " + rowPos + " has become invalid");
         }
 }
 
-function checkRowData(rowData){
+function checkRowData(rowData, rowPos){
         if(isNaN(parseFloat(rowData.lat))){
                 //console.log("check failed at lat: " + rowData.lat);
                 return false;
@@ -264,6 +270,30 @@ function checkRowData(rowData){
         }
         if(isNaN(parseFloat(rowData.growthRate, 10))){
                 //console.log("check failed at growthrate");
+                return false;
+        }
+
+        return true;
+}
+
+function checkYearlyRowData(rowData, rowPos){
+        if(isNaN(parseFloat(rowData.lat))){
+                //console.log("check failed at lat: " + rowData.lat);
+                return false;
+        }
+        if(isNaN(parseFloat(rowData.long))){
+                //console.log("check failed at long");
+                return false;
+        }
+        if(rowData.name.length === 0){
+                //console.log("check failed at name");
+                return false;
+        }
+        if(rowData.killRate && isNaN(parseFloat(rowData.killRate, 10)) && rowData.killRate.length > 0){
+                //console.log("check failed at killrate");
+                return false;
+        }
+        if(rowData.populations < 1){
                 return false;
         }
 
@@ -407,7 +437,9 @@ function updateTableRow(uiDataPosition){
         row.cells[0].innerHTML = villageData.name;
         row.cells[1].innerHTML = villageData.long;
         row.cells[2].innerHTML = villageData.lat;
-        row.cells[3].innerHTML = villageData.population;
-        row.cells[4].innerHTML = villageData.growthRate;
         row.cells[5].innerHTML = villageData.killRate;
+        if(villageData.type === "exp"){
+                row.cells[3].innerHTML = villageData.population;
+                row.cells[4].innerHTML = villageData.growthRate;
+        }
 }

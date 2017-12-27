@@ -485,7 +485,12 @@ function generateCDFBins(year){
 /******** Helper Functions **********/
 
 function getTownPop(town, year){
-        return town.population*Math.pow(1 + town.growthRate, year);
+        if(town.type === "exp"){
+                return town.population*Math.pow(1 + town.growthRate, year);
+        }
+        else if(town.type === "yearly"){
+                return town.population[year];
+        }
 }
 
 function deg(rd) {

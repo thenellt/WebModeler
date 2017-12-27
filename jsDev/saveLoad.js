@@ -4,7 +4,7 @@ var appCache = window.applicationCache;
 var persistCompatibility = false;
 
 function checkCompatibility(){
-        console.log("checking for browser support...");
+        console.log("checking for browser support... passed");
         document.getElementById("javascriptError").style.display = "none";
         document.getElementById('getStarted').classList.remove("hide");
         persistCompatibility = true;
@@ -103,12 +103,21 @@ function loadSimConfig(fileData){
 
         emptyTable();
         for(let i = 0; i < config.popData.length; i++){
-                console.log("Adding pop name: " + config.popData[i]);
                 let temp = config.popData[i];
-                let tempRow = new uiRow(temp.long, temp.lat, temp.population, temp.killRate,
-                                        temp.name, temp.growthRate, temp.id, true);
-                addPopToMap(temp.id, temp.name, parseFloat(temp.long), parseFloat(temp.lat));
-                addEntry(tempRow);
+                if(temp.type === "exp"){
+                        let tempRow = new uiRow(temp.long, temp.lat, temp.population, temp.killRate,
+                                temp.name, temp.growthRate, temp.id, temp.valid);
+                        addEntry(tempRow);
+                }
+                else if(temp.type === "yearly"){
+                        let tempRow = new uiYearlyRow(temp.name, temp.long, temp.lat, temp.population, temp.killRate,
+                                temp.id, temp.valid);
+                        addYearlyRow(tempRow);
+                }
+
+                if(temp.valid){
+                        addPopToMap(temp.id, temp.name, parseFloat(temp.long), parseFloat(temp.lat), temp.type === "yearly");
+                }
         }
 
         document.getElementById("paramYears").value = simData.years;
@@ -440,7 +449,6 @@ function loadConfigByID(persistID){
         if(entry){
                 resetSimulation();
                 loadSimConfig(entry);
-                addRow("popTable", -1);
                 document.getElementById("popSetupTab").disabled = false;
                 document.getElementById("parameterSetupTab").disabled = false;
                 document.getElementById("resetButton").classList.remove("hide");

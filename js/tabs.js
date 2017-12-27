@@ -6,7 +6,6 @@ var populationView = 1;
 function changeTab(tabName) {
     var i, tabcontent, tablinks;
     var tabButtonName = tabName + "Tab";
-    console.log("tabButtonName: " + tabButtonName);
 
     tabcontent = document.getElementsByClassName("tabcontent");
     for (i = 0; i < tabcontent.length; i++) {
@@ -24,7 +23,6 @@ function changeTab(tabName) {
 }
 
 function togglePopulationView(mode){
-        console.log("population toggled: " + mode);
         if(mode == populationView){
                 return;
         }

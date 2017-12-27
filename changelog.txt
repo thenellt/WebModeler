@@ -1,3 +1,4 @@
+12/26/17 v20 - Adds a new population type: yearly defined populations. Many change to the backend of how popualtions are stored and additional error handling for population input and validation. \n
 12/19/17 v19b - More bug fixes and changed persist save copy behavior to be more intuitive. \n
 12/18/17 v19a - Minor bug fixes and added validation of all parameters. \n
 12/17/17 v19 - Large UI changes which use the materialize library much more heavily. Also starts to add tooltips and confirmation dialogs. \n
