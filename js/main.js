@@ -11,7 +11,6 @@ var simData = {};
 var simResults = {};
 
 $(document).ready(function() {
-        checkCompatibility();
         $('#projBackground').modal();
         $('#changelogPopup').modal();
         $('#popImportDialog').modal();
@@ -27,11 +26,6 @@ $(document).ready(function() {
         setupTabs();
         setupPersistConfigs();
         populatePersistSaves();
-        setTimeout(function(){
-                document.body.scrollTop = document.documentElement.scrollTop = 0;
-                document.getElementById('getStarted').classList.add('scale-in');
-                //$('#popImportDialog').modal('open');
-        }, 250);
 });
 
 function setupTabs(){

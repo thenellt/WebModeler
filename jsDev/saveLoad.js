@@ -8,10 +8,13 @@ function checkCompatibility(){
         document.getElementById("javascriptError").style.display = "none";
         document.getElementById('getStarted').classList.remove("hide");
         persistCompatibility = true;
+        document.body.scrollTop = document.documentElement.scrollTop = 0;
+        document.getElementById('getStarted').classList.add('scale-in');
 }
 
 //based on: https://www.html5rocks.com/en/tutorials/appcache/beginner/
 appCache.addEventListener('updateready', updateApp, false);
+appCache.addEventListener('noupdate', checkCompatibility, false);
 
 function updateApp(){
         console.log("update app triggered");
@@ -44,10 +47,6 @@ function loadFromFile(fileName){
                                         synchPersisObject();
                                 });
                         }
-                        
-                        //TODO fix reset file select
-                        let loadButton = $('#loadConfigFileButton');
-                        loadButton.replaceWith(loadButton.val('').clone(true));
                 };
                 reader.readAsText(fileName.files[0]);
         }
@@ -102,23 +101,7 @@ function loadSimConfig(fileData){
         }
 
         emptyTable();
-        for(let i = 0; i < config.popData.length; i++){
-                let temp = config.popData[i];
-                if(temp.type === "exp"){
-                        let tempRow = new uiRow(temp.long, temp.lat, temp.population, temp.killRate,
-                                temp.name, temp.growthRate, temp.id, temp.valid);
-                        addEntry(tempRow);
-                }
-                else if(temp.type === "yearly"){
-                        let tempRow = new uiYearlyRow(temp.name, temp.long, temp.lat, temp.population, temp.killRate,
-                                temp.id, temp.valid);
-                        addYearlyRow(tempRow);
-                }
-
-                if(temp.valid){
-                        addPopToMap(temp.id, temp.name, parseFloat(temp.long), parseFloat(temp.lat), temp.type === "yearly");
-                }
-        }
+        loadPopulationData(config.popData);
 
         document.getElementById("paramYears").value = simData.years;
         document.getElementById("paramCarry").value = simData.carryCapacity;
@@ -135,6 +118,26 @@ function loadSimConfig(fileData){
         document.getElementById("paramHighColor").value = simData.highColorCode;
         document.getElementById("diffSamples").value = simData.diffusionSamples;
         document.getElementById("imgOpacity").value = simData.opacity;
+}
+
+function loadPopulationData(popData){
+        for(let i = 0; i < popData.length; i++){
+                let temp = popData[i];
+                if(temp.type === "exp"){
+                        let tempRow = new uiRow(temp.long, temp.lat, temp.population, temp.killRate,
+                                temp.name, temp.growthRate, temp.id, temp.valid);
+                        addEntry(tempRow);
+                }
+                else if(temp.type === "yearly"){
+                        let tempRow = new uiYearlyRow(temp.name, temp.long, temp.lat, temp.population, temp.killRate,
+                                temp.id, temp.valid);
+                        addYearlyRow(tempRow);
+                }
+
+                if(temp.valid){
+                        addPopToMap(temp.id, temp.name, parseFloat(temp.long), parseFloat(temp.lat), temp.type === "yearly");
+                }
+        }
 }
 
 function saveSimToFile(){
@@ -188,11 +191,7 @@ function generateConfigObject(){
         saveObject.popData = [];
 
         for(let i = 0; i < uiData.length; i++){
-                //console.log(uiData[i].valid);
-                //console.log(JSON.stringify(uiData[i]));
-                //if(uiData[i].valid){
-                        saveObject.popData.push(uiData[i]);
-                //}
+                saveObject.popData.push(uiData[i]);
         }
 
         console.log("found " + saveObject.popData.length + " valid populations");
@@ -504,4 +503,111 @@ function populatePersistSaves(){
                         $('#persistSaveContainer').collapsible('open', 0);
                 }, 100);
         }
+}
+
+function loadPopsFromFile(filename){
+        var reader = new FileReader();
+        const checked = $('#duplicateCheckToggle').is(':checked');
+
+        if(fileName.files && fileName.files[0]) {
+                reader.onload = function (e) {
+                        let jsonResult = getPopsFromConfig(e.result);
+                        let csvResult = josnResult || getPopsFromCSV(e.result);
+                        if(!jsonResult && !csvResult){
+                                const title = "Problem Loading File";
+                                const msg = "Please make sure the file you are trying to load conforms to one of the three acceptable file formats.";
+                                modalDialog(title, msg);
+                        }
+                };
+                reader.readAsText(fileName.files[0]);
+        }
+        
+        let fileLoaderCopy = $('#loadPopFileButton').clone();
+        $('#loadPopFileButton').remove();
+        $('#importDialogContent').append(fileLoaderCopy);
+}
+
+function getPopsFromCSV(fileText){
+        let fileLines = fileText.split(/\r?\n/);
+        for(let i = 0; i < fileLines.length; i++){
+                let splitLine = fileLines.split(",");
+                if(splitLine.length === 6){
+                        console.log("tyring to parse line " + i + " as a exp entry");
+                        parseCSVExpEntry(splitLine);
+                }
+                if(splitLine.length > 6){
+                        console.log("tyring to parse line " + i + " as a yearly entry");
+                        parseCSVYearlyEntry(splitLine);
+                }
+        }
+}
+
+function parseCSVExpEntry(data){
+        let tName = data[0].length > 0 ? data[0] : false;
+        let tLat = checkFloat(data[1], -90.0, 90.0) ? parseFloat(data[1], 10) : false;
+        let tLong = checkFloat(data[1], -180.0, 180.0) ? parseFloat(data[2], 10) : false;
+        let tPop = checkInt(data[4], 1, Number.MAX_SAFE_INTEGER) ? parseInt(data[4]) : false;
+        let tGrowth = checkFloat(data[5], -100.0, 100.0) ? parseFloat(data[5]) : false;
+        let tKill = checkFloat(data[3], -1.0, 1.0) ? parseFloat(data[3]) : false;
+        if(tKill === -1){
+                tKill = "";
+        }
+        else if(tKill < 0){
+                tKill = false;
+        }
+        
+        if(tName && tLat && tLong && tPop && tGrowth && tKill){
+                let tRow = new uiRow(tLong, tLat, tPop, tKill, tName, tGrowth, 0, true);
+                addEntry(tRow);
+                addPopToMap(tRow.id, tName, tLong, tLat, false);
+        }
+}
+
+function parseCSVYearlyEntry(data){
+        let tName = data[0].length > 0 ? data[0] : false;
+        let tLat = checkFloat(data[1], -90.0, 90.0) ? parseFloat(data[1], 10) : false;
+        let tLong = checkFloat(data[1], -180.0, 180.0) ? parseFloat(data[2], 10) : false;
+        let tKill = checkFloat(data[3], -1.0, 1.0) ? parseFloat(data[3]) : false;
+        if(tKill === -1){
+                tKill = "";
+        }
+        else if(tKill < 0){
+                tKill = false;
+        }
+
+        var tPop = [];
+        for(let i = 4; i < data.length; i++){
+                if(checkInt(data[i], 1, Number.MAX_SAFE_INTEGER)){
+                        tPop.push(parseInt(data[i]));
+                }
+                else{
+                        tPop = false;
+                        break;
+                }
+        }
+
+        if(tPop.length < 3){
+                tPop = false;
+        }
+
+        if(tName && tLat && tLong && tPop && tKill){
+                let tRow = new uiYearlyRow(tName, tLong, tLat, tPop, tKill, 0, true);
+                addYearlyRow(tRow);
+                addPopToMap(tRow.id, tName, tLong, tLat, false);
+        }
+}
+
+function getPopsFromConfig(fileText){
+        var loadedObject = {};
+        try{
+                loadedObject = JSON.parse(fileText);
+                if(loadedObject.popData && loadedObject.popData.length > 0){
+                        loadPopulationData(loadedObject.popData);
+                        return true;
+                }
+        } catch (e) {
+                console.log("problem parsing file as json");
+        }
+
+        return false;
 }

@@ -374,7 +374,7 @@ function checkYearlyPops(text){
         let splicedData = text.split(',');
         for(let i = 0; i < splicedData.length; i++){
                 let data = splicedData[i].trim();
-                if(checkInt(data, 0, Number.MAX_SAFE_INT)){
+                if(checkInt(data, 0, Number.MAX_SAFE_INTEGER)){
                         results.push(parseInt(data));
                 }
                 else if(i === splicedData.length - 1 && data.length === 0){
