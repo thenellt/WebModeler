@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" manifest="manifest.appcache">
+<html lang="en"> <!--manifest="manifest.appcache"-->
 <head>
         <meta charset="UTF-8">
         
@@ -105,7 +105,7 @@
                                                 <div class="col s6" id="persistMessage" style="margin-top: 18px;"></div>
                                         </div>
                                         <ul id="persistSaveContainer" class="collapsible popout" data-collapsible="accordion"></ul>
-                                        <input id="loadConfigFileButton" type="file" onchange='loadFromFile(this)' style="display: none;">
+                                        <input id="loadConfigFileButton" type="file" onchange='loadFromFile(this);' style="display: none;">
                                 </div>
                                 <div class="tabcontent" id="parameterSetup" style="display: none;">
                                         <div class="row">
@@ -604,11 +604,7 @@
                         <input id="loadPopFileButton" type="file" onchange='loadPopsFromFile(this)' style="display: none;">
                 </div>
                 <div class="modal-footer">
-                        <a href="#!" class="waves-effect waves-red btn blue left" onclick="" style="margin-left: 18px; margin-right: 16px;" id="importDiagSelectFile" onclick="document.getElementById('loadPopFileButton').click();">Import</a>
-                        <p class="left" style="margin-top: 12px;">
-                                <input type="checkbox" id="duplicateCheckToggle"/>
-                                <label for="duplicateCheckToggle">Check for Duplicates</label>
-                        </p>
+                        <a href="#!" class="waves-effect waves-red btn blue left" style="margin-left: 18px; margin-right: 16px;" id="importDiagSelectFile" onclick="document.getElementById('loadPopFileButton').click();">Import</a>
                         <a href="#!" class="modal-action modal-close waves-effect waves-green btn" style="margin-right: 18px;" id="importDiagConfirm">Done</a>
                 </div>
         </div>

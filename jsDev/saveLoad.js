@@ -507,19 +507,18 @@ function populatePersistSaves(){
 
 function loadPopsFromFile(filename){
         var reader = new FileReader();
-        const checked = $('#duplicateCheckToggle').is(':checked');
 
-        if(fileName.files && fileName.files[0]) {
+        if(filename.files && filename.files[0]) {
                 reader.onload = function (e) {
-                        let jsonResult = getPopsFromConfig(e.result);
-                        let csvResult = josnResult || getPopsFromCSV(e.result);
+                        let jsonResult = getPopsFromConfig(e.target.result);
+                        let csvResult = jsonResult || getPopsFromCSV(e.target.result);
                         if(!jsonResult && !csvResult){
                                 const title = "Problem Loading File";
                                 const msg = "Please make sure the file you are trying to load conforms to one of the three acceptable file formats.";
                                 modalDialog(title, msg);
                         }
                 };
-                reader.readAsText(fileName.files[0]);
+                reader.readAsText(filename.files[0]);
         }
         
         let fileLoaderCopy = $('#loadPopFileButton').clone();
@@ -529,16 +528,29 @@ function loadPopsFromFile(filename){
 
 function getPopsFromCSV(fileText){
         let fileLines = fileText.split(/\r?\n/);
+        let validPops = 0;
         for(let i = 0; i < fileLines.length; i++){
-                let splitLine = fileLines.split(",");
+                let splitLine = fileLines[i].split(",");
+                console.log("line " + i + " had length: " + splitLine.length)
+                for(let j = 0; j < splitLine.length; j++){
+                        splitLine[j] = splitLine[j].trim();
+                }
+                
                 if(splitLine.length === 6){
                         console.log("tyring to parse line " + i + " as a exp entry");
-                        parseCSVExpEntry(splitLine);
+                        if(parseCSVExpEntry(splitLine)){validPops++;}
                 }
-                if(splitLine.length > 6){
+                else if(splitLine.length > 6){
                         console.log("tyring to parse line " + i + " as a yearly entry");
-                        parseCSVYearlyEntry(splitLine);
+                        if(parseCSVYearlyEntry(splitLine)){validPops++;};
                 }
+        }
+        
+        if(validPops){
+                return true;
+        }
+        else{
+                return false;
         }
 }
 
@@ -560,7 +572,10 @@ function parseCSVExpEntry(data){
                 let tRow = new uiRow(tLong, tLat, tPop, tKill, tName, tGrowth, 0, true);
                 addEntry(tRow);
                 addPopToMap(tRow.id, tName, tLong, tLat, false);
+                return true;
         }
+        
+        return false;
 }
 
 function parseCSVYearlyEntry(data){
@@ -594,20 +609,30 @@ function parseCSVYearlyEntry(data){
                 let tRow = new uiYearlyRow(tName, tLong, tLat, tPop, tKill, 0, true);
                 addYearlyRow(tRow);
                 addPopToMap(tRow.id, tName, tLong, tLat, false);
+                return true;
         }
+        
+        return false;
 }
 
 function getPopsFromConfig(fileText){
-        var loadedObject = {};
         try{
-                loadedObject = JSON.parse(fileText);
-                if(loadedObject.popData && loadedObject.popData.length > 0){
-                        loadPopulationData(loadedObject.popData);
+                let loadedObject = JSON.parse(fileText);
+                let pdata = loadedObject.config.popData;
+                if(pdata && pdata.length > 0){
+                        for(let i = 0; i < pdata.length; i++){
+                                //TODO prompt about rectifying this
+                                pdata[i].id = 0;
+                        }
+                        loadPopulationData(pdata);
                         return true;
+                }
+                else{
+                        console.log("no population data in config");
+                        return false;
                 }
         } catch (e) {
                 console.log("problem parsing file as json");
+                return false;
         }
-
-        return false;
 }

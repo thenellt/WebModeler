@@ -184,7 +184,6 @@ function addRow(tableId, rowId){
 }
 
 function editFinished(cell, x, y, origValue){
-        console.log("cell type is: " + cell.cellType);
         var input = cell.lastChild;
         var value = input.value;
         //TODO check value against origValue for sanity
@@ -199,7 +198,6 @@ function editFinished(cell, x, y, origValue){
 
 function updateUIData(rowPos, cellPos, cellType, newValue){
         var tableRow = document.getElementById("popTable").rows[rowPos];
-        console.log("running updateUIData row: " + rowPos + " id: " + tableRow.id);
         var i;
         for(i = 0; i < uiData.length; i++){
                 if(uiData[i].id == tableRow.id){
