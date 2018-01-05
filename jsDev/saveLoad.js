@@ -3,15 +3,6 @@
 var appCache = window.applicationCache;
 var persistCompatibility = false;
 
-function checkCompatibility(){
-        console.log("checking for browser support... passed");
-        document.getElementById("javascriptError").style.display = "none";
-        document.getElementById('getStarted').classList.remove("hide");
-        persistCompatibility = true;
-        document.body.scrollTop = document.documentElement.scrollTop = 0;
-        document.getElementById('getStarted').classList.add('scale-in');
-}
-
 //based on: https://www.html5rocks.com/en/tutorials/appcache/beginner/
 appCache.addEventListener('updateready', updateApp, false);
 appCache.addEventListener('noupdate', checkCompatibility, false);
@@ -21,6 +12,15 @@ function updateApp(){
         modalDialog('Application Update', 'An update to the app is avaliable, the page will now reload to finish the update.', function(){
                 window.location.reload();
         });
+}
+
+function checkCompatibility(){
+        console.log("checking for browser support... passed");
+        document.getElementById("javascriptError").style.display = "none";
+        document.getElementById('getStarted').classList.remove("hide");
+        persistCompatibility = true;
+        document.body.scrollTop = document.documentElement.scrollTop = 0;
+        document.getElementById('getStarted').classList.add('scale-in');
 }
 
 function loadFromFile(fileName){
@@ -194,7 +194,7 @@ function generateConfigObject(){
                 saveObject.popData.push(uiData[i]);
         }
 
-        console.log("found " + saveObject.popData.length + " valid populations");
+        console.log("generateConfigObject found " + saveObject.popData.length + " populations");
         return saveObject;
 }
 
@@ -260,13 +260,14 @@ function quickSave(){
         readUserParameters();
         synchPersisObject();
         populatePersistSaves();
+        setupPersistConfigs();
 }
 
 function getPersistObjects(){
         var numEntries = localStorage.getItem('numEntries');
 
         if(numEntries === null || parseInt(numEntries) === 0){
-                console.log("no persistent entries found");
+                console.log("no persistent entries found: " + numEntries);
                 return null;
         }
         numEntries = parseInt(numEntries);
@@ -484,20 +485,20 @@ function populatePersistSaves(){
         while (saveContainer.firstChild){
                         saveContainer.removeChild(saveContainer.firstChild);
         }
-        var saves = getPersistObjects();
-        if(saves && saves.length > 1){
-                saves.sort(function (a, b) {
-                        return a.modified - b.modified;
-                });
-                saves.reverse();
-        }
 
+        var saves = getPersistObjects();
         if(saves){
+                if(saves.length > 1){
+                        saves.sort(function (a, b) {
+                                return a.modified - b.modified;
+                        });
+                        saves.reverse();
+                }
+
                 for(let i = 0; i < saves.length; i++){
                         let element = buildHTMLSaveEntry(saves[i]);
                         saveContainer.appendChild(element);
                 }
-                //$('#persistSaveContainer').collapsible('close');
                 
                 setTimeout(function(){
                         $('#persistSaveContainer').collapsible('open', 0);

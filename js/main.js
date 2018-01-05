@@ -26,9 +26,6 @@ $(document).ready(function() {
         setupTabs();
         setupPersistConfigs();
         populatePersistSaves();
-        setTimeout(function(){
-                checkCompatibility();
-        });
 });
 
 function setupTabs(){
