@@ -52,9 +52,7 @@ function loadFromFile(fileName){
                 reader.readAsText(fileName.files[0]);
         }
         
-        let fileLoaderCopy = $('#loadConfigFileButton').clone();
-        $('#loadConfigFileButton').remove();
-        $('#getStarted').append(fileLoaderCopy);
+        $('#loadConfigFileForm').trigger('reset');
 }
 
 function parseConfigFile(fileString){
@@ -519,13 +517,15 @@ function loadPopsFromFile(filename){
                                 const msg = "Please make sure the file you are trying to load conforms to one of the three acceptable file formats.";
                                 modalDialog(title, msg);
                         }
+                        else{
+                                let num = jsonResult ? jsonResult : csvResult;
+                                notifyMessage("Loaded " + num + " populations", 3);
+                        }
                 };
                 reader.readAsText(filename.files[0]);
         }
         
-        let fileLoaderCopy = $('#loadPopFileButton').clone();
-        $('#loadPopFileButton').remove();
-        $('#importDialogContent').append(fileLoaderCopy);
+        $('#loadPopFileForm').trigger('reset');
 }
 
 function getPopsFromCSV(fileText){
@@ -538,6 +538,10 @@ function getPopsFromCSV(fileText){
                         splitLine[j] = splitLine[j].trim();
                 }
                 
+                if(!splitLine[6].length){
+                        splitLine.pop();
+                }
+                
                 if(splitLine.length === 6){
                         console.log("tyring to parse line " + i + " as a exp entry");
                         if(parseCSVExpEntry(splitLine)){validPops++;}
@@ -548,12 +552,7 @@ function getPopsFromCSV(fileText){
                 }
         }
         
-        if(validPops){
-                return true;
-        }
-        else{
-                return false;
-        }
+        return validPops;
 }
 
 function parseCSVExpEntry(data){
@@ -627,14 +626,14 @@ function getPopsFromConfig(fileText){
                                 pdata[i].id = 0;
                         }
                         loadPopulationData(pdata);
-                        return true;
+                        return pdata.length;
                 }
                 else{
                         console.log("no population data in config");
-                        return false;
+                        return 0;
                 }
         } catch (e) {
                 console.log("problem parsing file as json");
-                return false;
+                return 0;
         }
 }

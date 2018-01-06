@@ -105,7 +105,7 @@
                                                 <div class="col s6" id="persistMessage" style="margin-top: 18px;"></div>
                                         </div>
                                         <ul id="persistSaveContainer" class="collapsible popout" data-collapsible="accordion"></ul>
-                                        <input id="loadConfigFileButton" type="file" onchange='loadFromFile(this);' style="display: none;">
+                                        <form id="loadConfigFileForm" style="display: none;"><input id="loadConfigFileButton" type="file" onchange='loadFromFile(this);' style="display: none;"></form>
                                 </div>
                                 <div class="tabcontent" id="parameterSetup" style="display: none;">
                                         <div class="row">
@@ -601,7 +601,7 @@
                                         </div>
                                 </li>
                         </ul>
-                        <input id="loadPopFileButton" type="file" onchange='loadPopsFromFile(this)' style="display: none;">
+                        <form style="display: none;" id="loadPopFileForm"><input id="loadPopFileButton" type="file" onchange='loadPopsFromFile(this)' style="display: none;"></form>
                 </div>
                 <div class="modal-footer">
                         <a href="#!" class="waves-effect waves-red btn blue left" style="margin-left: 18px; margin-right: 16px;" id="importDiagSelectFile" onclick="document.getElementById('loadPopFileButton').click();">Import</a>

@@ -157,7 +157,7 @@ function closePopUpdater(input){ //0 - cancel, 1 - update village, 2 delete vill
                 updateTableRow(i);
         }
         else if(input === 2){ //delete village
-                removeRow('popTable', currentID);
+                removeRow('popTable', currentId);
         }
 
         window.removeEventListener('keyup', popupEvntFunction);
