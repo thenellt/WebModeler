@@ -205,8 +205,8 @@ function mapWorkerFunctions(){
                 'progress': function(data) {updateProgressBar(data.statusMsg, data.statusValue);},
                 'updateCDFChart': function(data) {createCDFChart(data.densities);},
                 'extentDebug': function(data) {drawDebugBounds(data.data);},
-                'singleCSV': function(data) {saveSingleCSV(data.data, data.year);},
-                'allYearsCSV': function(data) {saveAllYearsCSV(data.data);},
+                'singleCSV': function(data) {saveSingleCSV(data.csvString, data.year);},
+                'allYearsCSV': function(data) {saveAllYearsCSV(data.csvString, data.year);},
         };
 }
 

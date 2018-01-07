@@ -36,10 +36,10 @@ onmessage = function(oEvent) {
                 generateImageData(oEvent.data);
                 break;
         case 'singleYearCSV':
-                
+                generateCSV(oEvent.data.year, 'singleCSV');
                 break;
         case 'allYearsCSV':
-                
+                generateCSV(oEvent.data.year, 'allYearsCSV');
                 break;
         case 'getCDFData':
                 generateCDFBins(oEvent.data.year);
@@ -483,6 +483,16 @@ function generateCDFBins(year){
         //console.log("cell post normalize: " + dataValues);
 
         self.postMessage({type:'mapped', fnc:'updateCDFChart', densities:dataValues});
+}
+
+function generateCSV(requestYear, callbackType){
+        var outputString = "";
+        for(let i = 0; i < grid[requestYear].length; i++){
+                outputString += grid[requestYear][i].join(", ");
+                outputString += "\r\n";
+        }
+
+        self.postMessage({type:'mapped', fnc:callbackType, csvString:outputString, year:requestYear});
 }
 
 /******** Helper Functions **********/

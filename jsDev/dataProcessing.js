@@ -1,6 +1,6 @@
 /* global simResults simData Chartist JSZip saveAs*/
 
-var csvAllYears;
+var csvStrings;
 var entireAreaChart;
 
 function createCDFChart(densities){
@@ -50,20 +50,10 @@ function setupOpacitySlider(){
         document.getElementById("opacityLabel").innerHTML = "Overlay Opacity: " + simData.opacity * 100  + "%";
 }
 
-function generateCSV(yearNum){
-        var outputString = "";
-        for(let i = 0; i < simResults.grid[yearNum].length; i++){
-                outputString += simResults.grid[yearNum][i].join(", ");
-                outputString += "\r\n";
-        }
-
-        return outputString;
-}
-
 function csvSingleYear(){
         let yearNum = document.getElementById("csvNumberInput").value;
         console.log("csvSingleYear year: " + yearNum);
-        workerThread.postMessage({type:"singleYearCSV", params:yearNum,});
+        workerThread.postMessage({type:"singleYearCSV", year:yearNum,});
 }
 
 function saveSingleCSV(data, year){
@@ -72,18 +62,24 @@ function saveSingleCSV(data, year){
 }
 
 function csvAllYears(){
-        var zip = new JSZip();
-        for(let i = 0; i <= simData.years; i++){
-                zip.file(simData.simName + "_year" + i + ".csv", generateCSV(i));
-        }
-
-        zip.generateAsync({type:"blob"})
-                .then(function(content) {
-                // see FileSaver.js
-                saveAs(content, simData.simName + "_csvData.zip");
-        });
+        csvStrings = [];
+        workerThread.postMessage({type:"allYearsCSV", year:0,});
 }
 
-function saveAllYearsCSV(data){
+function saveAllYearsCSV(csvString, curYear){
+        csvStrings.push(csvString);
         
+        if(csvStrings.length <= simData.years){
+                workerThread.postMessage({type:"allYearsCSV", year:(curYear + 1),});
+        }
+        else if(csvStrings.length === simData.years + 1){
+                var zip = new JSZip();
+                for(let i = 0; i < csvStrings.length; i++){
+                        zip.file(simData.simName + "_year" + i + "data.csv", csvStrings[i]);
+                }
+
+                zip.generateAsync({type:"blob"}).then(function(content) {
+                        saveAs(content, simData.simName + "_csvData.zip");
+                });
+        }
 }

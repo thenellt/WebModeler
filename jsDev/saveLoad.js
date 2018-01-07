@@ -3,7 +3,6 @@
 var appCache = window.applicationCache;
 var persistCompatibility = false;
 
-//based on: https://www.html5rocks.com/en/tutorials/appcache/beginner/
 appCache.addEventListener('updateready', updateApp, false);
 appCache.addEventListener('noupdate', checkCompatibility, false);
 appCache.addEventListener('cached', checkCompatibility, false);

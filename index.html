@@ -44,11 +44,10 @@
                         <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Close</a>
                 </div>
         </div>
-
         <table id="mainContentContainer">
                 <tr>
-                        <td class="tab">
-                                <div class="tab">
+                        <td class="sideBar">
+                                <div class="sidebarTabContainer">
                                         <button id="getStartedTab" class="tablinks waves-effect waves-light defaultOpen" onclick="changeToGetStarted()">Get Started</button>
                                         <button id="parameterSetupTab" class="tablinks waves-effect waves-light" onclick="changeTab('parameterSetup')">Simulation Parameters</button>
                                         <button id="popSetupTab" class="tablinks waves-effect waves-light" onclick="changeToPopulations()" style=" border-bottom: 1px solid LightGrey;">Setup Populations</button>
@@ -408,7 +407,7 @@
                         </td>
                 </tr>
         </table>
-        
+
         <div id="advancedSettings" class="modal modal-fixed-footer"
                 style="width: 90%; max-height: 80% !important; height: 80% !important; max-width: 1000px;">
                 <div class="modal-content">
@@ -524,7 +523,7 @@
                 </div>
         </div>
         
-        <div id="sysDialog" class="modal modal-fixed-footer" style="max-width: 60%; max-height: 30%; height: 30%;">
+        <div id="sysDialog" class="modal modal-fixed-footer" style="max-height: 30%; height: 30%; max-width: 750px;">
                 <div class="modal-content">
                         <h4 id="sysTitle"></h4>
                         <p id="sysContent"></p>
@@ -676,8 +675,6 @@
                         </div>
                 </div>
         </div>
-
-        <div id="hidepage"></div>
         
         <script src="keys.js" type="text/javascript"></script>
         <script src="js/jquery-3.2.1.min.js" type="text/javascript"></script>
