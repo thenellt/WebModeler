@@ -35,8 +35,11 @@ onmessage = function(oEvent) {
         case 'genImage':
                 generateImageData(oEvent.data);
                 break;
-        case 'getCSVData':
-                //TODO passback csv data
+        case 'singleYearCSV':
+                
+                break;
+        case 'allYearsCSV':
+                
                 break;
         case 'getCDFData':
                 generateCDFBins(oEvent.data.year);

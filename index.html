@@ -350,39 +350,58 @@
                                                         <h4>Graphs</h4>
                                                 </div>
                                         </div>
-                                        <div class="divider"></div>
-                                        <div class="row">
-                                                <div class="col s12" id="chartContainer">
-                                                        <div class="ct-chart ct-perfect-fourth" id="myFirstChart">
+                                        <ul class="collapsible" data-collapsible="accordion">
+                                                <li>
+                                                        <div class="collapsible-header active">Entire Area Depletion</div>
+                                                        <div class="collapsible-body">
+                                                                <div class="row">
+                                                                        <div class="col s12" id="entireAreaChartContainer" style="resize: both;">
+                                                                                <div class="ct-chart ct-perfect-fourth" id="myFirstChart">
+                                                                                </div>
+                                                                        </div>
+                                                                </div>
                                                         </div>
-                                                </div>
-                                        </div>
+                                                </li>
+                                                <li>
+                                                        <div class="collapsible-header">Surrounding Area Depletion</div>
+                                                        <div class="collapsible-body">
+                                                                <div class="row"><div class="col 12">Charts the depletion of the cells in a square around each population with side lengths equal to the hunt range.</div></div>
+                                                                <div class="row">
+                                                                        <div class="col s12" id="chartContainer">
+                                                                                <div class="ct-chart ct-perfect-fourth" id="surroundingChart">
+                                                                                </div>
+                                                                        </div>
+                                                                </div>
+                                                        </div>
+                                                </li>
+                                        </ul>
                                         <div class="row" style="margin-bottom: 0px;">
                                                 <div class="col s12">
                                                         <h4>Save Data Files</h4>
                                                 </div>
                                         </div>
-                                        <div class="divider"></div>
+                                        <div class="divider" style="margin-bottom: 8px;"></div>
                                         <div class="row">
-                                                <div class="col s5" id="csvOptions">
+                                                <div class="col s6" id="csvOptions">
                                                         <h5>Save yearly depletion data (CSVs): </h5>
                                                 </div>
+                                                <div class="col s1" style="margin-top: 10px;">Year:</div>
                                                 <div class="col s1">
                                                         <input type="number" min="0" step="1" value="0" id="csvNumberInput">
                                                 </div>
-                                                <div class="col s3">
+                                                <div class="col s2">
                                                         <a class="waves-effect waves-light btn saveButton" onclick="csvSingleYear()">Single Year</a>
                                                 </div>
-                                                <div class="col s3">
+                                                <div class="col s2">
                                                         <a class="waves-effect waves-light btn saveButton" onclick="csvAllYears()">All Years</a>
                                                 </div>
                                         </div>
                                         <div class="row">
                                                 <div class="col s9">
-                                                        <h5>Save the simulation configuration to file:</h5>
+                                                        <h5>Save the configuration to file (includes populations):</h5>
                                                 </div>
                                                 <div class="col s3">
-                                                        <a class="waves-effect waves-light btn saveButton" onclick="saveSimToFile();">Save Parameters</a>
+                                                        <a class="waves-effect waves-light btn saveButton" onclick="saveSimToFile();">Save Configuration</a>
                                                 </div>
                                         </div>
                                 </div>

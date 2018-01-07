@@ -26,6 +26,7 @@ $(document).ready(function() {
         setupTabs();
         setupPersistConfigs();
         populatePersistSaves();
+        mapWorkerFunctions();
 });
 
 function setupTabs(){

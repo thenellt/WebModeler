@@ -205,6 +205,8 @@ function mapWorkerFunctions(){
                 'progress': function(data) {updateProgressBar(data.statusMsg, data.statusValue);},
                 'updateCDFChart': function(data) {createCDFChart(data.densities);},
                 'extentDebug': function(data) {drawDebugBounds(data.data);},
+                'singleCSV': function(data) {saveSingleCSV(data.data, data.year);},
+                'allYearsCSV': function(data) {saveAllYearsCSV(data.data);},
         };
 }
 
@@ -213,11 +215,6 @@ function handleWorkerMessage(data){
         case 'mapped':
                 workerFunctions[data.fnc](data);
                 break;
-                /*
-        case 'progress':
-                updateProgressBar(data.statusMsg, data.statusValue);
-                break;
-                */
         case 'finished': {
                 //TODO code for getting data back
                 simResults = data.paramData;
@@ -231,19 +228,20 @@ function handleWorkerMessage(data){
                 workerThread.postMessage({type:'getCDFData', year:simData.years - 1})
                 closeProgressBar();
                 break;
-        }
+                }
         case 'debug':
                 console.log("--Worker: " + data.statusMsg);
                 break;
         case 'error':
-                //TODO fallback to setup, display error message as popup
+                let title = "An Error Occured";
+                let msg = "An error prevented the simulation from running. Please verify parameters and populations and try again. </br>";
+                msg += "If you would like to report this error: return to the Get Started page -> Quicksave -> Download that config -> email it to the developer.";
+                modalDialog(title, msg, changeToPopulations);
                 break;
         case 'imgData': {
                 console.log("array print test: " + data.array[10] + " size: " + data.array.length);
                 generateCanvas(data.year, data.scale, data.array, data.dest);
                 break;
-        }
+                }
         }
 }
-
-mapWorkerFunctions();
