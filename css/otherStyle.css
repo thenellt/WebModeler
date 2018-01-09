@@ -21,9 +21,9 @@ div.fillertab {
         margin: auto;
 }
 
-td.content {
-        padding: 0px 8px 0px 0px;
-        width: 100%;
+.content {
+        padding: 0 8px 0 0;
+        width: 80%;
         margin: auto;
         border-collapse: collapse;
         top: 0;
@@ -31,9 +31,6 @@ td.content {
 }
 
 .sidebarTabContainer {
-        left: 0;
-        min-width: 175px;
-        max-width: 220px;
         top: 64px;
         background-color: #f1f1f1;
         width: 100%;
