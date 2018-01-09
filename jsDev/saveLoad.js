@@ -196,22 +196,23 @@ function generateConfigObject(){
         return saveObject;
 }
 
-function saveImgToFile(type){
-        if(type){ //with map background
-                map.once('postcompose', function(event) {
-                        var tempCanvas = event.context.canvas;
+function saveImgToFile(){
+        const year = document.getElementById('overlayYear').value;
+        map.once('postcompose', function(event) {
+                var tempCanvas = event.context.canvas;
 
-                        tempCanvas.toBlob(function(blob) {
-                                saveAs(blob, simData.simName + '_map.png');
-                        });
+                tempCanvas.toBlob(function(blob) {
+                        saveAs(blob, simData.simName + '_year' + year + '_map.png');
                 });
-                map.renderSync();
-        }
-        else{
-                canvas.toBlob(function(blob) {
-                        saveAs(blob, simData.simName + '_heatmap.png');
-                });
-        }
+        });
+        map.renderSync();
+}
+
+function saveHeatmapToFile(){
+        const requestYear = document.getElementById('rawHeatmapYear').value;
+        const requestScale = document.getElementById('heatmapScale').value / 100;
+
+        workerThread.postMessage({type:'genImage', dest:'save', year:requestYear, scale:requestScale});
 }
 
 function generatePersistObject(){

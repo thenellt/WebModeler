@@ -259,6 +259,7 @@ function openFullscreenViewer(){
         document.getElementById("viewerMapContainer").appendChild(document.getElementById("popMapDiv"));
         document.getElementById("viewerControlsContainer").appendChild(document.getElementById("viewerControls"));
         $('#fullScreenMap').modal('open');
+        $('#popMapDiv').css('height', $(window).height() * 0.7 + "px");
         map.updateSize();
 }
 
@@ -267,6 +268,7 @@ function closeFullscreenViewer(){
         document.getElementById("viewControlsContainer").appendChild(document.getElementById("viewerControls"));
 
         $('#fullScreenMap').modal('close');
+        $('#popMapDiv').css('height', '500px');
         map.updateSize();
 }
 

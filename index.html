@@ -243,10 +243,10 @@
                                                 <div class="collapsible-header active"><i class="material-icons">map</i>Heatmap with Sattelite Overlay</div>
                                                 <div class="collapsible-body">
                                                         <div class="row" style="margin-bottom: 4px;">
-                                                                <div class="col s10">
+                                                                <div class="col s9">
                                                                         The saved image will look as you see it below. Zoom or pan the map preview to select the area to save.
                                                                 </div>
-                                                                <div class="col s2">
+                                                                <div class="col s3">
                                                                         <a class="waves-effect waves-light btn" onclick="openFullscreenViewer()">Fullscreen</a>
                                                                 </div>
                                                         </div>
@@ -276,10 +276,10 @@
                                                                 </div>
                                                                 <div class="col s2">
                                                                          Heatmap Year:
-                                                                         <input type="number" min="0" step="1" value="0" id="overlayYear" style="margin: 0px; height: 30px;">
+                                                                         <input type="number" min="0" step="1" value="0" id="overlayYear" style="margin: 0px; height: 30px;" onkeydown="return false">
                                                                 </div>
                                                                 <div class="col s3" style="margin-top: 8px;">
-                                                                        <a class="waves-effect waves-light btn saveButton right" onclick="saveImgToFile(1);">Save Image</a>
+                                                                        <a class="waves-effect waves-light btn saveButton right" onclick="saveImgToFile();">Save Image</a>
                                                                 </div>
                                                         </div></div>
                                                 </div>
@@ -288,53 +288,30 @@
                                                 <div class="collapsible-header"><i class="material-icons">leak_add</i>Plain Heatmap</div>
                                                 <div class="collapsible-body">
                                                         <div class="row">
-                                                                <div class="col s6">
-                                                                        <h5>Save standalone heatmaps:</h5>
+                                                                <div class="col s12">
+                                                                        By default, heatmaps are generated with a resolution of 1 pixel to each square kilometer. For small simulations this can lead to a very small resulting picture which is why a builtin scaler is provided. A preview of the the final year is shown below.
                                                                 </div>
                                                         </div>
-                                                        <div class="row">
-                                                                <div class="col s4">
-                                                                        <div id="rawHeatmapContainer"></div>
-                                                                </div>
-                                                                <div class="col s6">
-                                                                        <div class="row">
-                                                                                <div class="col s6" style="margin-top: 10px;">
-                                                                                        Set heatmap scale (1 is 100%):
-                                                                                </div>
-                                                                                <div class="col s4">
-                                                                                        <div id="rawHeatmapPixelSize"></div>
-                                                                                </div>
-                                                                                <div class="col s2">
-                                                                                        <input type="number" min="1" max="8" step="1" value="1" id="heatmapScale" style="margin-bottom: 0px;" onchange="rawHWScaleInput(this.value)">
-                                                                                </div>
-                                                                        </div>
-                                                                        <div class="row">
-                                                                                <div class="col s3" style="margin-top: 10px;">
-                                                                                        Year:
-                                                                                </div>
-                                                                                <div class="col s2">
-                                                                                        <input type="number" min="0" step="1" value="0" id="heatmapYear" style="margin-bottom: 0px;" onchange="rawHMYearInput(this.value)">
-                                                                                </div>
-                                                                                <div class="col s6 offset-s1">
-                                                                                        <a class="waves-effect waves-light btn" onclick="saveImgToFile(0);">Save Single Year</a>
-                                                                                </div>
-                                                                        </div>
-                                                                        <div class="row">
-                                                                                <div class="col s6 offset-s6">
-                                                                                        <a class="waves-effect waves-light btn" onclick="saveImgToFile(0);">Save All Years</a>
-                                                                                </div>
-                                                                        </div>
-                                                                </div>
-                                                                <!--<div class="col s3">
-                                                                        <a class="waves-effect waves-light btn" onclick="saveImgToFile(1);">Save Map Image</a>
-                                                                </div> -->
+                                                        <div class="row" id="rawHeatmapContainer">
+
                                                         </div>
-                                                        <div class="row">
-                                                                <div class="col s2">
-                                                                        Preview of year:
+                                                        <div class="row" id="rawHMControlsContainer">
+                                                                <div class="col s4" style="margin-top: 10px;" id="heatmapScaleText"></div>
+                                                                <div class="col s1" style="margin-top: 10px;">
+                                                                        Scale:
                                                                 </div>
-                                                                <div class="col s1" id="previewYearText">
-                                                                        0
+                                                                <div class="col s1">
+                                                                        <input type="number" min="100" max="1000" step="100" value="100" id="heatmapScale" style="margin-bottom: 0px;" onchange="rawHWScaleInput(this.value)">
+                                                                </div>
+
+                                                                <div class="col s2" style="margin-top: 10px;">
+                                                                        Year:
+                                                                </div>
+                                                                <div class="col s1">
+                                                                        <input type="number" min="0" step="1" id="rawHeatmapYear" style="margin-bottom: 0px;">
+                                                                </div>
+                                                                <div class="col s3" >
+                                                                        <a class="waves-effect waves-light btn" onclick="saveHeatmapToFile(0);" style="margin-top: 4px;">Save Year</a>
                                                                 </div>
                                                         </div>
                                                 </div>
@@ -351,9 +328,10 @@
                                                 <li>
                                                         <div class="collapsible-header active">Entire Area Depletion</div>
                                                         <div class="collapsible-body">
+                                                                <div class="row"><div class="col 12">PLACEHOLDER: describe chart meaning</div></div>
                                                                 <div class="row">
                                                                         <div class="col s12" id="entireAreaChartContainer" style="resize: both;">
-                                                                                <div class="ct-chart ct-perfect-fourth" id="myFirstChart">
+                                                                                <div class="ct-chart ct-perfect-fourth" id="entireMapChart">
                                                                                 </div>
                                                                         </div>
                                                                 </div>
@@ -364,8 +342,9 @@
                                                         <div class="collapsible-body">
                                                                 <div class="row"><div class="col 12">Charts the depletion of the cells in a square around each population with side lengths equal to the hunt range.</div></div>
                                                                 <div class="row">
-                                                                        <div class="col s12" id="chartContainer">
+                                                                        <div class="col s12" id="localAreaChartContainer">
                                                                                 <div class="ct-chart ct-perfect-fourth" id="surroundingChart">
+                                                                                        WIP
                                                                                 </div>
                                                                         </div>
                                                                 </div>
@@ -379,17 +358,17 @@
                                         </div>
                                         <div class="divider" style="margin-bottom: 8px;"></div>
                                         <div class="row">
-                                                <div class="col s6" id="csvOptions">
-                                                        <h5>Save yearly depletion data (CSVs): </h5>
+                                                <div class="col s4" id="csvOptions">
+                                                        <h5>Save depletion data (CSVs): </h5>
                                                 </div>
                                                 <div class="col s1" style="margin-top: 10px;">Year:</div>
                                                 <div class="col s1">
                                                         <input type="number" min="0" step="1" value="0" id="csvNumberInput">
                                                 </div>
-                                                <div class="col s2">
+                                                <div class="col s3" style="margin-top: 4px;">
                                                         <a class="waves-effect waves-light btn saveButton" onclick="csvSingleYear()">Single Year</a>
                                                 </div>
-                                                <div class="col s2">
+                                                <div class="col s3" style="margin-top: 4px;">
                                                         <a class="waves-effect waves-light btn saveButton" onclick="csvAllYears()">All Years</a>
                                                 </div>
                                         </div>
@@ -610,7 +589,7 @@
                                 <li>
                                         <div class="collapsible-header">Simulation Save Files</div>
                                         <div class="collapsible-body" style="padding: 16px;">
-                                        <div class="row" style="margin-bottom: 8px;">Importing from a save file will take the populations from the file without loading any other parameters from the file. This can be used to pull the populations out of multiple saved simulations to combine them into a single new simulation.</div>
+                                        <div class="row" style="margin-bottom: 8px;">Importing from a save file will take the populations from the file without loading any other parameters. This can be used to pull the populations out of multiple saved simulations to combine them into a single new simulation.</div>
                                         <div class="row" style="margin-bottom: 4px;">
                                                 <b>Note:</b> Loading both the parameters and the populations from a save file is done from the <i>Get Started</i> page.
                                         </div>

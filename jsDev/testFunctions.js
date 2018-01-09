@@ -220,12 +220,12 @@ function handleWorkerMessage(data){
                 simResults = data.paramData;
                 updateProgressBar("Visualizing Data", 100);
                 //simResults.grid = new Array(simData.years + 1);
-                //generateCanvas(simData.years - 1, 1);
-                workerThread.postMessage({type:'genImage', dest:'mapViewer', year:simData.years - 1, scale:1});
+                workerThread.postMessage({type:'genImage', dest:'mapViewer', year:simData.years, scale:1});
                 synchPersisObject();
                 changeToOutput();
                 setupOutputRanges();
-                workerThread.postMessage({type:'getCDFData', year:simData.years - 1})
+                workerThread.postMessage({type:'getCDFData', year:simData.years});
+                //workerThread.postMessage({type:'getLocalCDFData', year:simData.years});
                 closeProgressBar();
                 break;
                 }

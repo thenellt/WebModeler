@@ -2,10 +2,16 @@
 
 var csvStrings;
 var entireAreaChart;
+var localAreaChart;
+
+$(document).ready(function() {
+        $("#overlayYear").on("change",function(event){
+                changeOverlayYear(event.target.value);
+        });
+});
 
 function createCDFChart(densities){
         console.log("createCDFChart called with densities length: " + densities.length);
-        //let densities = generateCDFBins(simData.years);
 
         var data = {
                 labels: ['K0', 'K1','K2','K3','K4','K5','K6','K7','K8','K9','k10'],
@@ -16,7 +22,7 @@ function createCDFChart(densities){
                 height: 400,
         };
 
-        entireAreaChart = new Chartist.Bar('.ct-chart', data, options);
+        entireAreaChart = new Chartist.Bar('#entireMapChart', data, options);
 }
 
 function resizeEntireAreaChart(event, ui){
@@ -28,19 +34,31 @@ function resizeEntireAreaChart(event, ui){
         entireAreaChart.update(newSizeOptions);
 }
 
-function rawHMYearInput(value){
-        console.log("raw heatmap year changed: " + value);
-        document.getElementById("previewYearText").innerHTML = value;
-        //TODO change preview image
+function createLocalCDFChart(densities){
+        var data = {
+                labels: ['K0', 'K1','K2','K3','K4','K5','K6','K7','K8','K9','k10'],
+                series: [densities],
+        };
+        var options = {
+                width: 600,
+                height: 400,
+        };
+
+        localAreaChart = new Chartist.Bar('#surroundingChart', data, options);
 }
 
 function rawHWScaleInput(value){
+        const newWidth = simResults.xSize * (value / 100);
+        const newHeight = simResults.ySize * (value / 100);
 
+        document.getElementById('heatmapScaleText').innerHTML = "Image Resolution: " + newWidth + "px by " + newHeight + "px";
 }
 
 function setupOutputRanges(){
-        document.getElementById("heatmapYear").max = simData.years;
+        document.getElementById("rawHeatmapYear").max = simData.years;
+        document.getElementById("rawHeatmapYear").value = simData.years;
         document.getElementById("overlayYear").max = simData.years;
+        document.getElementById("overlayYear").value = simData.years;
         document.getElementById("csvNumberInput").max = simData.years;
 }
 
@@ -48,6 +66,13 @@ function setupOpacitySlider(){
         document.getElementById("opacitySlider").value = simData.opacity * 100;
         console.log("setting opacity: " + simData.opacity * 100);
         document.getElementById("opacityLabel").innerHTML = "Overlay Opacity: " + simData.opacity * 100  + "%";
+}
+
+function changeOverlayYear(requestYear){
+        $('#overlayYear').prop('disabled', true);
+        setTimeout(function(){
+                workerThread.postMessage({type:'genImage', dest:'mapViewerUpdate', year:requestYear, scale:1});
+        }, 50);
 }
 
 function csvSingleYear(){
@@ -68,7 +93,7 @@ function csvAllYears(){
 
 function saveAllYearsCSV(csvString, curYear){
         csvStrings.push(csvString);
-        
+
         if(csvStrings.length <= simData.years){
                 workerThread.postMessage({type:"allYearsCSV", year:(curYear + 1),});
         }

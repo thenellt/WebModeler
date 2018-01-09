@@ -1,3 +1,4 @@
+1/9/18 v22 - Both results pages are cleaned up and the only unfinished section is the Surrounding Area Depletion chart. \n
 1/6/18 v21c - Additional bugfixes for the import system. \n
 1/4/18 v21b - More minor bugfixes to the import system. \n
 1/3/18 v21a - Bug fixes for the different population import systems. \n

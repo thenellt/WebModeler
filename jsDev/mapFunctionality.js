@@ -369,7 +369,7 @@ function generateCanvas(year, scale, imgArray, dest){
         canvas.width = simResults.xSize * scale;
         canvas.height = simResults.ySize * scale;
 
-        let picData = new ImageData(imgArray, simResults.xSize, simResults.ySize);
+        let picData = new ImageData(imgArray, simResults.xSize * scale, simResults.ySize * scale);
 
         ctx.putImageData(picData, 0, 0);
         let canvasImage = new Image();
@@ -377,9 +377,22 @@ function generateCanvas(year, scale, imgArray, dest){
 
         switch(dest){
         case 'mapViewer':
-                canvasImage.onload = function(){drawCanvasToMap(canvasImage)};
+                canvasImage.onload = function(){
+                        drawCanvasToMap(canvasImage);
+                        document.getElementById('rawHeatmapContainer').appendChild(canvasImage);
+                        rawHWScaleInput(100);
+                };
+                break;
+        case 'mapViewerUpdate':
+                canvasImage.onload = function(){
+                        drawCanvasToMap(canvasImage);
+                        $('#overlayYear').prop('disabled', false);
+                };
                 break;
         case 'save':
+                canvas.toBlob(function(blob) {
+                        saveAs(blob, simData.simName + '_year' + year + '_heatmap.png');
+                });
                 break;
         case 'saveAll':
                 break;
@@ -391,7 +404,6 @@ function generateCanvas(year, scale, imgArray, dest){
 function drawCanvasToMap(canvasImage){
         console.log("picture: " + canvasImage.naturalHeight);
         console.log("picture: " + canvasImage.naturalWidth);
-        document.getElementById("rawHeatmapContainer").appendChild(canvasImage);
 
         var tempLength = simResults.geoGrid.length - 1;
         var tempPoint = simResults.geoGrid[tempLength][simResults.geoGrid[tempLength].length - 1];

@@ -44,6 +44,9 @@ onmessage = function(oEvent) {
         case 'getCDFData':
                 generateCDFBins(oEvent.data.year);
                 break;
+        case 'getLocalCDFData':
+                genLocalCDFBins(oEvent.data.year);
+                break;
         }
 };
 
@@ -483,6 +486,29 @@ function generateCDFBins(year){
         //console.log("cell post normalize: " + dataValues);
 
         self.postMessage({type:'mapped', fnc:'updateCDFChart', densities:dataValues});
+}
+
+function genLocalCDFBins(year){
+        let pointMask = generateVillageMask();
+
+        var numCells = 0;
+        var dataValues = new Array(11);
+        for(let i = 0; i < dataValues.length; i++){
+                dataValues[i] = 0;
+        }
+
+        grid[year].forEach(function(element){
+                element.forEach(function(ele){
+                        numCells++;
+                        let temp = ele / (1.0 * simData.carryCapacity);
+                        if(temp > .99){
+                                dataValues[10]++;
+                        }
+                        else{
+                                dataValues[Math.floor(temp * 10)]++;
+                        }
+                });
+        });
 }
 
 function generateCSV(requestYear, callbackType){

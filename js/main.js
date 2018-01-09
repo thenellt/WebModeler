@@ -192,7 +192,6 @@ function changeToOutput(){
         let labelCheckBox = document.getElementById('popLabelToggle');
         pointVector.setVisible(labelCheckBox.checked);
         setTimeout(function(){
-                //$('#visualCollapsable').collapsible('open', 0);
                 map.updateSize();
         }, 50);
 }
