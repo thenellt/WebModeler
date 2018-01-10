@@ -18,7 +18,7 @@ function placePopulation(e){
         map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
                 tempFeatures.push(feature);
 
-        }, {hitTolerance: 5});
+        }, {hitTolerance: 3});
 
         if(!tempFeatures.length){
                 showPopEditor(e.coordinate);

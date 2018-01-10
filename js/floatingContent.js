@@ -17,6 +17,9 @@ function popEditorPassthrough(mode){
 }
 
 function clearPopEditor(){
+        document.getElementById("mapEditorExpPop").classList.remove('hide');
+        document.getElementById("mapEditorExpGrowth").classList.remove('hide');
+        document.getElementById("mapEditorYearlyPop").classList.add('hide');
         document.getElementById("floatLat").value = "";
         document.getElementById("floatLong").value = "";
         document.getElementById("floatPopName").value = "";
