@@ -345,7 +345,10 @@ function drawDebugBounds(bounds){
                 geometry: tempPolygon1
         });
 
-        var teststyle1 = new ol.style.Style({ stroke: new ol.style.Stroke({width: 1 })});
+        var teststyle1 = new ol.style.Style({
+                stroke: new ol.style.Stroke({width: 1 }),
+                fill: new ol.style.Fill({ color: [255, 0, 0, .5],})
+        });
         tempFeature1.setStyle(teststyle1);
         features.addFeature(tempFeature1);
 }

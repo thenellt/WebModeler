@@ -3,6 +3,9 @@
 var workerThread;
 var workerFunctions = {};
 
+const eaProjection = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
+const viewProjection = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs ";
+
 function setupSimDefaults(){
         simData.animalDiffRate = 0.1;
         simData.animalGrowthRate = 0.07;
@@ -200,6 +203,24 @@ function debugSetupSimulation(){
         changeToOutput();
 }
 
+function projectionTest(data){
+        proj4.defs('espg4326', viewProjection);
+        proj4.defs('mollweide', eaProjection);
+        let topLeft = proj4(proj4('mollweide'), proj4('espg4326'), data[0].slice());
+        let botRight = proj4(proj4('mollweide'), proj4('espg4326'), data[1].slice());
+
+        var current_projection = new ol.proj.Projection({code: "EPSG:4326"});
+        var new_projection = tile_layer.getSource().getProjection();
+        polygon_feature.getGeometry().transform(current_projection, new_projection);
+        var sphere = new ol.Sphere(6378137);
+        var area_m = sphere.geodesicArea(coordinates);
+        var area_km = area_m / 1000 / 1000;
+        console.log('area: ', area_km, 'km²');  
+
+        console.log("Projection test: " + topLeft + " and " + botRight);
+        drawDebugBounds([[topLeft[1], topLeft[0]], [botRight[1], botRight[0]]]);
+}
+
 function mapWorkerFunctions(){
         workerFunctions = {
                 'progress': function(data) {updateProgressBar(data.statusMsg, data.statusValue);},
@@ -207,6 +228,7 @@ function mapWorkerFunctions(){
                 'extentDebug': function(data) {drawDebugBounds(data.data);},
                 'singleCSV': function(data) {saveSingleCSV(data.csvString, data.year);},
                 'allYearsCSV': function(data) {saveAllYearsCSV(data.csvString, data.year);},
+                'projTest' : function(data) {projectionTest(data.coordinates);},
         };
 }
 

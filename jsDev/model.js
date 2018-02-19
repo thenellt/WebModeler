@@ -12,6 +12,12 @@ var years;
 var diffusionSamples;
 */
 
+self.importScripts('../js/proj4js.js');
+
+
+const eaProjection = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
+const viewProjection = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs ";
+
 var simData;
 
 //model only vars
@@ -31,6 +37,7 @@ onmessage = function(oEvent) {
         switch(oEvent.data.type){
         case 'newSim':
                 startWork(oEvent.data);
+                olTestFunction();
                 break;
         case 'genImage':
                 generateImageData(oEvent.data);
@@ -49,6 +56,16 @@ onmessage = function(oEvent) {
                 break;
         }
 };
+
+function olTestFunction(){
+        proj4.defs('espg4326', viewProjection);
+        proj4.defs('mollweide', eaProjection);
+        var topLeft = proj4(proj4('espg4326'), proj4('mollweide'), [15, 15]);
+        var botRight = [topLeft[0] + 1000, topLeft[1] - 1000];
+        logMessage("left top corner: " + topLeft);
+        logMessage("left top corner: " + botRight);
+        self.postMessage({type:'mapped', fnc:'projTest', coordinates:[topLeft, botRight]});
+}
 
 function startWork(data){
         unpackParams(data);
