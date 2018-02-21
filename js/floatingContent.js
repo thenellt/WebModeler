@@ -64,18 +64,18 @@ function closePopEditor(clear){
         window.removeEventListener('keyup', popupEvntFunction);
 
         if(!clear){ //user hit add and parameters have been checked
-                var tempLat = document.getElementById("floatLat").value;
-                var tempLong = document.getElementById("floatLong").value;
+                var tempLat = parseFloat(document.getElementById("floatLat").value);
+                var tempLong = parseFloat(document.getElementById("floatLong").value);
                 var tempName = document.getElementById("floatPopName").value;
-                var tempPop = document.getElementById("floatPop").value;
-                var tempKill = document.getElementById("floatKill").value;
-                var tempGrowth =  document.getElementById("floatGrowth").value;
+                var tempPop = parseInt(document.getElementById("floatPop").value);
+                var tempKill = parseFloat(document.getElementById("floatKill").value);
+                var tempGrowth =  parseFloat(document.getElementById("floatGrowth").value);
                 let tempDate = new Date();
                 var tempId = tempDate.valueOf();
                 //add the new population to model
                 var tempRow = new uiRow(tempLong, tempLat, tempPop, tempKill, tempName,
                                         tempGrowth, tempId, true);
-                addPopToMap(tempId, tempName, parseFloat(tempLong), parseFloat(tempLat));
+                addPopToMap(tempId, tempName, tempLong, tempLat);
                 addEntry(tempRow);
         }
 

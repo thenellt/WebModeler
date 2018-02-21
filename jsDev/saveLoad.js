@@ -88,7 +88,7 @@ function loadSimConfig(fileData){
         simData.lowColorCode = config.lowColorCode;
         simData.highColorCode = config.highColorCode;
         simData.diffusionSamples = config.diffusionSamples;
-        simData.opacity = config.opacity || 0.8;
+        simData.opacity = config.opacity || 1.0;
 
         //support saves with old color formatting
         if(simData.lowColorCode[0] !== '#'){

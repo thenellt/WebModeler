@@ -49,11 +49,10 @@ function readUserParameters(){
         }
 
         simData.theta = parseFloat(document.getElementById("paramTheta").value) || simData.theta;
-        console.log("diff sample input: " + document.getElementById("diffSamples").value);
         simData.diffusionSamples = parseInt(document.getElementById("diffSamples").value, 10) || simData.diffusionSamples;
         simData.opacity = parseFloat(document.getElementById("imgOpacity").value) || simData.opacity;
 
-        console.log("finished reading user input");
+        console.log("readUserParameters::finished reading user input");
 }
 
 function setupTowns(){
@@ -206,19 +205,40 @@ function debugSetupSimulation(){
 function projectionTest(data){
         proj4.defs('espg4326', viewProjection);
         proj4.defs('mollweide', eaProjection);
-        let topLeft = proj4(proj4('mollweide'), proj4('espg4326'), data[0].slice());
-        let botRight = proj4(proj4('mollweide'), proj4('espg4326'), data[1].slice());
+        for(let i = 0; i < data.length; i++){
+                for(let j = 0; j < data[0].length; j++){
+                        data[i][j] = proj4(proj4('mollweide'), proj4('espg4326'), data[i][j]);
+                }
+        }
 
+        //drawDebugBounds([data[0][0], data[0][1], data[1][1], data[1][0]]);
+        
+        for(let i = 0; i < data.length - 1; i++){
+                for(let j = 0; j < data[0].length - 1; j++){
+                        drawDebugBounds([data[i][j], data[i][j+1], data[i+1][j+1], data[i+1][j]]);
+                }
+        }
+        
+
+        /*
+        var geometry = [
+                tl,
+                [br[0], tl[1]],
+                br,
+                [tl[0], br[1]],
+                tl
+        ];
+        */
+        /*
         var current_projection = new ol.proj.Projection({code: "EPSG:4326"});
-        var new_projection = tile_layer.getSource().getProjection();
-        polygon_feature.getGeometry().transform(current_projection, new_projection);
         var sphere = new ol.Sphere(6378137);
-        var area_m = sphere.geodesicArea(coordinates);
+        var area_m = sphere.geodesicArea(geometry, current_projection);
         var area_km = area_m / 1000 / 1000;
         console.log('area: ', area_km, 'km²');  
 
-        console.log("Projection test: " + topLeft + " and " + botRight);
-        drawDebugBounds([[topLeft[1], topLeft[0]], [botRight[1], botRight[0]]]);
+        console.log("Projection test: " + tl + " and " + br);
+        drawDebugBounds([[tl], [br]]);
+        */
 }
 
 function mapWorkerFunctions(){

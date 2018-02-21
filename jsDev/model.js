@@ -18,6 +18,9 @@ self.importScripts('../js/proj4js.js');
 const eaProjection = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
 const viewProjection = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs ";
 
+proj4.defs('espg4326', viewProjection);
+proj4.defs('mollweide', eaProjection);
+
 var simData;
 
 //model only vars
@@ -30,6 +33,7 @@ var diffusionGrid;
 var growth;
 var effort;
 var towns;
+var eaPointSet = [];
 var points = [];
 var geoGrid = [[[]]];
 
@@ -58,22 +62,25 @@ onmessage = function(oEvent) {
 };
 
 function olTestFunction(){
-        proj4.defs('espg4326', viewProjection);
-        proj4.defs('mollweide', eaProjection);
-        var topLeft = proj4(proj4('espg4326'), proj4('mollweide'), [15, 15]);
-        var botRight = [topLeft[0] + 1000, topLeft[1] - 1000];
-        logMessage("left top corner: " + topLeft);
-        logMessage("left top corner: " + botRight);
-        self.postMessage({type:'mapped', fnc:'projTest', coordinates:[topLeft, botRight]});
+        var data = [];
+        var startingPoint = proj4(proj4('espg4326'), proj4('mollweide'), [-121, 44]);
+        for(let i = 0; i < 11; i++){
+                data.push([]);
+                for(let j = 0; j < 11; j++){
+                        data[i].push([startingPoint[0] + 1000 * i, startingPoint[1] - 1000 * j]);
+                }
+        }
+
+        self.postMessage({type:'mapped', fnc:'projTest', coordinates:data});
 }
 
 function startWork(data){
         unpackParams(data);
-        let bounds = generateBounds(30 + simData.huntRange);
+        let bounds = generateBounds(15 + simData.huntRange);
         //self.postMessage({type:'mapped', fnc:'extentDebug', data:bounds});
         generategeoGrid(bounds);
         allocateMemory();
-        placeLocations(geoGrid, points);
+        placeLocations(geoGrid, eaPointSet);
         runSimulation();
 }
 
@@ -114,41 +121,38 @@ function allocateMemory(){
 }
 
 function generateBounds(range){
-        //console.log("range: " + range);
-        var topLeft = points[0].slice(0);
-        var botRight = points[0].slice(0);
+        eaPointSet = [];
+        for(let i = 0; i < points.length; i++)
+                eaPointSet.push(proj4(proj4('espg4326'), proj4('mollweide'), points[i]));
 
-        for(var i = 1; i < points.length; i++){
+        var topLeft = eaPointSet[0].slice(0);
+        var botRight = eaPointSet[0].slice(0);
+
+        for(let i = 1; i < eaPointSet.length; i++){
 
                 //console.log("array point: " + points[i][0] +  ", " + points[i][1]);
                 //console.log("top Left: " + topLeft[0] +  ", " + topLeft[1]);
 
-                if(points[i][0] < topLeft[0]){
+                if(eaPointSet[i][0] < topLeft[0]){
                         //console.log("type of orig: " + (typeof topLeft[0]) + " type of new: " + (typeof points[i][0]));
                         //console.log("replacing " + topLeft[0] +  " with " + points[i][0]);
-                        topLeft[0] = points[i][0];
+                        topLeft[0] = eaPointSet[i][0];
                 }
-                else if(points[i][0] > botRight[0]){
-                        botRight[0] = points[i][0];
+                else if(eaPointSet[i][0] > botRight[0]){
+                        botRight[0] = eaPointSet[i][0];
                 }
 
-                if(points[i][1] > topLeft[1]){
-                        topLeft[1] = points[i][1];
+                if(eaPointSet[i][1] > topLeft[1]){
+                        topLeft[1] = eaPointSet[i][1];
                 }
-                else if(points[i][1] < botRight[1]){
-                        botRight[1] = points[i][1];
+                else if(eaPointSet[i][1] < botRight[1]){
+                        botRight[1] = eaPointSet[i][1];
                 }
                 console.log("");
         }
 
-        var topOffset = [];
-        var botOffset = [];
-
-        topOffset = destEllipse(topLeft[1], topLeft[0], 0, range);
-        topOffset = destEllipse(topOffset[0], topOffset[1], 270, range);
-
-        botOffset = destEllipse(botRight[1], botRight[0], 180, range);
-        botOffset = destEllipse(botOffset[0], botOffset[1], 90, range);
+        var topOffset = [topLeft[0] - 1000 * range, topLeft[1] + 1000 * range];
+        var botOffset = [botRight[0] + 1000 * range, botRight[1] - 1000 * range];
 
         logMessage("***********offsets**************");
         logMessage("topLeft: " + topOffset[0] + ", " + topOffset[1]);
@@ -176,51 +180,18 @@ function generateBounds(range){
 }
 
 function generategeoGrid(extremePoints){
-        geoGrid = [[[]]];
-        geoGrid[0][0] = [extremePoints[0][0], extremePoints[0][1]];
-        //console.log("grid 0,0: " + geoGrid[0][0]);
-        var x = extremePoints[0][1];
-        var y = extremePoints[0][0];
-        var i = 0;
-        var j = 0;
-        var temp = [];
+        geoGrid = [];
 
-        while(y > extremePoints[1][0]){
-                while(x < extremePoints[1][1]){
-                        //console.log("starting point: " + geoGrid[j][i][0] + ", " + geoGrid[j][i][1]);
-                        temp = destEllipse(geoGrid[j][i][0], geoGrid[j][i][1], 90, 1);
-                        //console.log("temp: " + [temp[0], temp[1]]);
-                        geoGrid[j].push([temp[0], temp[1]]);
-                        //console.log(geoGrid[j]);
-                        x = temp[1];
-                        i++;
-                }
-                temp = destEllipse(geoGrid[j][i][0], geoGrid[j][i][1], 90, 1);
-                geoGrid[j].push([temp[0], temp[1]]);
-                i = 0;
-                x = extremePoints[0][1];
+        const width = 1 + Math.abs(extremePoints[1][0] - extremePoints[0][0]) / 1000;
+        const height = 1 + Math.abs(extremePoints[0][1] - extremePoints[1][1]) / 1000;
+        logMessage("geoGrid size: " + width + " x " + height);
 
-
-                temp = destEllipse(geoGrid[j][i][0], geoGrid[j][i][1], 180, 1);
-                j++;
-                y = temp[0];
-                //console.log("starting point: " + geoGrid[0][0] + " new y: " + temp);
+        for(let i = 0; i < height + 1; i++){
                 geoGrid.push([]);
-                geoGrid[j].push([temp[0], temp[1]]);
-
-
+                for(let j = 0; j < width + 1; j++){
+                        geoGrid[i].push([extremePoints[0][0] + 1000 * j, extremePoints[0][1] + 1000 * i]);
+                }
         }
-
-        while(x < extremePoints[1][1]){
-                temp = destEllipse(geoGrid[j][i][0], geoGrid[j][i][1], 90, 1);
-                geoGrid[j].push([temp[0], temp[1]]);
-                x = temp[1];
-                i++;
-        }
-        temp = destEllipse(geoGrid[j][i][0], geoGrid[j][i][1], 90, 1);
-        geoGrid[j].push([temp[0], temp[1]]);
-
-        logMessage("geoGrid size: " + geoGrid[0].length + " x " + geoGrid.length);
 }
 
 

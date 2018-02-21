@@ -329,16 +329,13 @@ function setupOlInputMap(){
 }
 
 function drawDebugBounds(bounds){
-        let topOffset = bounds[0];
-        let botOffset = bounds[1];
-
         var tempPolygon1 = new ol.geom.Polygon([[
-                                [topOffset[1], topOffset[0]],
-                                [topOffset[1], botOffset[0]],
-                                [botOffset[1], botOffset[0]],
-                                [botOffset[1], topOffset[0]],
-                                [topOffset[1], topOffset[0]]
-                        ]]);
+                bounds[0],
+                bounds[1],
+                bounds[2],
+                bounds[3],
+                bounds[0]
+        ]]);
 
         var tempFeature1 = new ol.Feature({
                 name: ("debugSquare"),
@@ -351,16 +348,6 @@ function drawDebugBounds(bounds){
         });
         tempFeature1.setStyle(teststyle1);
         features.addFeature(tempFeature1);
-}
-
-
-function getExtent(){
-        console.log("button clicked");
-        console.log(ol.geom.Polygon.fromExtent(map.getView().calculateExtent(map.getSize())));
-        var coords = map.getView().calculateExtent(map.getSize());
-        console.log(coords[0] + ", " + coords[3]);
-        //map.getView().setCenter(ol.proj.transform([long, lat], 'EPSG:4326', 'EPSG:3857'));
-        map.getView().setCenter([coords[0],coords[3]]);
 }
 
 function generateCanvas(year, scale, imgArray, dest){
