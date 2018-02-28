@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"> <!-- manifest="manifest.appcache" -->
+<html lang="en" manifest="manifest.appcache">
 <head>
         <meta charset="UTF-8">
         
@@ -243,8 +243,19 @@
                                                 <div class="collapsible-header active"><i class="material-icons">map</i>Heatmap with Sattelite Overlay</div>
                                                 <div class="collapsible-body">
                                                         <div class="row" style="margin-bottom: 4px;">
-                                                                <div class="col s9">
+                                                                <div class="col s7">
                                                                         The saved image will look as you see it below. Zoom or pan the map preview to select the area to save.
+                                                                </div>
+                                                                <div class="col s2" id="debugVisControlBox" style="visibility: hidden">
+                                                                        Debug View
+                                                                        <div class="switch" style="margin-top: 4px;">
+                                                                                <label>
+                                                                                        Off
+                                                                                        <input type="checkbox" onchange="toggleDebugLayer(this)" checked="true" id="debugViewToggle">
+                                                                                        <span class="lever"></span>
+                                                                                        On
+                                                                                </label>
+                                                                        </div>
                                                                 </div>
                                                                 <div class="col s3">
                                                                         <a class="waves-effect waves-light btn" onclick="openFullscreenViewer()">Fullscreen</a>
@@ -429,6 +440,22 @@
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Sets how transparent the heatmap overlay is over the background map."><i>?</i></a></div>
                                         </div>
                                 </li>
+                                <li class="collection-item">
+                                        <div class="row" style="margin-bottom: 0;">
+                                                <div class="col s8"><h5>Project Debug Mode:</h5></div>
+                                                <div class="col s3">
+                                                        <div class="switch">
+                                                                <label>
+                                                                        Off
+                                                                        <input type="checkbox" checked="false" onchange="toggleDebugControl(this)" id="debugModeToggle">
+                                                                        <span class="lever"></span>
+                                                                        On
+                                                                </label>
+                                                        </div>
+                                                </div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Draw extra heatmap allignment information. Used for debugging accuracy."><i>?</i></a></div>
+                                        </div>
+                                </li>
                         </ul>
 
                 </div>
@@ -513,7 +540,20 @@
 
         <div id="fullScreenMap" class="modal modal-fixed-footer modal-fullscreen">
                 <div class="modal-content">
-                        <h4 id="mapViewerTitle">Fullscreen Map Viewer</h4>
+                        <div class="row">
+                                <div class="col s10"><h4 id="mapViewerTitle">Fullscreen Map Viewer</h4></div>
+                                <div class="col s2" id="debugVisFControlBox" style="visibility: hidden">
+                                        Debug View
+                                        <div class="switch" style="margin-top: 4px;">
+                                                <label>
+                                                        Off
+                                                        <input type="checkbox" onchange="toggleDebugLayer(this)" checked="true" id="debugViewToggle">
+                                                        <span class="lever"></span>
+                                                        On
+                                                </label>
+                                        </div>
+                                </div>
+                        </div>
                         <div id="mapViewerContent">
                                 <div id="viewerMapContainer"></div>
                                 <div class="divider" style="margin: 4px 0px 4px 0px;"></div>

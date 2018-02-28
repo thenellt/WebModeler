@@ -489,8 +489,9 @@ function populatePersistSaves(){
         if(saves){
                 if(saves.length > 1){
                         saves.sort(function (a, b) {
-                                return a.modified - b.modified;
+                                return Date.parse(a.modified) - Date.parse(b.modified);
                         });
+
                         saves.reverse();
                 }
 

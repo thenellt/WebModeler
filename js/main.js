@@ -22,12 +22,14 @@ $(document).ready(function() {
                 ready: showAdvancedSettings
         });
         $('#floatingPopEditor').modal({dismissible: false});
-        
+        $('#debugModeToggle').prop('checked', false);
         setupTabs();
         setupPersistConfigs();
         populatePersistSaves();
         mapWorkerFunctions();
         checkCompatibility();
+        setupWorker();
+        setupOlInputMap();
 });
 
 function setupTabs(){
@@ -94,6 +96,7 @@ function resetSimulation(){
                         //map.updateSize();
                         addPopFunction = map.on('click', placePopulation);
                         imageLayer.setVisible(false);
+                        debugVector.setVisible(false);
                 }
 
                 var cleanup = document.getElementById("rawHeatmapContainer");
@@ -144,8 +147,8 @@ function changeToPopulations(){
                 //map.updateSize();
                 addPopFunction = map.on('click', placePopulation);
                 imageLayer.setVisible(false);
+                debugVector.setVisible(false);
                 pointVector.setVisible(true);
-                geoLayer.setVisible(false);
         }
         else{
                 changeTab('popSetup');
@@ -179,7 +182,7 @@ function changeToOutput(){
 
         if(simulationRun){
                 imageLayer.setVisible(true);
-                //geoLayer.setVisible(true);
+                debugVector.setVisible(true);
         }
         else{
                 simulationRun = 1;
@@ -212,7 +215,6 @@ function closeNotifyMessage(){
 }
 
 function showProgressBar(message, value){
-        console.log("showing progress bar");
         document.getElementById("progressText").innerHTML = message;
         document.getElementById("progressBar").style.width = value;
 
@@ -222,7 +224,6 @@ function showProgressBar(message, value){
 }
 
 function updateProgressBar(message, value){
-        console.log("updating progress bar: " + message + " val: " + value);
         document.getElementById("progressText").innerHTML = message;
         document.getElementById("progressBar").style.width = value + "%";
 }
@@ -390,3 +391,13 @@ function checkInt(rawValue, min, max){
         return false;
 }
 
+function toggleDebugControl(element){
+        if(element.checked){
+                $("#debugVisControlBox").css('visibility', 'visible');
+                $("#debugVisFControlBox").css('visibility', 'visible');
+        }
+        else{
+                $("#debugVisControlBox").css('visibility', 'hidden');
+                $("#debugVisFControlBox").css('visibility', 'hidden');
+        }
+}

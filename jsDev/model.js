@@ -14,7 +14,7 @@ var diffusionSamples;
 
 self.importScripts('../js/proj4js.js');
 
-
+var DEBUG;
 const eaProjection = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
 const viewProjection = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs ";
 
@@ -41,7 +41,6 @@ onmessage = function(oEvent) {
         switch(oEvent.data.type){
         case 'newSim':
                 startWork(oEvent.data);
-                olTestFunction();
                 break;
         case 'genImage':
                 generateImageData(oEvent.data);
@@ -61,42 +60,38 @@ onmessage = function(oEvent) {
         }
 };
 
-function olTestFunction(){
-        var data = [];
-        var startingPoint = proj4(proj4('espg4326'), proj4('mollweide'), [-121, 44]);
-        for(let i = 0; i < 11; i++){
-                data.push([]);
-                for(let j = 0; j < 11; j++){
-                        data[i].push([startingPoint[0] + 1000 * i, startingPoint[1] - 1000 * j]);
-                }
-        }
-
-        self.postMessage({type:'mapped', fnc:'projTest', coordinates:data});
-}
-
-function startWork(data){
-        unpackParams(data);
+function startWork(parameters){
+        unpackParams(parameters);
         let bounds = generateBounds(15 + simData.huntRange);
-        //self.postMessage({type:'mapped', fnc:'extentDebug', data:bounds});
         generategeoGrid(bounds);
         allocateMemory();
-        placeLocations(geoGrid, eaPointSet);
+        placeLocations();
         runSimulation();
 }
 
 function unpackParams(data){
-        //unpack towns
+        //unpack towns and reproject them
+        points = [];
         simData = data.params;
         towns = data.towns;
-        for(var g = 0; g < towns.length; g++){
+        for(var g = 0; g < towns.length; g++)
                 points.push([towns[g].long, towns[g].lat]);
+
+        eaPointSet = [];
+        for(let i = 0; i < points.length; i++)
+                eaPointSet.push(proj4(proj4('espg4326'), proj4('mollweide'), points[i]));
+        
+        if(data.debug){
+                logMessage("unpackParams: debugMode set");
+                DEBUG = true;  
         }
+        else
+                DEBUG = false;
 }
 
-//dependent on readUserParameters
 function allocateMemory(){
         ySize = geoGrid.length;
-        xSize = geoGrid[ySize - 1].length;
+        xSize = geoGrid[0].length;
 
         grid = new Array(simData.years + 1);
 
@@ -116,66 +111,38 @@ function allocateMemory(){
                 growth[k] = new Array(xSize).fill(0.0);
                 effort[k] = new Array(xSize).fill(0.0);
         }
-
-        //console.log("Successfully allocated memory");
 }
 
 function generateBounds(range){
-        eaPointSet = [];
-        for(let i = 0; i < points.length; i++)
-                eaPointSet.push(proj4(proj4('espg4326'), proj4('mollweide'), points[i]));
-
         var topLeft = eaPointSet[0].slice(0);
         var botRight = eaPointSet[0].slice(0);
 
         for(let i = 1; i < eaPointSet.length; i++){
-
-                //console.log("array point: " + points[i][0] +  ", " + points[i][1]);
-                //console.log("top Left: " + topLeft[0] +  ", " + topLeft[1]);
-
-                if(eaPointSet[i][0] < topLeft[0]){
-                        //console.log("type of orig: " + (typeof topLeft[0]) + " type of new: " + (typeof points[i][0]));
-                        //console.log("replacing " + topLeft[0] +  " with " + points[i][0]);
+                if(eaPointSet[i][0] < topLeft[0])
                         topLeft[0] = eaPointSet[i][0];
-                }
-                else if(eaPointSet[i][0] > botRight[0]){
+                else if(eaPointSet[i][0] > botRight[0])
                         botRight[0] = eaPointSet[i][0];
-                }
 
-                if(eaPointSet[i][1] > topLeft[1]){
+                if(eaPointSet[i][1] > topLeft[1])
                         topLeft[1] = eaPointSet[i][1];
-                }
-                else if(eaPointSet[i][1] < botRight[1]){
+                else if(eaPointSet[i][1] < botRight[1])
                         botRight[1] = eaPointSet[i][1];
-                }
-                console.log("");
         }
 
-        var topOffset = [topLeft[0] - 1000 * range, topLeft[1] + 1000 * range];
+        var topOffset = [];
+        topOffset[0] = topLeft[0] - (1000 * range);
+        topOffset[1] = topLeft[1] + (1000 * range);
         var botOffset = [botRight[0] + 1000 * range, botRight[1] - 1000 * range];
 
-        logMessage("***********offsets**************");
-        logMessage("topLeft: " + topOffset[0] + ", " + topOffset[1]);
-        logMessage("botRight: " + botOffset[0] + ", " + botOffset[1]);
+        if(DEBUG){
+                self.postMessage({type:'mapped', fnc:'pointDebug', data: {
+                        point:proj4(proj4('mollweide'), proj4('espg4326'), topOffset), color: "#6bf442"
+                }});
+                self.postMessage({type:'mapped', fnc:'pointDebug', data: {
+                        point:proj4(proj4('mollweide'), proj4('espg4326'), botOffset), color: "#e8f441"
+                }});
+        }
 
-        /*
-        var tempPolygon1 = new ol.geom.Polygon([[
-                                [topOffset[1], topOffset[0]],
-                                [topOffset[1], botOffset[0]],
-                                [botOffset[1], botOffset[0]],
-                                [botOffset[1], topOffset[0]],
-                                [topOffset[1], topOffset[0]]
-                        ]]);
-
-        var tempFeature1 = new ol.Feature({
-                name: ("pos" + counter++),
-                geometry: tempPolygon1
-        });
-
-        var teststyle1 = new ol.style.Style({ stroke: new ol.style.Stroke({width: 1 })});
-        tempFeature1.setStyle(teststyle1);
-        features.addFeature(tempFeature1);
-        */
         return [topOffset, botOffset];
 }
 
@@ -184,100 +151,73 @@ function generategeoGrid(extremePoints){
 
         const width = 1 + Math.abs(extremePoints[1][0] - extremePoints[0][0]) / 1000;
         const height = 1 + Math.abs(extremePoints[0][1] - extremePoints[1][1]) / 1000;
-        logMessage("geoGrid size: " + width + " x " + height);
+        logMessage("generategeoGrid: geoGrid size: " + width + " x " + height);
 
         for(let i = 0; i < height + 1; i++){
                 geoGrid.push([]);
                 for(let j = 0; j < width + 1; j++){
-                        geoGrid[i].push([extremePoints[0][0] + 1000 * j, extremePoints[0][1] + 1000 * i]);
+                        geoGrid[i].push([extremePoints[0][0] + 1000 * j, extremePoints[0][1] - 1000 * i]);
                 }
+        }
+
+        const xSize = geoGrid[0].length - 1;
+        const ySize = geoGrid.length - 1;
+
+        if(DEBUG){
+                self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                        points:[geoGrid[0][0], geoGrid[0][xSize], geoGrid[ySize][xSize], geoGrid[ySize][0]], color:[255, 0, 0, .2]
+                }});
+                self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                        points:[geoGrid[ySize - 2][xSize - 2], geoGrid[ySize - 2][xSize - 1], geoGrid[ySize - 1][xSize - 1], geoGrid[ySize - 1][xSize - 2]], color:[255, 0, 0, .5]
+                }});
+                self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                        points:[geoGrid[ySize - 1][xSize - 1], geoGrid[ySize - 1][xSize], geoGrid[ySize][xSize], geoGrid[ySize][xSize - 1]], color:[255, 0, 0, .5]
+                }});
+                self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                        points:[geoGrid[0][0], geoGrid[0][1], geoGrid[1][1], geoGrid[1][0]], color:[255, 0, 0, .5]
+                }});
+                self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                        points:[geoGrid[0][xSize - 1], geoGrid[0][xSize], geoGrid[1][xSize], geoGrid[1][xSize - 1]], color:[255, 0, 0, .5]
+                }});
+                self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                        points:[geoGrid[ySize - 1][0], geoGrid[ySize - 1][1], geoGrid[ySize][1], geoGrid[ySize][0]], color:[255, 0, 0, .5]
+                }});
         }
 }
 
 
-function placeLocations(matrix, pointSet){
-        //console.log("first point: " + pointSet[0]);
-        //console.log("corner: " + matrix[0][0]);
+function placeLocations(){
         //for each location we find best fitting 1km x 1km square
-        for(var i = 0; i < pointSet.length; i++){
+        for(var i = 0; i < eaPointSet.length; i++){
                 let x = 0;
                 let y = 0;
-                while(matrix[y][0][0] > pointSet[i][1]){
-                        y++;
-                }
-
-                while(matrix[y][x][1] < pointSet[i][0]){
+                while(geoGrid[0][x][0] < eaPointSet[i][0])
                         x++;
+
+                while(geoGrid[y][0][1] > eaPointSet[i][1])
+                        y++;
+
+                y -= 1;
+                x -= 1;
+
+                if(DEBUG){
+                        logMessage("placeLocations: place pop: " + eaPointSet[i] + " at: " + x + ", " + y);
+                        self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                                points:[geoGrid[y][x], geoGrid[y][x+1], geoGrid[y+1][x+1], geoGrid[y+1][x]], color:[66, 134, 244, .7]
+                        }});
+
+                        const loc = [geoGrid[y][x][0] + 500, geoGrid[y][x][1] - 500];
+                        const coordinates = generateCircleCoords(loc, simData.huntRange);
+                        self.postMessage({type:'mapped', fnc:'circleDebug', data: {points:coordinates, color: [0, 0, 255, .3]}});
                 }
 
-                //console.log("placing point " + pointSet[i] + " at: " + x + ", " + y);
-                pointSet[i].push(y - 1);
-                towns[i].y = (y - 1);
-                pointSet[i].push(x - 1);
-                towns[i].x = (x - 1);
+                towns[i].y = y;
+                towns[i].x = x;
         }
-}
-
-function destEllipse(lat1, lon1, bearing, distance) {
-        var point = [0.0, 0.0, 0.0, 0.0];
-        var brg = new Array(0, 180, 0);
-        brg[0] = bearing;
-        var j=0;
-        if (lat1 == 90) {
-                lat1 = 89.999999999;
-                j=1;
-        }
-        if (lat1 == -90) {
-                lat1 = -89.999999999;
-                j=2;
-        }
-        lat1 = rad(lat1);
-        lon1 = rad(lon1);
-        brg[j] = rad(brg[j]);
-        var s = distance;
-        var a = 6378137;
-        var b = a - (a/298.257223563);
-
-        s *= 1000;
-        var cs1, ds1, ss1, cs1m;
-        var f = 1/298.257223563;
-        var sb=Math.sin(brg[j]);
-        var cb=Math.cos(brg[j]);
-        var tu1=(1-f)*Math.tan(lat1);
-        var cu1=1/Math.sqrt((1+tu1*tu1));
-        var su1=tu1*cu1;
-        var s2=Math.atan2(tu1, cb);
-        var sa = cu1*sb;
-        var csa=1-sa*sa;
-        var us=csa*(a*a - b*b)/(b*b);
-        var A=1+us/16384*(4096+us*(-768+us*(320-175*us)));
-        var B = us/1024*(256+us*(-128+us*(74-47*us)));
-        var s1=s/(b*A);
-        var s1p = 2*Math.PI;
-        while (Math.abs(s1-s1p) > 1e-12) {
-                cs1m=Math.cos(2*s2+s1);
-                ss1=Math.sin(s1);
-                cs1=Math.cos(s1);
-                ds1=B*ss1*(cs1m+B/4*(cs1*(-1+2*cs1m*cs1m)- B/6*cs1m*(-3+4*ss1*ss1)*(-3+4*cs1m*cs1m)));
-                s1p=s1;
-                s1=s/(b*A)+ds1;
-        }
-        var t=su1*ss1-cu1*cs1*cb;
-        var lat2=Math.atan2(su1*cs1+cu1*ss1*cb, (1-f)*Math.sqrt(sa*sa + t*t));
-        var l2=Math.atan2(ss1*sb, cu1*cs1-su1*ss1*cb);
-        var c=f/16*csa*(4+f*(4-3*csa));
-        var l=l2-(1-c)*f*sa* (s1+c*ss1*(cs1m+c*cs1*(-1+2*cs1m*cs1m)));
-        //var d=Math.atan2(sa, -t);
-        //point[2] = d+2*Math.PI;
-        //point[3] = d+Math.PI;
-        point[0] = deg(lat2);
-        point[1] = deg(normalizeLongitude(lon1+l));
-
-        return point;
 }
 
 function runSimulation(){
-        logMessage("Starting " + simData.years + " year(s) model with " + simData.diffusionSamples + " samples");
+        logMessage("runSimulation: Starting run. Years: " + simData.years + " samples: " + simData.diffusionSamples);
         var top, bot, locationValue;
         var up, down, center, right, left;
         var x, y;
@@ -289,7 +229,7 @@ function runSimulation(){
                 for(var i = 0; i < simData.diffusionSamples; i++){
                         for(y = 1; y < ySize - 1; y++){
                                 for(x = 1; x < xSize - 1; x++){
-                                        if(i !== 0){
+                                        if(i){
                                                 //diffusionGrid[y][x] += (animalDiffRate*(a + b) + (1-4*animalDiffRate)*(c + animalDiffRate*(d + e)))/diffusionSamples;
                                                 up     = grid[curYear][y+1][x] + diffusionGrid[y+1][x];
                                                 down   = grid[curYear][y-1][x] + diffusionGrid[y-1][x];
@@ -352,23 +292,16 @@ function runSimulation(){
                         }
                 }
 
-                for(y = 0; y < ySize; y++){
-                        for(x = 0; x < xSize; x++){
-                                if(grid[curYear + 1][y][x] < 0){
+                for(y = 0; y < ySize; y++)
+                        for(x = 0; x < xSize; x++)
+                                if(grid[curYear + 1][y][x] < 0)
                                         grid[curYear + 1][y][x] = 0;
-                                }
-                        }
-                }
 
-                let message = {type:'mapped', fnc:'progress', statusMsg:"Finished Year " + curYear, statusValue: 100 * (curYear / simData.years)};
-                self.postMessage(message);
+                logMessage("runSimulation: finished year " + curYear);
+                self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Finished Year " + curYear, statusValue: 100 * (curYear / simData.years)});
         }
 
-        //Send finished, send back data
-        let finishedData = {xSize:xSize, ySize:ySize, geoGrid:geoGrid, townData:towns};
-
-        let message = {type:'finished', paramData:finishedData};
-        self.postMessage(message);
+        self.postMessage({type:'finished', paramData:{xSize:xSize, ySize:ySize, geoGrid:geoGrid, townData:towns}});
 }
 
 function generateImageData(params){
@@ -382,14 +315,14 @@ function generateImageData(params){
         for(var y = 0; y < ySize; y++) {
                 for(var row = 0; row < scale; row++){
                         for(var x = 0; x < xSize; x++) {
-                                //TODO talk to Taal about using floor vs ceiling
+                                //TODO talk about using floor vs ceiling
                                 var gradientPosition = Math.ceil(gradientSteps * (1 - (grid[params.year][y][x] / simData.carryCapacity)));
                                 if(gradientPosition < 0 || !gradientPosition){
                                         for(let s = 0; s < scale; s++){
                                                 imgData[pos] = gradient[0][0];
                                                 imgData[pos + 1] = gradient[0][1];
                                                 imgData[pos + 2] = gradient[0][2];
-                                                imgData[pos + 3] = 255;
+                                                imgData[pos + 3] = gradient[0][3];
                                                 pos += 4;
                                         }
                                 }
@@ -398,16 +331,16 @@ function generateImageData(params){
                                                 imgData[pos] = gradient[gradientPosition][0];           // some R value [0, 255]
                                                 imgData[pos + 1] = gradient[gradientPosition][1];           // some G value
                                                 imgData[pos + 2] = gradient[gradientPosition][2];           // some B value
-                                                imgData[pos + 3] = 255;
+                                                imgData[pos + 3] = gradient[gradientPosition][3];
                                                 pos += 4;
                                         }
                                 }
                         }
                 }
         }
-        logMessage("imgdata test: " + imgData.length + " correct length: " + (xSize * scale) * (ySize * scale) * 4);
 
-        self.postMessage({type:'imgData', year:params.year, scale:params.scale, dest:params.dest, array:imgData}, [imgData.buffer]);
+        const posArray = [geoGrid[ySize - 1][0][0], geoGrid[ySize - 1][0][1], geoGrid[0][xSize - 1][0], geoGrid[0][xSize - 1][1]];
+        self.postMessage({type:'imgData', year:params.year, scale:params.scale, dest:params.dest, position:posArray, array:imgData}, [imgData.buffer]);
 }
 
 function setupGradient(){
@@ -422,8 +355,6 @@ function setupGradient(){
         coolColor[1] = parseInt(simData.lowColorCode.substring(3, 5) , 16);
         coolColor[2] = parseInt(simData.lowColorCode.substring(5, 7) , 16);
 
-        //console.log("hot color: " + hotColor + " and cool color: " + coolColor);
-
         var redRange = hotColor[0] - coolColor[0];
         var greenRange = hotColor[1] - coolColor[1];
         var blueRange = hotColor[2] - coolColor[2];
@@ -436,42 +367,38 @@ function setupGradient(){
                 tempColor[0] = Math.round(redRange * colorOffset) + coolColor[0];
                 tempColor[1] = Math.round(greenRange * colorOffset) + coolColor[1];
                 tempColor[2] = Math.round(blueRange * colorOffset) + coolColor[2];
+                tempColor[3] = 255;
                 gradient.push(tempColor.slice());
         }
 
-        //console.log(gradient);
+        gradient[0][3] = 0;
+        gradient[1][3] = 50;
+        gradient[2][3] = 100;
+        gradient[3][3] = 150;
+        gradient[4][3] = 200;
+
         return gradient;
 }
 
 function generateCDFBins(year){
         var numCells = 0;
         var dataValues = new Array(11);
-        for(let i = 0; i < dataValues.length; i++){
+        for(let i = 0; i < dataValues.length; i++)
                 dataValues[i] = 0;
-        }
-
-        //console.log("dataValues starting: " + dataValues);
 
         grid[year].forEach(function(element){
                 element.forEach(function(ele){
                         numCells++;
                         let temp = ele / (1.0 * simData.carryCapacity);
-                        if(temp > .99){
+                        if(temp > .99)
                                 dataValues[10]++;
-                        }
-                        else{
+                        else
                                 dataValues[Math.floor(temp * 10)]++;
-                        }
                 });
         });
 
-        //console.log("num cells counted: " + numCells);
-        //console.log("cell values: " + dataValues);
-        for(let i = 0; i < dataValues.length; i++){
+        for(let i = 0; i < dataValues.length; i++)
                 dataValues[i] = parseFloat(dataValues[i] / (1.0 *numCells));
-        }
-
-        //console.log("cell post normalize: " + dataValues);
 
         self.postMessage({type:'mapped', fnc:'updateCDFChart', densities:dataValues});
 }
@@ -509,8 +436,6 @@ function generateCSV(requestYear, callbackType){
         self.postMessage({type:'mapped', fnc:callbackType, csvString:outputString, year:requestYear});
 }
 
-/******** Helper Functions **********/
-
 function getTownPop(town, year){
         if(town.type === "exp"){
                 return town.population*Math.pow(1 + town.growthRate, year);
@@ -520,25 +445,25 @@ function getTownPop(town, year){
         }
 }
 
-function deg(rd) {
-        return (rd* 180 / Math.PI);
-}
-
-function rad(dg) {
-        return (dg* Math.PI / 180);
-}
-
-function normalizeLongitude(lon) {
-        var n=Math.PI;
-        if (lon > n) {
-                lon = lon - 2*n;
-        } else if (lon < -n) {
-                lon = lon + 2*n;
-        }
-        return lon;
-}
-
 function logMessage(msgString){
         let message = {type:'debug', statusMsg: msgString};
         self.postMessage(message);
+}
+
+function generateCircleCoords(center, radius){
+        var coordinates = [];   
+        var angle = 0;
+        for(let i = 0; i < 36; i++, angle += (Math.PI * 2)/36){
+                const xMod = Math.cos(angle) * (radius * 1000);
+                const yMod = Math.sin(angle) * (radius * 1000);
+                coordinates.push([center[0] + xMod, center[1] + yMod]);
+        }
+
+        coordinates.push([coordinates[0][0], coordinates[0][1]]);
+
+        let translatedCoordinates = [];
+        for(let i = 0; i < coordinates.length; i++)
+                translatedCoordinates.push(proj4(proj4('mollweide'), proj4('espg4326'), coordinates[i]));
+
+        return translatedCoordinates;
 }

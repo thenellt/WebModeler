@@ -1,17 +1,23 @@
 /* global ol uiData API_KEYS simData simResults*/
 
+const eaProjection = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
+const viewProjection = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs ";
+
+proj4.defs('espg4326', viewProjection);
+proj4.defs('mollweide', eaProjection);
+
 var map;
 var features;
-var geoLayer;
 var geoGridFeatures;
 var source = new ol.source.Vector({wrapX: false});
-//var popLabelFeatures = [];
+var debugSource = new ol.source.Vector({wrapX: false});
+var scaleLineControl = new ol.control.ScaleLine();
+var debugVector;
 var pointVector;
 var canvas;
 var canvasImage;
 var imageLayer;
 var addPopFunction;
-var geoDebugMode = 0;
 
 function placePopulation(e){
         var tempFeatures = [];
@@ -34,7 +40,6 @@ function placePopulation(e){
                 }
         }
 }
-
 
 function removePopFromMapById(popId){
         var features = source.getFeatures();
@@ -61,82 +66,6 @@ function addPopToMap(popId, popName, long, lat, isYearly){
                 tempFeature.setStyle(styleFunction);
         }
         source.addFeature(tempFeature);
-}
-
-function destEllipse(lat1, lon1, bearing, distance) {
-        var point = [0.0, 0.0, 0.0, 0.0];
-        var brg = new Array(0, 180, 0);
-        brg[0] = bearing;
-        var j=0;
-        if (lat1 == 90) {
-                lat1 = 89.999999999;
-                j=1;
-        }
-        if (lat1 == -90) {
-                lat1 = -89.999999999;
-                j=2;
-        }
-        lat1 = rad(lat1);
-        lon1 = rad(lon1);
-        brg[j] = rad(brg[j]);
-        var s = distance;
-        var a = 6378137;
-        var b = a - (a/298.257223563);
-
-        s *= 1000;
-        var cs1, ds1, ss1, cs1m;
-        var f = 1/298.257223563;
-        var sb=Math.sin(brg[j]);
-        var cb=Math.cos(brg[j]);
-        var tu1=(1-f)*Math.tan(lat1);
-        var cu1=1/Math.sqrt((1+tu1*tu1));
-        var su1=tu1*cu1;
-        var s2=Math.atan2(tu1, cb);
-        var sa = cu1*sb;
-        var csa=1-sa*sa;
-        var us=csa*(a*a - b*b)/(b*b);
-        var A=1+us/16384*(4096+us*(-768+us*(320-175*us)));
-        var B = us/1024*(256+us*(-128+us*(74-47*us)));
-        var s1=s/(b*A);
-        var s1p = 2*Math.PI;
-        while (Math.abs(s1-s1p) > 1e-12) {
-                cs1m=Math.cos(2*s2+s1);
-                ss1=Math.sin(s1);
-                cs1=Math.cos(s1);
-                ds1=B*ss1*(cs1m+B/4*(cs1*(-1+2*cs1m*cs1m)- B/6*cs1m*(-3+4*ss1*ss1)*(-3+4*cs1m*cs1m)));
-                s1p=s1;
-                s1=s/(b*A)+ds1;
-        }
-        var t=su1*ss1-cu1*cs1*cb;
-        var lat2=Math.atan2(su1*cs1+cu1*ss1*cb, (1-f)*Math.sqrt(sa*sa + t*t));
-        var l2=Math.atan2(ss1*sb, cu1*cs1-su1*ss1*cb);
-        var c=f/16*csa*(4+f*(4-3*csa));
-        var l=l2-(1-c)*f*sa* (s1+c*ss1*(cs1m+c*cs1*(-1+2*cs1m*cs1m)));
-        //var d=Math.atan2(sa, -t);
-        //point[2] = d+2*Math.PI;
-        //point[3] = d+Math.PI;
-        point[0] = deg(lat2);
-        point[1] = deg(normalizeLongitude(lon1+l));
-
-        return point;
-}
-
-function deg(rd) {
-        return (rd* 180 / Math.PI);
-}
-
-function rad(dg) {
-        return (dg* Math.PI / 180);
-}
-
-function normalizeLongitude(lon) {
-        var n=Math.PI;
-        if (lon > n) {
-                lon = lon - 2*n;
-        } else if (lon < -n) {
-                lon = lon + 2*n;
-        }
-        return lon;
 }
 
 function centerGridTest(points){
@@ -274,17 +203,8 @@ function setupOlInputMap(){
         geoGridFeatures = new ol.source.Vector();
 
         map = new ol.Map({
-                target: 'popMapDiv', //'map_canvas',
+                target: 'popMapDiv', 
                 layers: [
-                        /*
-                        new ol.layer.Tile({
-                                source: new ol.source.OSM({
-                                        projection: 'EPSG:4326',
-                                        wrapX: false,
-                                })
-                        }),
-                        */
-                        
                         new ol.layer.Tile({
                                 source: new ol.source.BingMaps({
                                         imagerySet: 'Aerial',
@@ -304,7 +224,13 @@ function setupOlInputMap(){
                         center: [37.41, 8.82],
                         zoom: 2
                 }),
-                controls: []
+                controls: ol.control.defaults({
+                        attributionOptions: {
+                                collapsible: false
+                        }
+                }).extend([new ol.control.FullScreen(), new ol.control.ScaleLine({
+                        units: 'metric'
+                })])
         });
 
         pointVector = new ol.layer.Vector({
@@ -316,25 +242,54 @@ function setupOlInputMap(){
                 }),
                 projection: 'EPSG:4326',
         });
+        pointVector.setZIndex(10);
         map.addLayer(pointVector);
-        
-        geoLayer = new ol.layer.Vector({
-                source: geoGridFeatures,
-                projection: 'EPSG:4326'
+
+        debugVector = new ol.layer.Vector({
+                source: debugSource,
+                projection: 'EPSG:4326',
         });
-        map.addLayer(geoLayer);
+        debugVector.setZIndex(5);
+        map.addLayer(debugVector);
 
         addPopFunction = map.on('click', placePopulation);
         map.updateSize();
 }
 
-function drawDebugBounds(bounds){
+function drawDebugPoint(location, colorCode){
+        let tempPoint = new ol.geom.Point(
+                [location[0], location[1]]
+        );
+        let tempFeature = new ol.Feature(tempPoint);
+
+        tempFeature.setStyle(new ol.style.Style({
+                image: new ol.style.Circle({
+                        radius: 5,
+                        fill: new ol.style.Fill({ color: colorCode}),
+                        stroke: new ol.style.Stroke({
+                                color: '#000000',
+                                width: 1
+                        })
+                })
+        }));
+
+        debugSource.addFeature(tempFeature);
+}
+
+function drawDebugBounds(bounds, colorCode){
+        var newBounds = [];
+        for(let i = 0; i < bounds.length; i++){
+                let reproject = proj4(proj4('mollweide'), proj4('espg4326'), bounds[i])
+                newBounds.push(reproject);
+
+        }
+
         var tempPolygon1 = new ol.geom.Polygon([[
-                bounds[0],
-                bounds[1],
-                bounds[2],
-                bounds[3],
-                bounds[0]
+                newBounds[0],
+                newBounds[1],
+                newBounds[2],
+                newBounds[3],
+                newBounds[0]
         ]]);
 
         var tempFeature1 = new ol.Feature({
@@ -344,14 +299,29 @@ function drawDebugBounds(bounds){
 
         var teststyle1 = new ol.style.Style({
                 stroke: new ol.style.Stroke({width: 1 }),
-                fill: new ol.style.Fill({ color: [255, 0, 0, .5],})
+                fill: new ol.style.Fill({ color: colorCode})
         });
         tempFeature1.setStyle(teststyle1);
-        features.addFeature(tempFeature1);
+        debugSource.addFeature(tempFeature1);
 }
 
-function generateCanvas(year, scale, imgArray, dest){
-        console.log("generating canvas for year: " + year + " and scale: " + scale);
+function drawDebugCircle(points, colorCode){
+        let circleGeom = new ol.geom.Polygon([points]);
+        let tempFeature1 = new ol.Feature({
+                name: "debugCircle",
+                geometry: circleGeom
+        });
+
+        let teststyle1 = new ol.style.Style({
+                stroke: new ol.style.Stroke({width: 1 }),
+                fill: new ol.style.Fill({ color: colorCode})
+        });
+        tempFeature1.setStyle(teststyle1);
+        debugSource.addFeature(tempFeature1);
+}
+
+function generateCanvas(year, scale, imgArray, dest, position){
+        console.log("generateCanvas:: year: " + year + " scale: " + scale + " mode: " + dest);
         console.log("data length: " + imgArray.length + " xSize: " + simResults.xSize);
         canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
@@ -368,14 +338,14 @@ function generateCanvas(year, scale, imgArray, dest){
         switch(dest){
         case 'mapViewer':
                 canvasImage.onload = function(){
-                        drawCanvasToMap(canvasImage);
+                        drawCanvasToMap(canvasImage, position);
                         document.getElementById('rawHeatmapContainer').appendChild(canvasImage);
                         rawHWScaleInput(100);
                 };
                 break;
         case 'mapViewerUpdate':
                 canvasImage.onload = function(){
-                        drawCanvasToMap(canvasImage);
+                        drawCanvasToMap(canvasImage, position);
                         $('#overlayYear').prop('disabled', false);
                 };
                 break;
@@ -391,30 +361,21 @@ function generateCanvas(year, scale, imgArray, dest){
         canvasImage.src = canvas.toDataURL();
 }
 
-function drawCanvasToMap(canvasImage){
-        console.log("picture: " + canvasImage.naturalHeight);
-        console.log("picture: " + canvasImage.naturalWidth);
-
-        var tempLength = simResults.geoGrid.length - 1;
-        var tempPoint = simResults.geoGrid[tempLength][simResults.geoGrid[tempLength].length - 1];
-        console.log("calculating extent lengths: " + tempLength + ", " + simResults.geoGrid[tempLength].length - 1);
-
-        console.log("top corner: " + simResults.geoGrid[0][0] + " bot corner: " + tempPoint);
-        console.log("extent: " + [simResults.geoGrid[0][0][1], tempPoint[0], tempPoint[1], simResults.geoGrid[0][0][0]]);
-
-        if(imageLayer){
+function drawCanvasToMap(canvasImage, location){
+        console.log("drawCanvasToMap: height: " + canvasImage.naturalHeight + " width: " + canvasImage.naturalWidth); //1059340.815974956
+        if(imageLayer)
                 map.removeLayer(imageLayer);
-        }
 
         imageLayer = new ol.layer.Image({
                 opacity: simData.opacity,
                 source: new ol.source.ImageStatic({
                     url: canvasImage.src,
-                    //imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
-                    projection: map.getView().getProjection(),
-                    imageExtent: [simResults.geoGrid[0][0][1], tempPoint[0], tempPoint[1], simResults.geoGrid[0][0][0]]
+                    imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
+                    projection: 'mollweide',
+                    imageExtent: location
                 })
         });
+        imageLayer.setZIndex(2);
 
         imageLayer.set('name', 'imgLayer');
         map.addLayer(imageLayer);
@@ -425,15 +386,13 @@ function toggleVillageLabels(element){
         pointVector.setVisible(element.checked);
 }
 
+function toggleDebugLayer(element){
+        debugVector.setVisible(element.checked);
+}
+
 function updateOutputOpacity(element){
         let val = element.value;
         document.getElementById("opacityLabel").innerHTML = "Overlay Opacity: " + val + "%";
 
         imageLayer.setOpacity(val/100);
 }
-
-function drawHeatmap(){
-
-}
-
-setupOlInputMap();

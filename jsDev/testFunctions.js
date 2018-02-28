@@ -3,9 +3,6 @@
 var workerThread;
 var workerFunctions = {};
 
-const eaProjection = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
-const viewProjection = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs ";
-
 function setupSimDefaults(){
         simData.animalDiffRate = 0.1;
         simData.animalGrowthRate = 0.07;
@@ -126,14 +123,17 @@ function sanitizeTownData(uiTown){
         return data;
 }
 
+function setupWorker(){
+        workerThread = new Worker('jsDev/model.js');
+        workerThread.onmessage = function(oEvent) {
+                handleWorkerMessage(oEvent.data);
+        };
+}
+
 function setupSimulation(){
-        if(!checkSettings()){
+        if(!checkSettings())
                 return;
-        }
-        if(geoDebugMode){
-                debugSetupSimulation();
-                return;
-        }
+
         console.log("----------------Starting sim setup-------------------");
         //maybe move this to output display setup
         var cleanup = document.getElementById("rawHeatmapContainer");
@@ -143,112 +143,28 @@ function setupSimulation(){
         
         setupSimDefaults();
         readUserParameters();
+        const debugMode = document.getElementById("debugModeToggle").checked;
 
         let townData = setupTowns();
-        if(!townData){
+        if(!townData)
                 return;
-        }
         
-        if(geoGridFeatures){
-                while(geoGridFeatures.length){
-                        geoGridFeatures.removeFeature(geoGridFeatures[geoGridFeatures.length - 1]);
-                }
-        }
+        geoGridFeatures.clear(true);
+        debugSource.clear(true);
 
         showProgressBar("Setting up simulation", 0);
-
-        //
-        workerThread = new Worker('jsDev/model.js');
-        workerThread.onmessage = function(oEvent) {
-                handleWorkerMessage(oEvent.data);
-        };
-        workerThread.postMessage({type:"newSim", params:simData, towns:townData});
-}
-
-function debugSetupSimulation(){
-        console.log("----------------Starting sim setup");
-        //maybe move this to output display setup
-        var cleanup = document.getElementById("rawHeatmapContainer");
-        while (cleanup.firstChild) {
-                cleanup.removeChild(cleanup.firstChild);
-        }
-
-        let townData = [];
-        for(let i = 0; i < uiData.length; i++){
-                if(uiData[i].valid){
-                        townData.push(buildTownFromData(i));
-                }
-        }
-        
-        if(!townData.length){
-                let title = "No Populations Found";
-                let msg = "Please enter at least one population before running the simulation.";
-                modalDialog(title, msg);
-                console.log("no populations found - aborting run");
-                return;
-        }
-
-        if(source && geoGridFeatures){
-                console.log("Geogrid has " + geoGridFeatures.length + " squares before cleanup");
-                while(geoGridFeatures.length){
-                        geoGridFeatures.removeFeature(geoGridFeatures[geoGridFeatures.length - 1]);
-                }
-        }
-
-        setupSimDefaults();
-        readUserParameters();
-        centerGridTest(townData);
-        synchPersisObject();
-        changeToOutput();
-}
-
-function projectionTest(data){
-        proj4.defs('espg4326', viewProjection);
-        proj4.defs('mollweide', eaProjection);
-        for(let i = 0; i < data.length; i++){
-                for(let j = 0; j < data[0].length; j++){
-                        data[i][j] = proj4(proj4('mollweide'), proj4('espg4326'), data[i][j]);
-                }
-        }
-
-        //drawDebugBounds([data[0][0], data[0][1], data[1][1], data[1][0]]);
-        
-        for(let i = 0; i < data.length - 1; i++){
-                for(let j = 0; j < data[0].length - 1; j++){
-                        drawDebugBounds([data[i][j], data[i][j+1], data[i+1][j+1], data[i+1][j]]);
-                }
-        }
-        
-
-        /*
-        var geometry = [
-                tl,
-                [br[0], tl[1]],
-                br,
-                [tl[0], br[1]],
-                tl
-        ];
-        */
-        /*
-        var current_projection = new ol.proj.Projection({code: "EPSG:4326"});
-        var sphere = new ol.Sphere(6378137);
-        var area_m = sphere.geodesicArea(geometry, current_projection);
-        var area_km = area_m / 1000 / 1000;
-        console.log('area: ', area_km, 'km²');  
-
-        console.log("Projection test: " + tl + " and " + br);
-        drawDebugBounds([[tl], [br]]);
-        */
+        workerThread.postMessage({type:"newSim", params:simData, towns:townData, debug:debugMode});
 }
 
 function mapWorkerFunctions(){
         workerFunctions = {
                 'progress': function(data) {updateProgressBar(data.statusMsg, data.statusValue);},
                 'updateCDFChart': function(data) {createCDFChart(data.densities);},
-                'extentDebug': function(data) {drawDebugBounds(data.data);},
+                'extentDebug': function(data) {drawDebugBounds(data.data.points, data.data.color);},
+                'circleDebug': function(data) {drawDebugCircle(data.data.points, data.data.color);},
+                'pointDebug': function(data) {drawDebugPoint(data.data.point, data.data.color);},
                 'singleCSV': function(data) {saveSingleCSV(data.csvString, data.year);},
                 'allYearsCSV': function(data) {saveAllYearsCSV(data.csvString, data.year);},
-                'projTest' : function(data) {projectionTest(data.coordinates);},
         };
 }
 
@@ -258,11 +174,9 @@ function handleWorkerMessage(data){
                 workerFunctions[data.fnc](data);
                 break;
         case 'finished': {
-                //TODO code for getting data back
                 simResults = data.paramData;
                 updateProgressBar("Visualizing Data", 100);
-                //simResults.grid = new Array(simData.years + 1);
-                workerThread.postMessage({type:'genImage', dest:'mapViewer', year:simData.years, scale:1});
+                workerThread.postMessage({type:'genImage', dest:'mapViewer', year:simData.years, scale:2});
                 synchPersisObject();
                 changeToOutput();
                 setupOutputRanges();
@@ -272,7 +186,7 @@ function handleWorkerMessage(data){
                 break;
                 }
         case 'debug':
-                console.log("--Worker: " + data.statusMsg);
+                console.log("Worker::" + data.statusMsg);
                 break;
         case 'error':
                 let title = "An Error Occured";
@@ -281,8 +195,8 @@ function handleWorkerMessage(data){
                 modalDialog(title, msg, changeToPopulations);
                 break;
         case 'imgData': {
-                console.log("array print test: " + data.array[10] + " size: " + data.array.length);
-                generateCanvas(data.year, data.scale, data.array, data.dest);
+                console.log("handleWorkerMessage: array[10]: " + data.array[10] + " size: " + data.array.length);
+                generateCanvas(data.year, data.scale, data.array, data.dest, data.position);
                 break;
                 }
         }
