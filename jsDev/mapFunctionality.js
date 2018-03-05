@@ -388,6 +388,8 @@ function toggleVillageLabels(element){
 
 function toggleDebugLayer(element){
         debugVector.setVisible(element.checked);
+        $('#debugViewToggle').prop('checked', element.checked);
+        $('#debugViewToggleF').prop('checked', element.checked);
 }
 
 function updateOutputOpacity(element){

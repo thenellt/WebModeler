@@ -372,10 +372,13 @@ function setupGradient(){
         }
 
         gradient[0][3] = 0;
-        gradient[1][3] = 50;
-        gradient[2][3] = 100;
-        gradient[3][3] = 150;
-        gradient[4][3] = 200;
+        gradient[1][3] = 10;
+        gradient[2][3] = 50;
+        gradient[3][3] = 90;
+        gradient[4][3] = 145;
+        gradient[5][3] = 190;
+        gradient[6][3] = 230;
+        gradient[7][3] = 245;
 
         return gradient;
 }

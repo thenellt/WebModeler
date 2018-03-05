@@ -182,7 +182,11 @@ function changeToOutput(){
 
         if(simulationRun){
                 imageLayer.setVisible(true);
-                debugVector.setVisible(true);
+                if(document.getElementById("debugModeToggle").checked){
+                        debugVector.setVisible(true);
+                        $('#debugViewToggle').prop('checked', element.checked);
+                        $('#debugViewToggleF').prop('checked', element.checked);        
+                }
         }
         else{
                 simulationRun = 1;
