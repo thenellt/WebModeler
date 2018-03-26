@@ -7,6 +7,7 @@ proj4.defs('espg4326', viewProjection);
 proj4.defs('mollweide', eaProjection);
 
 var map;
+var bingLayers = [];
 var features;
 var geoGridFeatures;
 var source = new ol.source.Vector({wrapX: false});
@@ -202,18 +203,37 @@ function setupOlInputMap(){
         features = new ol.source.Vector();
         geoGridFeatures = new ol.source.Vector();
 
+        var projection = new ol.proj.Projection({
+                code: 'EPSG:4326',
+                // The extent is used to determine zoom level 0. Recommended values for a
+                // projection's validity extent can be found at http://epsg.io/.
+                extent: [-180.0, -90.0, 180.0, 90.0],
+                units: 'm'
+        });
+        ol.proj.addProjection(projection);
+
+        bingLayers[0] = new ol.layer.Tile({
+                source: new ol.source.BingMaps({
+                        imagerySet: 'Road',
+                        key: API_KEYS.bingMaps,
+                        projection: 'EPSG:4326',
+                        wrapX: false
+                })
+        });
+        bingLayers[1] = new ol.layer.Tile({
+                source: new ol.source.BingMaps({
+                        imagerySet: 'Aerial',
+                        key: API_KEYS.bingMaps,
+                        projection: 'EPSG:4326',
+                        wrapX: false
+                })
+        });
+
         map = new ol.Map({
                 target: 'popMapDiv', 
                 layers: [
-                        new ol.layer.Tile({
-                                source: new ol.source.BingMaps({
-                                        imagerySet: 'Aerial',
-                                        key: API_KEYS.bingMaps,
-                                        projection: 'EPSG:4326',
-                                        wrapX: false
-                                })
-                        }),
-                        
+                        bingLayers[0],
+                        bingLayers[1],
                         new ol.layer.Vector({
                                 source: features,
                                 style: teststyle
@@ -224,14 +244,16 @@ function setupOlInputMap(){
                         center: [37.41, 8.82],
                         zoom: 2
                 }),
+                /*
                 controls: ol.control.defaults({
                         attributionOptions: {
                                 collapsible: false
                         }
-                }).extend([new ol.control.FullScreen(), new ol.control.ScaleLine({
-                        units: 'metric'
-                })])
+                }).extend([new ol.control.ScaleLine()])
+                */
         });
+
+        map.addControl(new ol.control.ScaleLine());
 
         pointVector = new ol.layer.Vector({
                 source: source,
@@ -254,6 +276,8 @@ function setupOlInputMap(){
 
         addPopFunction = map.on('click', placePopulation);
         map.updateSize();
+        bingLayers[0].setVisible(true);
+        bingLayers[1].setVisible(false);
 }
 
 function drawDebugPoint(location, colorCode){

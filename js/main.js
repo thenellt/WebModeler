@@ -27,7 +27,6 @@ $(document).ready(function() {
         setupPersistConfigs();
         populatePersistSaves();
         mapWorkerFunctions();
-        checkCompatibility();
         setupWorker();
         setupOlInputMap();
 });
@@ -128,13 +127,20 @@ function resetSimulation(){
         emptyTable();
 }
 
-function resetColorCode(isHighColor){
-        if(isHighColor){
-                document.getElementById("paramHighColor").value = "#f03b20";
-        }
-        else{
+function resetColorCode(whichColor){
+        console.log("resetColorCode::value: " + whichColor);
+        if(whichColor === 'low'){
                 document.getElementById("paramLowColor").value = "#ffeda0";
         }
+        else if(whichColor === 'mid'){
+                document.getElementById("enable3ColorMode").checked = false;
+                document.getElementById("paramMidColor").disabled = true;
+                document.getElementById("midColorReset").classList.add("disabled");
+        }
+        else if(whichColor === 'high'){
+                document.getElementById("paramHighColor").value = "#f03b20";
+        }
+
 }
 
 function changeToPopulations(){
@@ -149,6 +155,7 @@ function changeToPopulations(){
                 imageLayer.setVisible(false);
                 debugVector.setVisible(false);
                 pointVector.setVisible(true);
+                changeMapView(document.getElementById("mapTypeToggle").checked);
         }
         else{
                 changeTab('popSetup');
@@ -199,9 +206,33 @@ function changeToOutput(){
 
         let labelCheckBox = document.getElementById('popLabelToggle');
         pointVector.setVisible(labelCheckBox.checked);
+        changeMapView(false);
         setTimeout(function(){
                 map.updateSize();
         }, 50);
+}
+
+function toggleThirdColorMode(isEnabled){
+        if(isEnabled){
+                document.getElementById("paramMidColor").disabled = false;
+                document.getElementById("midColorReset").classList.remove("disabled");
+        }
+        else{
+                document.getElementById("paramMidColor").disabled = true;
+                document.getElementById("midColorReset").classList.add("disabled");
+        }
+}
+
+function changeMapView(isRoadMap){
+        console.log("changeMapView::toggled: " + isRoadMap);
+        if(isRoadMap && !bingLayers[0].getVisible()){
+                bingLayers[1].setVisible(false);
+                bingLayers[0].setVisible(true);
+        }
+        else if(!isRoadMap && !bingLayers[1].getVisible()){
+                bingLayers[0].setVisible(false);
+                bingLayers[1].setVisible(true);
+        }
 }
 
 function notifyMessage(text, time){
@@ -306,7 +337,7 @@ function promptForDefaults(){
 
 function populateDefaultValues(){
         document.getElementById("paramYears").value = "10";
-        document.getElementById("paramCarry").value = "25";
+        document.getElementById("paramCarry").value = "25.0";
         document.getElementById("paramDifRate").value = "0.1";
         document.getElementById("paramGrowthRate").value = "0.07";
         document.getElementById("paramEncounterRate").value = "0.02043";
@@ -332,10 +363,10 @@ function checkSettings(){
                 return false;
         }
         //id, min value, max value, isAdvanced
-        let intParams = [["paramYears", 0, 200, 0], ['paramCarry', 0, 1000, 0], ['diffSamples', 1, 365, 1]];
+        let intParams = [["paramYears", 0, 200, 0], ['diffSamples', 1, 365, 1]];
         let floatParams = [['imgOpacity', 0, 1, 1], ['paramTheta', 0, 100, 1], ['rangeHphy', 1, 1000, 0],
                            ['paramHphy', 0, 365, 0], ['paramKillProb', 0, 1, 0], ['paramEncounterRate', 0, 1, 0],
-                           ['paramDifRate', 0, 1, 0], ['paramGrowthRate', 0, 1, 0]];
+                           ['paramDifRate', 0, 1, 0], ['paramGrowthRate', 0, 1, 0], ['paramCarry', 0, 1000, 0]];
         
         for(let i = 0; i < intParams.length; i++){
                 let tempValue = $('#' + intParams[i][0]).val();

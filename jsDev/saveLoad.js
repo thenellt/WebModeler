@@ -89,6 +89,9 @@ function loadSimConfig(fileData){
         simData.highColorCode = config.highColorCode;
         simData.diffusionSamples = config.diffusionSamples;
         simData.opacity = config.opacity || 1.0;
+        simData.threeColorMode = config.threeColorMode;
+        if(simData.threeColorMode)
+                simData.midColorCode = config.midColorCode;
 
         //support saves with old color formatting
         if(simData.lowColorCode[0] !== '#'){
@@ -116,6 +119,16 @@ function loadSimConfig(fileData){
         document.getElementById("paramHighColor").value = simData.highColorCode;
         document.getElementById("diffSamples").value = simData.diffusionSamples;
         document.getElementById("imgOpacity").value = simData.opacity;
+        if(simData.threeColorMode){
+                document.getElementById("enable3ColorMode").checked = true;
+                document.getElementById("midColorReset").classList.remove("disabled");
+                document.getElementById("paramMidColor").value = simData.midColorCode;
+        }
+        else{
+                document.getElementById("enable3ColorMode").checked = false;
+                document.getElementById("paramMidColor").classList.add("disabled");
+                document.getElementById("midColorReset").classList.add("disabled");
+        }
 }
 
 function loadPopulationData(popData){
@@ -185,6 +198,9 @@ function generateConfigObject(){
         saveObject.diffusionSamples = simData.diffusionSamples;
         saveObject.lowColorCode = simData.lowColorCode;
         saveObject.highColorCode = simData.highColorCode;
+        saveObject.threeColorMode = simData.threeColorMode;
+        if(simData.threeColorMode)
+                saveObject.midColorCode = simData.midColorCode;
         saveObject.opacity = simData.opacity;
         saveObject.popData = [];
 

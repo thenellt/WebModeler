@@ -307,7 +307,7 @@ function runSimulation(){
 function generateImageData(params){
         let scale = params.scale;
         var gradient = setupGradient();
-        var gradientSteps = simData.carryCapacity - 1;
+        var gradientSteps = Math.floor(simData.carryCapacity) - 1;
 
         var pos = 0;
         //simResults.xSize * scale, simResults.ySize * scale
@@ -355,22 +355,60 @@ function setupGradient(){
         coolColor[1] = parseInt(simData.lowColorCode.substring(3, 5) , 16);
         coolColor[2] = parseInt(simData.lowColorCode.substring(5, 7) , 16);
 
-        var redRange = hotColor[0] - coolColor[0];
-        var greenRange = hotColor[1] - coolColor[1];
-        var blueRange = hotColor[2] - coolColor[2];
-
-        var gradientSteps = simData.carryCapacity - 1;
-
-        for(var i = 0; i <= gradientSteps; i++){
-                var colorOffset = i / (gradientSteps);
-                var tempColor = [];
-                tempColor[0] = Math.round(redRange * colorOffset) + coolColor[0];
-                tempColor[1] = Math.round(greenRange * colorOffset) + coolColor[1];
-                tempColor[2] = Math.round(blueRange * colorOffset) + coolColor[2];
-                tempColor[3] = 255;
-                gradient.push(tempColor.slice());
+        var midColor = [];
+        if(simData.threeColorMode){
+                midColor[0] = parseInt(simData.midColorCode.substring(1, 3) , 16);
+                midColor[1] = parseInt(simData.midColorCode.substring(3, 5) , 16);
+                midColor[2] = parseInt(simData.midColorCode.substring(5, 7) , 16);
         }
 
+        var gradientSteps = Math.floor(simData.carryCapacity) - 1;
+        if(simData.threeColorMode === false){
+                logMessage("setupGradient::Running in 2 color mode");
+                var redRange = hotColor[0] - coolColor[0];
+                var greenRange = hotColor[1] - coolColor[1];
+                var blueRange = hotColor[2] - coolColor[2];
+                for(var i = 0; i <= gradientSteps; i++){
+                        var colorOffset = i / (gradientSteps);
+                        var tempColor = [];
+                        tempColor[0] = Math.round(redRange * colorOffset) + coolColor[0];
+                        tempColor[1] = Math.round(greenRange * colorOffset) + coolColor[1];
+                        tempColor[2] = Math.round(blueRange * colorOffset) + coolColor[2];
+                        tempColor[3] = 255;
+                        gradient.push(tempColor.slice());
+                }
+        }     
+        else{
+                logMessage("setupGradient::Running in 3 color mode");
+                var redRange = midColor[0] - coolColor[0];
+                var greenRange = midColor[1] - coolColor[1];
+                var blueRange = midColor[2] - coolColor[2];
+                let range = gradientSteps / 2;
+                for(let i = 0; i < range; i++){
+                        let colorOffset = i / range;
+                        let tempColor = [];
+                        tempColor[0] = Math.round(redRange * colorOffset) + coolColor[0];
+                        tempColor[1] = Math.round(greenRange * colorOffset) + coolColor[1];
+                        tempColor[2] = Math.round(blueRange * colorOffset) + coolColor[2];
+                        tempColor[3] = 255;
+                        gradient.push(tempColor.slice());
+                }  
+
+                redRange = hotColor[0] - midColor[0];
+                greenRange = hotColor[1] - midColor[1];
+                blueRange = hotColor[2] - midColor[2];
+                for(let i = range; i <= range * 2; i++){
+                        let colorOffset = (i - range) / range;
+                        let tempColor = [];
+                        tempColor[0] = Math.round(redRange * colorOffset) + midColor[0];
+                        tempColor[1] = Math.round(greenRange * colorOffset) + midColor[1];
+                        tempColor[2] = Math.round(blueRange * colorOffset) + midColor[2];
+                        tempColor[3] = 255;
+                        gradient.push(tempColor.slice());
+                }
+        }  
+
+        //should really look into replacing this with a formula
         gradient[0][3] = 0;
         gradient[1][3] = 10;
         gradient[2][3] = 50;
@@ -380,6 +418,11 @@ function setupGradient(){
         gradient[6][3] = 230;
         gradient[7][3] = 245;
 
+        var gradientOutput = "";
+        for(let i = 0; i < gradient.length; i++){
+                gradientOutput += gradient[i].toString() + " ";
+        }
+        logMessage("setupGradient::Result: " + gradientOutput);
         return gradient;
 }
 
@@ -392,7 +435,7 @@ function generateCDFBins(year){
         grid[year].forEach(function(element){
                 element.forEach(function(ele){
                         numCells++;
-                        let temp = ele / (1.0 * simData.carryCapacity);
+                        let temp = ele / simData.carryCapacity;
                         if(temp > .99)
                                 dataValues[10]++;
                         else
@@ -418,7 +461,7 @@ function genLocalCDFBins(year){
         grid[year].forEach(function(element){
                 element.forEach(function(ele){
                         numCells++;
-                        let temp = ele / (1.0 * simData.carryCapacity);
+                        let temp = ele / simData.carryCapacity;
                         if(temp > .99){
                                 dataValues[10]++;
                         }

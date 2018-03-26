@@ -9,7 +9,7 @@ function setupSimDefaults(){
         simData.killProb = 0.1;
         simData.HpHy = 40;
         simData.encounterRate = 0.02043;
-        simData.carryCapacity = 25;
+        simData.carryCapacity = 25.0;
         simData.theta = 1;
         simData.years = 10;
         simData.diffusionSamples = 1;
@@ -22,7 +22,7 @@ function setupSimDefaults(){
 
 function readUserParameters(){
         simData.years = parseInt(document.getElementById("paramYears").value, 10) || simData.years;
-        simData.carryCapacity = parseInt(document.getElementById("paramCarry").value, 10) || simData.carryCapacity;
+        simData.carryCapacity = parseFloat(document.getElementById("paramCarry").value) || simData.carryCapacity;
         simData.animalDiffRate = parseFloat(document.getElementById("paramDifRate").value) || simData.animalDiffRate;
         simData.animalGrowthRate = parseFloat(document.getElementById("paramGrowthRate").value) || simData.animalGrowthRate;
         simData.encounterRate = parseFloat(document.getElementById("paramEncounterRate").value) || simData.encounterRate;
@@ -38,6 +38,16 @@ function readUserParameters(){
         var tempHigh = document.getElementById("paramHighColor").value;
         if(tempHigh.length > 0){
                 simData.highColorCode = tempHigh;
+        }
+
+        let colorMode = document.getElementById("enable3ColorMode").checked;
+        if(colorMode){
+                console.log("readUserParameters::detected 3 color mode");
+                simData.threeColorMode = true;
+                simData.midColorCode = document.getElementById("paramMidColor").value;
+        }
+        else{
+                simData.threeColorMode = false;
         }
 
         var tempName = document.getElementById("paramName").value;
@@ -176,7 +186,7 @@ function handleWorkerMessage(data){
         case 'finished': {
                 simResults = data.paramData;
                 updateProgressBar("Visualizing Data", 100);
-                workerThread.postMessage({type:'genImage', dest:'mapViewer', year:simData.years, scale:2});
+                workerThread.postMessage({type:'genImage', dest:'mapViewer', year:simData.years, scale:1});
                 synchPersisObject();
                 changeToOutput();
                 setupOutputRanges();
