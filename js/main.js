@@ -191,8 +191,8 @@ function changeToOutput(){
                 imageLayer.setVisible(true);
                 if(document.getElementById("debugModeToggle").checked){
                         debugVector.setVisible(true);
-                        $('#debugViewToggle').prop('checked', element.checked);
-                        $('#debugViewToggleF').prop('checked', element.checked);        
+                        $('#debugViewToggle').prop('checked', true);
+                        $('#debugViewToggleF').prop('checked', true);        
                 }
         }
         else{
