@@ -395,7 +395,7 @@ function checkSettings(){
 }
 
 function checkFloat(rawValue, min, max){
-        if(!(/^\d*(\.\d+)?$/.test(rawValue))){
+        if(!(/^-?\d*(\.\d+)?$/.test(rawValue))){
                 return false;
         }
         let value = parseFloat(rawValue, 10);
@@ -407,7 +407,7 @@ function checkFloat(rawValue, min, max){
 }
 
 function checkAnyFloat(rawValue){
-        if(!(/^\d*(\.\d+)?$/.test(rawValue))){
+        if(!(/^-?\d*(\.\d+)?$/.test(rawValue))){
                 return false;
         }
         let value = parseFloat(rawValue, 10);
@@ -419,7 +419,7 @@ function checkAnyFloat(rawValue){
 }
 
 function checkInt(rawValue, min, max){
-        if(!(/^\d*(\.\d+)?$/.test(rawValue))){
+        if(!(/^-?\d*(\.\d+)?$/.test(rawValue))){
                 return false;
         }
         let floatValue = parseFloat(rawValue);
