@@ -27,7 +27,6 @@ $(document).ready(function() {
         setupTabs();
         setupPersistConfigs();
         populatePersistSaves();
-        checkCompatibility();
         mapWorkerFunctions();
         setupWorker();
         setupOlInputMap();
