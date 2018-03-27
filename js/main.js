@@ -5,6 +5,7 @@ var popupEvntFunction;
 var currentId;
 var olmapLocation;
 var simulationRun;
+var paramsChanged;
 var advSettingsFnc;
 var modalEventFnc;
 var simData = {};
@@ -26,6 +27,7 @@ $(document).ready(function() {
         setupTabs();
         setupPersistConfigs();
         populatePersistSaves();
+        checkCompatibility();
         mapWorkerFunctions();
         setupWorker();
         setupOlInputMap();
@@ -104,8 +106,6 @@ function resetSimulation(){
                 }
         }
 
-        emptyTable();
-
         uiData = [];
 
         if(source){
@@ -148,9 +148,6 @@ function changeToPopulations(){
                 document.getElementById("popMapRow").appendChild(document.getElementById("popMapDiv"));
                 olmapLocation = 0;
                 changeTab('popSetup');
-                //var parentDiv = document.getElementById("popMapRow");
-                //map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
-                //map.updateSize();
                 addPopFunction = map.on('click', placePopulation);
                 imageLayer.setVisible(false);
                 debugVector.setVisible(false);
@@ -167,7 +164,7 @@ function changeToGetStarted(){
         let contentDiv = document.getElementById("getStarted");
         if(contentDiv.style.display == "none"){
                 //TODO only update saves when necessary
-                console.log("updating persist display");
+                console.log("changeToGetStarted::updating persist display");
                 var saveContainer = document.getElementById("persistSaveContainer");
                 while (saveContainer.firstChild) {
                         saveContainer.removeChild(saveContainer.firstChild);
@@ -198,8 +195,8 @@ function changeToOutput(){
         else{
                 simulationRun = 1;
                 var parentDiv = document.getElementById("resultMapDiv");
-                console.log("resize map offsetHeight: " + parentDiv.offsetHeight);
-                console.log("resize map clientHeight: " + parentDiv.clientHeight);
+                console.log("changeToOutput::resize map offsetHeight: " + parentDiv.offsetHeight);
+                console.log("changeToOutput::resize map clientHeight: " + parentDiv.clientHeight);
 
                 map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
         }
@@ -404,6 +401,18 @@ function checkFloat(rawValue, min, max){
         }
         let value = parseFloat(rawValue, 10);
         if(isNaN(value) || value < min || value > max){
+                return false;
+        }
+        
+        return true;
+}
+
+function checkAnyFloat(rawValue){
+        if(!(/^\d*(\.\d+)?$/.test(rawValue))){
+                return false;
+        }
+        let value = parseFloat(rawValue, 10);
+        if(isNaN(value)){
                 return false;
         }
         

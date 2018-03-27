@@ -1,17 +1,3 @@
-//simulation parameters
-/*
-var animalDiffRate;
-var animalGrowthRate;
-var killProb;
-var HpHy;
-var encounterRate;
-var huntRange;
-var theta;
-var carryCapacity;
-var years;
-var diffusionSamples;
-*/
-
 self.importScripts('../js/proj4js.js');
 
 var DEBUG;
@@ -269,13 +255,13 @@ function runSimulation(){
                                                         bot = 2*Math.PI*Math.sqrt(locationValue + 1);
                                                         //console.log("Top: " + top + " bot: " + bot);
                                                         if(settleNum === 0){
-                                                                effort[y][x] = (simData.HpHy*getTownPop(towns[settleNum], curYear)*top)/bot;
+                                                                effort[y][x] = (towns[settleNum].HPHY*getTownPop(towns[settleNum], curYear)*top)/bot;
                                                         }
                                                         else{
-                                                                effort[y][x] += (simData.HpHy*getTownPop(towns[settleNum], curYear)*top)/bot;
+                                                                effort[y][x] += (towns[settleNum].HPHY*getTownPop(towns[settleNum], curYear)*top)/bot;
                                                         }
                                                         //console.log("effort at: " + x + "," + y + " is: " + effort[y][x]);
-                                                        towns[settleNum].offtake[curYear] += simData.killProb * simData.encounterRate * ((simData.HpHy * getTownPop(towns[settleNum], curYear) * top)/bot) * grid[curYear][y][x];
+                                                        towns[settleNum].offtake[curYear] += simData.killProb * simData.encounterRate * ((towns[settleNum].HPHY * getTownPop(towns[settleNum], curYear) * top)/bot) * grid[curYear][y][x];
                                                 }
                                                 //n[year,:,:]*lambdas-lambdas*n[year,:,:]*(n[year,:,:]/density)**theta
                                                 //growth[y][x] = animalGrowthRate*grid[curYear][y][x] - animalGrowthRate*grid[curYear][y][x]*Math.pow((grid[curYear][y][x]/carryCapacity), theta);

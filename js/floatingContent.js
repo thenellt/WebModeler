@@ -26,6 +26,7 @@ function clearPopEditor(){
         document.getElementById("floatPop").value = "";
         document.getElementById("floatKill").value = "";
         document.getElementById("floatGrowth").value = "";
+        document.getElementById("floatHPHY").value = "";
 }
 
 function showPopEditor(position){
@@ -70,11 +71,16 @@ function closePopEditor(clear){
                 var tempPop = parseInt(document.getElementById("floatPop").value);
                 var tempKill = parseFloat(document.getElementById("floatKill").value);
                 var tempGrowth =  parseFloat(document.getElementById("floatGrowth").value);
+                let docHPHY = document.getElementById("floatGrowth").value;
+                if(docHPHY)
+                        var tempHPHY = parseFloat(document.getElementById("floatGrowth").value);
+                else
+                        var tempHPHY = "";
                 let tempDate = new Date();
                 var tempId = tempDate.valueOf();
                 //add the new population to model
                 var tempRow = new uiRow(tempLong, tempLat, tempPop, tempKill, tempName,
-                                        tempGrowth, tempId, true);
+                                        tempGrowth, tempHPHY, tempId, true);
                 addPopToMap(tempId, tempName, tempLong, tempLat);
                 addEntry(tempRow);
         }
@@ -92,6 +98,7 @@ function showPopUpdater(index){
         document.getElementById("floatLong").value = village.long;
         document.getElementById("floatPopName").value = village.name;
         document.getElementById("floatKill").value = village.killRate;
+        document.getElementById("floatHPHY").value = village.HPHY;
         if(village.type === "exp"){
                 document.getElementById("floatPop").value = village.population;
                 document.getElementById("floatGrowth").value = village.growthRate;
@@ -111,9 +118,7 @@ function showPopUpdater(index){
                 }
 
                 else if(e.keyCode == 13){
-                        if(checkPopUpdater()){
-                                closePopUpdater(2);
-                        }
+                        popEditorPassthrough(0);
                 }
         };
 
@@ -135,6 +140,7 @@ function closePopUpdater(input){ //0 - cancel, 1 - update village, 2 delete vill
                 var tempPop = document.getElementById("floatPop").value;
                 var tempKill = document.getElementById("floatKill").value;
                 var tempGrowth =  document.getElementById("floatGrowth").value;
+                var tempHPHY =  document.getElementById("floatHPHY").value;
 
                 var i;
                 for(i = 0; i < uiData.length; i++){
@@ -152,6 +158,8 @@ function closePopUpdater(input){ //0 - cancel, 1 - update village, 2 delete vill
                 uiData[i].long = tempLong;
                 uiData[i].name = tempName;
                 uiData[i].killRate = tempKill;
+                uiData[i].HPHY = tempHPHY;
+                console.log("closePopUpdater::HPHY " + tempHPHY);
                 if(popEditorMode === editorModes.UPDATE){
                         uiData[i].population = tempPop;
                         uiData[i].growthRate = tempGrowth;
@@ -170,12 +178,12 @@ function closePopUpdater(input){ //0 - cancel, 1 - update village, 2 delete vill
 }
 
 function checkPopYearlyMode(){
-        if(isNaN(parseFloat(document.getElementById("floatLat").value, 10))){
+        if(!checkAnyFloat(document.getElementById("floatLat").value, 10)){
                 notifyMessage("Latitude is invalid", 2);
                 $('#floatLat').focus();
                 return false;
         }
-        if(isNaN(parseFloat(document.getElementById("floatLong").value, 10))){
+        if(!checkAnyFloat(document.getElementById("floatLong").value, 10)){
                 notifyMessage("Longitude is invalid", 2);
                 $('#floatLong').focus();
                 return false;
@@ -183,6 +191,12 @@ function checkPopYearlyMode(){
         if(document.getElementById("floatPopName").value.length === 0){
                 notifyMessage("Population must have a name", 2);
                 $('#floatPopName').focus();
+                return false;
+        }
+        let HPHYString = document.getElementById("floatHPHY").value;
+        if(HPHYString && HPHYString.length && !checkInt(document.getElementById("floatHPHY").value, 1, Number.MAX_SAFE_INTEGER)){
+                notifyMessage("HPHY must be a postive integer > 0", 2);
+                $('#floatHPHY').focus();
                 return false;
         }
         let killString = document.getElementById("floatKill").value;
@@ -199,12 +213,13 @@ function checkPopYearlyMode(){
 }
 
 function checkPopEditor(){
-        if(isNaN(parseFloat(document.getElementById("floatLat").value, 10))){
+        console.log("in checkPopEditor");
+        if(!checkAnyFloat(document.getElementById("floatLat").value, 10)){
                 notifyMessage("Latitude is invalid", 2);
                 $('#floatLat').focus();
                 return false;
         }
-        if(isNaN(parseFloat(document.getElementById("floatLong").value, 10))){
+        if(!checkAnyFloat(document.getElementById("floatLong").value, 10)){
                 notifyMessage("Longitude is invalid", 2);
                 $('#floatLong').focus();
                 return false;
@@ -214,9 +229,15 @@ function checkPopEditor(){
                 $('#floatPopName').focus();
                 return false;
         }
-        if(isNaN(parseInt(document.getElementById("floatPop").value))){
+        if(!checkInt(document.getElementById("floatPop").value, 1, Number.MAX_SAFE_INTEGER)){
                 notifyMessage("Population must be a postive integer", 2);
                 $('#floatPop').focus();
+                return false;
+        }
+        let HPHYString = document.getElementById("floatHPHY").value;
+        if(HPHYString && HPHYString.length && !checkInt(document.getElementById("floatHPHY").value, 1, Number.MAX_SAFE_INTEGER)){
+                notifyMessage("HPHY must be a postive integer > 0", 2);
+                $('#floatHPHY').focus();
                 return false;
         }
         let killString = document.getElementById("floatKill").value;

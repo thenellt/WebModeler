@@ -205,7 +205,8 @@
                                         <div id="popTableContent" style="min-height: 500px; min-width: 600px;">
                                                 <div class="row">
                                                         <div class="col s12">
-                                                                Rows will gain a gray background when they are valid. Only valid rows are used when the simulation is run. Kill Rate (percentage chance to kill an animal during an encounter) can be left blank in order to use the one from the parameters page.
+                                                                <p>Rows will gain a gray background when they are valid. Only valid rows are used when the simulation is run.</p>
+                                                                <p>Kill rate and Override HPHY are both optional and leaving them blank will use the values from the parameters page.</p>
                                                         </div>
                                                 </div>
                                                 <table class="bordered highlight" id="popTable" style="margin-bottom: 8px;">
@@ -217,6 +218,7 @@
                                                                         <th>Population</th>
                                                                         <th>Growth R Value</th>
                                                                         <th>Kill Rate</th>
+                                                                        <th>Override HPHY</th>
                                                                 </tr>
                                                         </thead>
                                                         <tbody id="popTableBody"></tbody>
@@ -430,7 +432,7 @@
                                                 <div class="col s8"><h5>Heatmap Saturated Color:</h5></div>
                                                 <div class="col s1"><input type="color" value="#ffeda0" style="margin-top: 6px;" id="paramLowColor"></div>
                                                 <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode('low');">Reset</a></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Color of the undepleted end of the heatmap gradient."><i>?</i></a></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="At Carrying Capacity color in the heatmap gradient."><i>?</i></a></div>
                                         </div>
                                 </li>
                                 <li class="collection-item">
@@ -442,7 +444,7 @@
                                                 </div>
                                                 <div class="col s1"><input type="color" value="#ffeda0" style="margin-top: 6px;" id="paramMidColor"></div>
                                                 <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode('mid');" id="midColorReset">Reset</a></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Color of the undepleted end of the heatmap gradient."><i>?</i></a></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Color of the middle of the heatmap gradient."><i>?</i></a></div>
                                         </div>
                                 </li>
                                 <li class="collection-item">
@@ -450,7 +452,7 @@
                                                 <div class="col s8"><h5>Heatmap Depleted Color:</h5></div>
                                                 <div class="col s1"><input type="color" value="#f03b20" style="margin-top: 6px;" id="paramHighColor"></div>
                                                 <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode('high');">Reset</a></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Color of the depleted end of the heatmap gradient."><i>?</i></a></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Depleted color in the heatmap gradient."><i>?</i></a></div>
                                         </div>
                                 </li>
                                 <li class="collection-item">
@@ -535,6 +537,15 @@
                                         <div class="row" style="margin-bottom: 0px;">
                                                 <div class="col s8"><h5>Kill Rate:</h5></div>
                                                 <div class="col s4"><input type="text" id="floatKill" style="margin-bottom: 5px;"></div>
+                                        </div>
+                                </li>
+                                <li class="collection-item" style="padding: 5px 5px 5px 5px;">
+                                        <div class="row" style="margin-bottom: 0px;">
+                                                <div class="col s8"><h5>Override Global HPHY:</h5></div>
+                                                <div class="col s4"><input type="text" id="floatHPHY" style="margin-bottom: 5px;"></div>
+                                        </div>
+                                        <div class="row" style="margin-bottom: 0px;">
+                                                <div class="col s8"><h6><i>Leave blank to use the value from the Parameters Page</i></h6></div>
                                         </div>
                                 </li>
                         </ul>

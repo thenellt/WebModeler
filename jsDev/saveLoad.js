@@ -134,14 +134,17 @@ function loadSimConfig(fileData){
 function loadPopulationData(popData){
         for(let i = 0; i < popData.length; i++){
                 let temp = popData[i];
+                if(!temp.HPHY)
+                        temp.HPHY = "";
+
                 if(temp.type === "exp"){
                         let tempRow = new uiRow(temp.long, temp.lat, temp.population, temp.killRate,
-                                temp.name, temp.growthRate, temp.id, temp.valid);
+                                temp.name, temp.growthRate, temp.HPHY, temp.id, temp.valid);
                         addEntry(tempRow);
                 }
                 else if(temp.type === "yearly"){
                         let tempRow = new uiYearlyRow(temp.name, temp.long, temp.lat, temp.population, temp.killRate,
-                                temp.id, temp.valid);
+                                temp.HPHY, temp.id, temp.valid);
                         addYearlyRow(tempRow);
                 }
 

@@ -130,6 +130,13 @@ function sanitizeTownData(uiTown){
                 data.killRate = simData.killProb;
         }
 
+        if(data.HPHY && !isNaN(parseFloat(data.HPHY))){
+                data.HPHY = parseFloat(data.HPHY);
+        }
+        else{
+                data.HPHY = simData.HpHy;
+        }
+
         return data;
 }
 
