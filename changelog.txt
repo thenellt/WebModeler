@@ -1,4 +1,4 @@
-3/26/18 v24a & b - Bug fixes and added the per-village option to override the global HPHY value. \n
+3/26/18 v24a & b - Bug fixes and added the option to override the global HPHY value for each population. \n
 3/26/18 v24 - Road or Aerial map for placement, 3 color codes, scale bar, decimal carrying capacity, and other bugfixes. \n
 2/28/18 v23 - All math for the simulation has been rewritten in an equal area projection. Also adds spatial debuggin features. \n
 1/9/18 v22 - Both results pages are cleaned up and the only unfinished section is the Surrounding Area Depletion chart. \n
