@@ -71,9 +71,9 @@ function closePopEditor(clear){
                 var tempPop = parseInt(document.getElementById("floatPop").value);
                 var tempKill = parseFloat(document.getElementById("floatKill").value);
                 var tempGrowth =  parseFloat(document.getElementById("floatGrowth").value);
-                let docHPHY = document.getElementById("floatGrowth").value;
+                let docHPHY = document.getElementById("floatHPHY").value;
                 if(docHPHY)
-                        var tempHPHY = parseFloat(document.getElementById("floatGrowth").value);
+                        var tempHPHY = parseFloat(docHPHY);
                 else
                         var tempHPHY = "";
                 let tempDate = new Date();
