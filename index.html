@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" manifest="manifest.appcache">
+<html lang="en"> <!--manifest="manifest.appcache"-->
 <head>
         <meta charset="UTF-8">
         
@@ -37,7 +37,7 @@
         <div id="changelogPopup" class="modal modal-fixed-footer" style="width: 75%;">
                 <div class="modal-content">
                         <h4>Project Change Log:</h4>
-                        <div id="changeLogEntries"></div>
+                        <div id="changeLogEntries" style="height: 90%; overflow: scroll; overflow-x: hidden;"></div>
                 </div>
                 <div class="modal-footer">
                         <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Close</a>
@@ -74,7 +74,7 @@
                                         <div class="divider" style="margin-bottom: 10px;"></div>
 
                                         <div class="row">
-                                                <div class="col s6"><h5>Start a new simulation:</h5></div>
+                                                <div class="col s6"><h5>Start new simulation:</h5></div>
                                                 <div class="col s3">
                                                         <a class="waves-effect waves-light btn red darken-2 hide" id="resetButton" onclick="promptForReset()">Reset Simulation</a>
                                                 </div>
@@ -87,21 +87,23 @@
                                         </div>
                                         <div class="row">
                                                 <div class="col s6">
-                                                        <h5>Load paramaters from file:</h5>
+                                                        <h5>Import config from file:</h5>
                                                 </div>
                                                 <div class="col s3 offset-s3">
                                                         <a class="waves-effect waves-light btn" id="loadParams" onclick="document.getElementById('loadConfigFileButton').click();">
-                                                                Load File
+                                                                Import File
                                                         </a>
                                                 </div>
                                         </div>
                                         <div class="row">
                                                 <div class="col s6">
-                                                        <h5>Load a cached simulation:</h5>
+                                                        <h5>Load cached simulation:</h5>
                                                 </div>
                                                 <div class="col s6" id="persistMessage" style="margin-top: 18px;"></div>
                                         </div>
-                                        <ul id="persistSaveContainer" class="collapsible popout" data-collapsible="accordion"></ul>
+                                        <div style="min-height: 400px; max-height: 600px; height: 100%; overflow: scroll; overflow-y: auto; overflow-x: hidden;">
+                                                <ul id="persistSaveContainer" style="padding: 8px;" class="collapsible popout" data-collapsible="accordion"></ul>
+                                        </div>
                                         <form id="loadConfigFileForm" style="display: none;"><input id="loadConfigFileButton" type="file" onchange='loadFromFile(this);' style="display: none;"></form>
                                 </div>
                                 <div class="tabcontent" id="parameterSetup" style="display: none;">
@@ -126,7 +128,7 @@
                                         <div class="row" style="margin-bottom: 8px;">
                                                 <div class="col s8"><h5>Carrying Capacity:</h5></div>
                                                 <div class="col s3"><input type="text" id="paramCarry"></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Number of animals the land can support per square kilometer."><i>?</i></a></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Number of animals the landscape can support per square kilometer."><i>?</i></a></div>
                                         </div>
                                         <div class="divider" style="margin-bottom: 8px;"></div>
                                         <div class="row" style="margin-bottom: 8px;">
@@ -137,12 +139,12 @@
                                         <div class="row" style="margin-bottom: 8px;">
                                                 <div class="col s8"><h5>Animal Growth Rate:</h5></div>
                                                 <div class="col s3"><input type="text" id="paramGrowthRate"></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip=""><i>?</i></a></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Maximum intrinsic growth rate for exponential growth formula."><i>?</i></a></div>
                                         </div>
                                         <div class="row" style="margin-bottom: 8px;">
                                                 <div class="col s8"><h5>Animal Encounter Rate:</h5></div>
                                                 <div class="col s3"><input type="text" id="paramEncounterRate"></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light" id="encounterRateHelp"><i>?</i></a></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Encounter rate constant. Ex: 0.02"><i>?</i></a></div>
                                         </div>
                                         <div class="divider" style="margin-bottom: 8px;"></div>
                                         <div class="row" style="margin-bottom: 8px;">
@@ -162,7 +164,11 @@
                                         </div>
                                         <div class="divider" style="margin-bottom: 8px;"></div>
                                         <div class="row">
-                                                <div class="col s4"><a class="waves-effect waves-light modal-trigger btn" href="#advancedSettings">Advanced Settings</a></div>
+                                                <div class="col s4">
+                                                        <a class="waves-effect waves-light modal-trigger btn tooltipped" href="#advancedSettings"
+                                                                data-position="top" data-delay="100" data-tooltip="Optional settings that are less frequently used.">
+                                                        Advanced Settings</a>
+                                                </div>
                                                 <div class="col s2 offset-s4"><a class="waves-effect waves-light btn" onclick="changeTab('getStarted')">
                                                         Back
                                                 </a></div>
@@ -276,7 +282,7 @@
                                                         </div>
                                                         <div id="viewControlsContainer">
                                                         <div class="row" style="margin-bottom: 0px;" id="viewerControls">
-                                                                <div class="col s4">
+                                                                <div class="col s3">
                                                                         <div id="opacityLabel">
                                                                                 Overlay Opacity:
                                                                         </div>
@@ -295,9 +301,14 @@
                                                                                 </label>
                                                                         </div>
                                                                 </div>
-                                                                <div class="col s2">
-                                                                         Heatmap Year:
-                                                                         <input type="number" min="0" step="1" value="0" id="overlayYear" style="margin: 0px; height: 30px;" onkeydown="return false">
+                                                                <div class="col s3">
+                                                                        <div id="heatmapYearLabel">
+                                                                                Heatmap Year:
+                                                                        </div>
+                                                                        <div>
+                                                                                <a class="waves-effect waves-light btn" onclick="changeOverlayYear(false);">Prev</a>
+                                                                                <a class="waves-effect waves-light btn" onclick="changeOverlayYear(true);">Next</a>                
+                                                                        </div>
                                                                 </div>
                                                                 <div class="col s3" style="margin-top: 8px;">
                                                                         <a class="waves-effect waves-light btn saveButton right" onclick="saveImgToFile();">Save Image</a>
@@ -416,7 +427,7 @@
                                         <div class="row" style="margin-bottom: 0;">
                                                 <div class="col s8"><h5>Theta:</h5></div>
                                                 <div class="col s3"><input type="text" id="paramTheta" style="margin-bottom: 0;"></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light" id="thetaHelp"><i>?</i></a></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Logistic theta parameter."><i>?</i></a></div>
                                         </div>
                                 </li>
                                 <li class="collection-item">

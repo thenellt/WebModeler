@@ -30,22 +30,8 @@ function loadFromFile(fileName){
                 reader.onload = function (e) {
                         let loadedObject = parseConfigFile(e.target.result);
                         if(loadedObject.valid){
-                                if(typeof simData.simID === 'undefined' || simData.simID === -1){
-                                        loadSimConfig(loadedObject);
-                                        newSimulation();
-                                        document.getElementById("popSetupTab").disabled = false;
-                                        synchPersisObject();
-                                        return;
-                                }
-                                let title = "Load Simulation";
-                                let msg = "There is a currently active simulation. Loading a new simulation will overwrite all data from the current one.";
-                                modalConfirmation(title, msg, function(){
-                                        resetSimulation();
-                                        loadSimConfig(loadedObject);
-                                        newSimulation();
-                                        document.getElementById("popSetupTab").disabled = false;
-                                        synchPersisObject();
-                                });
+                                addConfigFromFile(loadedObject);
+                                return;
                         }
                 };
                 reader.readAsText(fileName.files[0]);
@@ -67,6 +53,34 @@ function parseConfigFile(fileString){
         }
 
         return loadedObject;
+}
+
+function addConfigFromFile(fileData){
+        let config = fileData.config;
+        let test = findConfig(config.simID);
+        if(test){
+                let title = "Overwrite Conflicting Save?";
+                let msg = "The save being loaded, <i>" + config.simName + "</i> has the same ID as the internal config named <i>" + test.name + "</i>.";
+                msg += "<br><br>Select <b>OK</b> to overwrite the internal config with the config from the file.";
+                msg += "<br>Select <b>CANCEL</b> to give the config being loaded a new ID.";
+        
+                modalConfirmation(title, msg, function(){
+                        deleteConfigByID(config.simID)
+                        synchPersisObject(config);
+                        populatePersistSaves();
+                        setupPersistConfigs();
+                }, function(){
+                        var tempDate = new Date();
+                        config.simID = tempDate.valueOf();
+                        synchPersisObject(config);
+                        populatePersistSaves();
+                        setupPersistConfigs();
+                });
+        } else {
+                synchPersisObject(config);
+                populatePersistSaves();
+                setupPersistConfigs();
+        }
 }
 
 function loadSimConfig(fileData){
@@ -100,7 +114,7 @@ function loadSimConfig(fileData){
         if(simData.highColorCode[0] !== '#'){
                 simData.highColorCode = "#" + simData.highColorCode;
         }
-
+        
         emptyTable();
         loadPopulationData(config.popData);
 
@@ -174,7 +188,7 @@ function savePersistConfig(persistID){
 function findConfig(persistID){
         let entries = getPersistObjects();
         var pos = -1;
-        if(entries.length){
+        if(entries && entries.length){
                 for(let i = 0; i < entries.length; i++){
                         if(entries[i].id == persistID){
                                 return entries[i];
@@ -234,11 +248,11 @@ function saveHeatmapToFile(){
         workerThread.postMessage({type:'genImage', dest:'save', year:requestYear, scale:requestScale});
 }
 
-function generatePersistObject(){
-        var saveObject = generateConfigObject();
+function generatePersistObject(config){
+        var saveObject = config ? config : generateConfigObject();
         var persistObject = {};
 
-        persistObject.id = simData.simID;
+        persistObject.id = saveObject.simID;
         persistObject.name = saveObject.simName;
         persistObject.created = new Date();
         persistObject.modified = persistObject.created;
@@ -247,8 +261,8 @@ function generatePersistObject(){
         return persistObject;
 }
 
-function synchPersisObject(){
-        var saveObject = generatePersistObject();
+function synchPersisObject(config){
+        var saveObject = config ? generatePersistObject(config) : generatePersistObject();
         var currentSaves = getPersistObjects();
         var pos = -1;
         if(currentSaves){
@@ -271,6 +285,7 @@ function synchPersisObject(){
                 localStorage.setItem('numEntries', numEntries + 1);
                 notifyMessage("Project autosave created", 5);
         }
+        paramsChanged = false;
 }
 
 function quickSave(){
@@ -309,7 +324,7 @@ function setupPersistConfigs(){
                 container.className += " hide";
         }
         else{
-                document.getElementById("persistMessage").innerHTML = "Found " + parseInt(entries) + " saved simulation(s).";
+                document.getElementById("persistMessage").innerHTML = "Found " + parseInt(entries) + " cached simulation(s).";
                 container.classList.remove("hide");
         }
 }
@@ -339,8 +354,6 @@ function deleteConfigByID(persistID){
                         saveContainer.removeChild(saveContainer.firstChild);
                 }
 
-                setupPersistConfigs();
-                populatePersistSaves();
                 console.log("persist config deleted with id: " + persistID);
         }
 }
@@ -459,6 +472,8 @@ function confirmAutosaveDelete(id){
         
         modalConfirmation(title, msg, function(){
                 deleteConfigByID(id);
+                setupPersistConfigs();
+                populatePersistSaves();
         });
 }
 

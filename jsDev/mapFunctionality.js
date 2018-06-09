@@ -371,6 +371,7 @@ function generateCanvas(year, scale, imgArray, dest, position){
                 canvasImage.onload = function(){
                         drawCanvasToMap(canvasImage, position);
                         $('#overlayYear').prop('disabled', false);
+                        $('#overlayYear').blur();
                 };
                 break;
         case 'save':

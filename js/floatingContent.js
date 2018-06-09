@@ -69,8 +69,12 @@ function closePopEditor(clear){
                 var tempLong = parseFloat(document.getElementById("floatLong").value);
                 var tempName = document.getElementById("floatPopName").value;
                 var tempPop = parseInt(document.getElementById("floatPop").value);
-                var tempKill = parseFloat(document.getElementById("floatKill").value);
                 var tempGrowth =  parseFloat(document.getElementById("floatGrowth").value);
+                var tempKill = document.getElementById("floatKill").value;
+                if(tempKill)
+                        tempKill = parseFloat(tempKill)
+                else
+                        tempKill = "";
                 let docHPHY = document.getElementById("floatHPHY").value;
                 if(docHPHY)
                         var tempHPHY = parseFloat(docHPHY);

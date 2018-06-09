@@ -30,6 +30,7 @@ $(document).ready(function() {
         mapWorkerFunctions();
         setupWorker();
         setupOlInputMap();
+        checkCompatibility();
 });
 
 function setupTabs(){

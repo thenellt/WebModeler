@@ -3,12 +3,15 @@
 var csvStrings;
 var entireAreaChart;
 var localAreaChart;
+var heatMapYear;
 
-$(document).ready(function() {
-        $("#overlayYear").on("change",function(event){
-                changeOverlayYear(event.target.value);
-        });
-});
+function setupOutputRanges(){
+        heatMapYear = simData.years;
+        document.getElementById("heatmapYearLabel").innerHTML = "Heatmap Year: " + heatMapYear;
+        document.getElementById("rawHeatmapYear").max = simData.years;
+        document.getElementById("rawHeatmapYear").value = simData.years;
+        document.getElementById("csvNumberInput").max = simData.years;
+}
 
 function createCDFChart(densities){
         console.log("createCDFChart called with densities length: " + densities.length);
@@ -54,25 +57,22 @@ function rawHWScaleInput(value){
         document.getElementById('heatmapScaleText').innerHTML = "Image Resolution: " + newWidth + "px by " + newHeight + "px";
 }
 
-function setupOutputRanges(){
-        document.getElementById("rawHeatmapYear").max = simData.years;
-        document.getElementById("rawHeatmapYear").value = simData.years;
-        document.getElementById("overlayYear").max = simData.years;
-        document.getElementById("overlayYear").value = simData.years;
-        document.getElementById("csvNumberInput").max = simData.years;
-}
-
 function setupOpacitySlider(){
         document.getElementById("opacitySlider").value = simData.opacity * 100;
         console.log("setting opacity: " + simData.opacity * 100);
         document.getElementById("opacityLabel").innerHTML = "Overlay Opacity: " + simData.opacity * 100  + "%";
 }
 
-function changeOverlayYear(requestYear){
-        $('#overlayYear').prop('disabled', true);
-        setTimeout(function(){
-                workerThread.postMessage({type:'genImage', dest:'mapViewerUpdate', year:requestYear, scale:1});
-        }, 50);
+function changeOverlayYear(isNext){
+        if(isNext && heatMapYear != simData.years){
+                heatMapYear += 1;
+                workerThread.postMessage({type:'genImage', dest:'mapViewerUpdate', year:heatMapYear, scale:1});
+                document.getElementById("heatmapYearLabel").innerHTML = "Heatmap Year: " + heatMapYear;
+        } else if(!isNext && heatMapYear > 0){
+                heatMapYear -= 1;
+                workerThread.postMessage({type:'genImage', dest:'mapViewerUpdate', year:heatMapYear, scale:1});
+                document.getElementById("heatmapYearLabel").innerHTML = "Heatmap Year: " + heatMapYear;
+        }
 }
 
 function csvSingleYear(){

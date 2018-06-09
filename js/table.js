@@ -86,7 +86,7 @@ function addEntry(tempRow){
 function addYearlyRow(data){
         let body = document.getElementById('popTableBody');
         let lastRow = body.children[body.children.length - 1];
-        if(isEmptyEntry(lastRow)){
+        if(lastRow && isEmptyEntry(lastRow)){
                 removeRow("popTable", lastRow.id);
         }
         
