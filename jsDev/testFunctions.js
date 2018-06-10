@@ -67,8 +67,8 @@ function setupTowns(){
                 return false;
 
         for(const settlement in uiData)
-                if(settlement.valid)
-                        townArray.push(sanitizeTownData(settlement));
+                if(uiData[settlement].valid)
+                        townArray.push(sanitizeTownData(uiData[settlement]));
 
         if(!townArray.length){
                 const title = "No Valid Populations Found";
@@ -82,15 +82,17 @@ function setupTowns(){
 
 function checkYearlyPopDuration(){
         var nameString = ""
-        for(const settlement in uiData)
-                if(settlement.type === "yearly" && settlement.population.length < simData.years){
+        for(settlement in uiData){
+                let village = uiData[settlement];
+                if(village.type === "yearly" && village.population.length < simData.years){
                         if(!nameString.length){
-                                nameString = settlement.name;
+                                nameString = village.name;
                         }
                         else{
-                                nameString += ", " + settlement.name;
+                                nameString += ", " + village.name;
                         }
                 }
+        }
 
         if(nameString.length){
                 //TODO add the option to hold populations steady.

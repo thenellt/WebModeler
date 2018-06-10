@@ -2,7 +2,6 @@ var popupEvntFunction;
 var currentId;
 var olmapLocation;
 var simulationRun;
-var paramsChanged;
 var advSettingsFnc;
 var modalEventFnc;
 var simData = {};
@@ -54,7 +53,6 @@ function setupTabs(){
 function newSimulation(){
         var tempDate = new Date();
         simData.simID = tempDate.valueOf();
-        addRow("popTable", -1);
         console.log("new simulation setup with ID: " + simData.simID);
         document.getElementById("parameterSetupTab").disabled = false;
         document.getElementById("popSetupTab").disabled = false;

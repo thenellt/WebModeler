@@ -187,14 +187,9 @@ function savePersistConfig(persistID){
 
 function findConfig(persistID){
         let entries = getPersistObjects();
-        var pos = -1;
-        if(entries && entries.length){
-                for(let i = 0; i < entries.length; i++){
-                        if(entries[i].id == persistID){
-                                return entries[i];
-                        }
-                }
-        }
+        for(index in entries)
+                if(entries[index].id === persistID)
+                        return entries[index];
         
         return false;
 }
@@ -221,8 +216,8 @@ function generateConfigObject(){
         saveObject.opacity = simData.opacity;
         saveObject.popData = [];
 
-        for(const settlement in uiData)
-                saveObject.popData.push(settlement);
+        for(settlement in uiData)
+                saveObject.popData.push(uiData[settlement]);
 
         console.log("generateConfigObject found " + saveObject.popData.length + " populations");
         return saveObject;
@@ -262,29 +257,19 @@ function generatePersistObject(config){
 
 function synchPersisObject(config){
         var saveObject = config ? generatePersistObject(config) : generatePersistObject();
-        var currentSaves = getPersistObjects();
-        var pos = -1;
-        if(currentSaves){
-                for(let i = 0; i < currentSaves.length; i++){
-                        if(currentSaves[i].id == simData.simID){
-                                pos = i;
-                                break;
-                        }
-                }
-        }
+        let oldConfig = simData.simID ? findConfig(simData.simID) : false;
 
-        if(pos > -1){
-                saveObject.created = currentSaves[pos].created;
-                localStorage.setItem('entry' + pos, JSON.stringify(saveObject));
+        if(!oldConfig){
+                let entryIDs = JSON.parse(localStorage.getItem('entryIDs'));
+                entryIDs.push(saveObject.id);
+                localStorage.setItem('entryIDs', JSON.stringify(entryIDs));
+                notifyMessage("Project autosave created", 3);
+        } else{
+                saveObject.created = oldConfig.created;
                 notifyMessage("Project autosave updated", 3);
         }
-        else{
-                var numEntries = parseInt(localStorage.getItem('numEntries'));
-                localStorage.setItem('entry' + numEntries, JSON.stringify(saveObject));
-                localStorage.setItem('numEntries', numEntries + 1);
-                notifyMessage("Project autosave created", 5);
-        }
-        paramsChanged = false;
+
+        localStorage.setItem(saveObject.id, JSON.stringify(saveObject));
 }
 
 function quickSave(){
@@ -296,64 +281,44 @@ function quickSave(){
 }
 
 function getPersistObjects(){
-        var numEntries = localStorage.getItem('numEntries');
+        var entryIDs = JSON.parse(localStorage.getItem('entryIDs'));
 
-        if(numEntries === null || parseInt(numEntries) === 0){
-                console.log("no persistent entries found: " + numEntries);
-                return null;
+        if(!entryIDs || !entryIDs.length){
+                console.log("getPersistObjects::no persistent entries found");
+                return [];
         }
-        numEntries = parseInt(numEntries);
 
         var entries = [];
-        for(var i = 0; i < numEntries; i++){
-                var entry = JSON.parse(localStorage.getItem('entry' + i));
-                entries.push(entry);
-        }
+        for(item in entryIDs)
+                entries.push(JSON.parse(localStorage.getItem(entryIDs[item])));
 
         return entries;
 }
 
 function setupPersistConfigs(){
-        var entries = localStorage.getItem('numEntries');
+        var entryIDs = JSON.parse(localStorage.getItem('entryIDs'));
         let container = document.getElementById("persistSaveContainer");
 
-        if(!entries || entries == 0){
+        if(!entryIDs || !entryIDs.length){
                 document.getElementById("persistMessage").innerHTML = "No recent saves found";
-                localStorage.setItem('numEntries', 0);
+                let testArray = new Array;
+                localStorage.setItem('entryIDs', JSON.stringify(testArray));
                 container.className += " hide";
         }
         else{
-                document.getElementById("persistMessage").innerHTML = "Found " + parseInt(entries) + " cached simulation(s).";
+                document.getElementById("persistMessage").innerHTML = "Found " + entryIDs.length + " cached simulation(s).";
                 container.classList.remove("hide");
         }
 }
 
 function deleteConfigByID(persistID){
-        let entries = getPersistObjects();
-        var pos = -1;
-        if(entries.length){
-                for(let i = 0; i < entries.length; i++){
-                        if(entries[i].id == persistID){
-                                pos = i;
-                                break;
-                        }
-                }
-        }
-        if(pos !== -1){
-                var numEntries = parseInt(localStorage.getItem('numEntries'));
-                localStorage.removeItem('entry' + pos);
-                localStorage.setItem('numEntries', (numEntries - 1));
-                if(numEntries > 1 || pos !== (numEntries - 1)){
-                        localStorage.removeItem('entry' + (numEntries - 1))
-                        localStorage.setItem('entry' + pos, JSON.stringify(entries[numEntries - 1]));
-                }
-
-                var saveContainer = document.getElementById("persistSaveContainer");
-                while (saveContainer.firstChild) {
-                        saveContainer.removeChild(saveContainer.firstChild);
-                }
-
-                console.log("persist config deleted with id: " + persistID);
+        let entryIDs = JSON.parse(localStorage.getItem('entryIDs'));
+        let index = entryIDs.indexOf(persistID);
+        if(index != -1){
+                localStorage.removeItem(entryIDs[index]);
+                entryIDs.splice(index, 1);
+                localStorage.setItem('entryIDs', JSON.stringify(entryIDs));
+                console.log("deleteConfigByID::persist config deleted with id: " + persistID);
         }
 }
 
@@ -496,18 +461,17 @@ function copyConfigByID(persistID){
         let entry = findConfig(persistID);
         if(entry){
                 let tempDate = new Date();
-                let freshID = tempDate.valueOf();
-                
-                entry.modified = new Date();
+                entry.modified = tempDate;
                 entry.config.simName = entry.config.simName + " Copy";
                 entry.name = entry.config.simName;
-                entry.config.simID = freshID;
-                entry.id = freshID;
+                entry.config.simID = tempDate.valueOf();;
+                entry.id = tempDate.valueOf();;
                 
-                let numEntries = parseInt(localStorage.getItem('numEntries'));
-                localStorage.setItem('entry' + numEntries, JSON.stringify(entry));
-                localStorage.setItem('numEntries', numEntries + 1);
-                
+                let entryIDs = JSON.parse(localStorage.getItem('entryIDs'));
+                entryIDs.push(entry.config.simID);
+                localStorage.setItem('entryIDs', JSON.stringify(entryIDs));
+                localStorage.setItem(entry.config.simID, JSON.stringify(entry));
+
                 setupPersistConfigs();
                 populatePersistSaves();
         }
