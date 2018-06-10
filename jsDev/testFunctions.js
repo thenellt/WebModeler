@@ -1,5 +1,3 @@
-/* global ol features uiData simData simResults lowColorCode:true highColorCode:true*/
-
 var workerThread;
 var workerFunctions = {};
 
@@ -65,39 +63,34 @@ function readUserParameters(){
 function setupTowns(){
         var townArray = [];
 
-        if(!checkYearlyPopDuration()){
+        if(!checkYearlyPopDuration())
                 return false;
-        }
 
-        for(let i = 0; i < uiData.length; i++){
-                if(uiData[i].valid){
-                        townArray.push(sanitizeTownData(uiData[i]));
-                }
-        }
+        for(const settlement in uiData)
+                if(settlement.valid)
+                        townArray.push(sanitizeTownData(settlement));
 
         if(!townArray.length){
                 const title = "No Valid Populations Found";
                 const msg = "Please enter at least one population before running the simulation.";
                 modalDialog(title, msg);
                 return false;
-        }
-        else{
+        } else {
                 return townArray;
         }
 }
 
 function checkYearlyPopDuration(){
         var nameString = ""
-        for(let i = 0; i < uiData.length; i++){
-                if(uiData[i].type === "yearly" && uiData[i].population.length < simData.years){
+        for(const settlement in uiData)
+                if(settlement.type === "yearly" && settlement.population.length < simData.years){
                         if(!nameString.length){
-                                nameString = uiData[i].name;
+                                nameString = settlement.name;
                         }
                         else{
-                                nameString += ", " + uiData[i].name;
+                                nameString += ", " + settlement.name;
                         }
                 }
-        }
 
         if(nameString.length){
                 //TODO add the option to hold populations steady.
@@ -166,6 +159,7 @@ function setupSimulation(){
         if(!townData)
                 return;
         
+        $('#coverScreen').modal('open');
         geoGridFeatures.clear(true);
         debugSource.clear(true);
 
@@ -200,6 +194,7 @@ function handleWorkerMessage(data){
                 workerThread.postMessage({type:'getCDFData', year:simData.years});
                 //workerThread.postMessage({type:'getLocalCDFData', year:simData.years});
                 closeProgressBar();
+                $('#coverScreen').modal('close');
                 break;
                 }
         case 'debug':

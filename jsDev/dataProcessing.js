@@ -59,7 +59,6 @@ function rawHWScaleInput(value){
 
 function setupOpacitySlider(){
         document.getElementById("opacitySlider").value = simData.opacity * 100;
-        console.log("setting opacity: " + simData.opacity * 100);
         document.getElementById("opacityLabel").innerHTML = "Overlay Opacity: " + simData.opacity * 100  + "%";
 }
 

@@ -221,9 +221,8 @@ function generateConfigObject(){
         saveObject.opacity = simData.opacity;
         saveObject.popData = [];
 
-        for(let i = 0; i < uiData.length; i++){
-                saveObject.popData.push(uiData[i]);
-        }
+        for(const settlement in uiData)
+                saveObject.popData.push(settlement);
 
         console.log("generateConfigObject found " + saveObject.popData.length + " populations");
         return saveObject;
@@ -484,6 +483,7 @@ function loadConfigByID(persistID){
                 loadSimConfig(entry);
                 document.getElementById("popSetupTab").disabled = false;
                 document.getElementById("parameterSetupTab").disabled = false;
+                $('#tabFillerButton').removeClass('disabled');
                 document.getElementById("resetButton").classList.remove("hide");
                 document.getElementById("quickSaveButton").classList.remove("hide");
                 document.getElementById("newSimButton").classList.add("hide");

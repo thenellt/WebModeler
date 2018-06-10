@@ -1,54 +1,205 @@
-/* global ol uiData API_KEYS simData simResults*/
-
 const eaProjection = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
 const viewProjection = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs ";
 
-proj4.defs('espg4326', viewProjection);
-proj4.defs('mollweide', eaProjection);
-
 var map;
-var bingLayers = [];
+var bingLayers;
 var features;
 var geoGridFeatures;
-var source = new ol.source.Vector({wrapX: false});
-var debugSource = new ol.source.Vector({wrapX: false});
-var scaleLineControl = new ol.control.ScaleLine();
+var source;
+var debugSource;
 var debugVector;
 var pointVector;
 var canvas;
 var canvasImage;
 var imageLayer;
 var addPopFunction;
+var isMenuOpen;
+var isPopMoving;
+var popStorageMap = {};
+
+function setupMapping(){
+        proj4.defs('espg4326', viewProjection);
+        proj4.defs('mollweide', eaProjection);
+        source = new ol.source.Vector({wrapX: false});
+        debugSource = new ol.source.Vector({wrapX: false});
+
+        var teststyle = new ol.style.Style({
+                fill: new ol.style.Fill({ color: [0, 255, 0, 0.3]})
+        });
+        features = new ol.source.Vector();
+        geoGridFeatures = new ol.source.Vector();
+
+        var projection = new ol.proj.Projection({
+                code: 'EPSG:4326',
+                // basedon entry from http://epsg.io/
+                extent: [-180.0, -90.0, 180.0, 90.0],
+                units: 'm'
+        });
+        ol.proj.addProjection(projection);
+
+        bingLayers = [];
+        bingLayers[0] = new ol.layer.Tile({
+                source: new ol.source.BingMaps({
+                        imagerySet: 'Road',
+                        key: API_KEYS.bingMaps,
+                        projection: 'EPSG:4326',
+                        wrapX: false
+                })
+        });
+        bingLayers[1] = new ol.layer.Tile({
+                source: new ol.source.BingMaps({
+                        imagerySet: 'Aerial',
+                        key: API_KEYS.bingMaps,
+                        projection: 'EPSG:4326',
+                        wrapX: false
+                })
+        });
+
+        pointVector = new ol.layer.Vector({
+                source: source,
+                style: new ol.style.Style({
+                        fill: new ol.style.Fill({color: 'rgba(255, 255, 255, 0.2)'}),
+                        stroke: new ol.style.Stroke({color: '#ffcc33', width: 2}),
+                        image: new ol.style.Circle({radius: 7, fill: new ol.style.Fill({color: '#ffcc33'})})
+                }),
+                projection: 'EPSG:4326',
+        });
+        pointVector.setZIndex(10);
+        debugVector = new ol.layer.Vector({
+                source: debugSource,
+                projection: 'EPSG:4326',
+        });
+        debugVector.setZIndex(5);
+        
+        map = new ol.Map({
+                target: 'popMapDiv', 
+                layers: [
+                        bingLayers[0],
+                        bingLayers[1],
+                        new ol.layer.Vector({
+                                source: features,
+                                style: teststyle
+                        }),
+                        pointVector,
+                        debugVector
+                ],
+                view: new ol.View({
+                        projection: 'EPSG:4326', //9835', 3410
+                        center: [37.41, 8.82],
+                        zoom: 2
+                }),
+        });
+
+        map.addControl(new ol.control.ScaleLine());
+        map.addControl(new ol.control.MousePosition({
+                undefinedHTML: '-',
+                className: 'ol-mouse-position',
+                projection: 'EPSG:4326',
+                coordinateFormat: function(coordinate) {
+                    return ol.coordinate.format(coordinate, '{x}, {y}', 4);
+                }
+        }));
+
+        addPopFunction = map.on('click', placePopulation);
+        map.updateSize();
+        bingLayers[0].setVisible(true);
+        bingLayers[1].setVisible(false);
+        isPopMoving = false;
+}
 
 function placePopulation(e){
+        if(isPopMoving){
+                console.log(e.coordinate);
+                endPopMove(e.coordinate);
+                return;
+        }
+
         var tempFeatures = [];
         map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
                 tempFeatures.push(feature);
-
         }, {hitTolerance: 3});
 
-        if(!tempFeatures.length){
-                showPopEditor(e.coordinate);
-        }
-        else{
-                var tempId = tempFeatures[0].get('description');
-                console.log("existing feature clicked. Id: " + tempId);
-                for(var t = 0; t < uiData.length; t++){
-                        if(uiData[t].id === tempId){
-                                showPopUpdater(t);
-                                break;
-                        }
+        if(isMenuOpen){
+                isMenuOpen = false;
+                var testFeature = [];
+                map.forEachFeatureAtPixel(e.pixel, function(f, layer) {
+                        testFeature.push(f);
+                }, {hitTolerance: 3});
+                if(testFeature.length){
+                        setTimeout(function(){
+                                placePopulation(e);
+                        }, 50);
                 }
+        } else if(!tempFeatures.length){
+                showPopEditor(e.coordinate);
+        } else {
+                isMenuOpen = true;
+                let tempId = tempFeatures[0].get('description');
+                $('#dropDownTest').css({ 
+                        top: e.originalEvent.clientY, 
+                        left: (e.originalEvent.clientX - 27)
+                });
+                setTimeout(function(){
+                        $('#dropEditOption').off('click').click(function(){
+                                showPopUpdater(tempId);   
+                        });
+                        $('#dropMoveOption').off('click').click(function(){
+                                startPopMove(tempId);
+                        });
+                        $('#dropDeleteOption').off('click').click(function(){
+                                removeRow('popTable', tempId);
+                        });
+                        $('#dropDownTest').dropdown('open');
+                }, 200);
         }
 }
 
+function startPopMove(id){
+        document.body.style.cursor = "crosshair";
+        isPopMoving = id;
+        removePopFromMapById(id);
+}
+
+function endPopMove(location, isCanceled){
+        let entry = uiData[isPopMoving];
+        let isYearly = entry.type === "yearly";
+        if(isCanceled){
+                addPopToMap(entry.id, entry.name, entry.long, entry.lat, isYearly);
+        } else {
+                entry.long = location[0];
+                entry.lat = location[1];
+                addPopToMap(entry.id, entry.name, entry.long, entry.lat, isYearly);
+                updateTableRow(entry.id);
+        }
+        document.body.style.cursor = "auto";
+        isPopMoving = false;
+}
+
+function resultsMapClick(e){
+        var tempFeatures = [];
+        map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
+                tempFeatures.push(feature);
+        }, {hitTolerance: 3});
+
+        if(tempFeatures.length)
+                displaySettlementStats(tempFeatures[0]);
+}
+
+function displaySettlementStats(feature){
+        map.getView().setCenter(feature.getGeometry().getCoordinates());
+        if(simData.huntRange > 6)
+                map.getView().setZoom(11);
+        else
+                map.getView().setZoom(12);
+
+        let settlementID = feature.get('description');
+        console.log("settlementID: " + settlementID);
+}
+
 function removePopFromMapById(popId){
-        var features = source.getFeatures();
-        for(var j = 0; j < features.length; j++){
-                if(features[j].get('description') == popId){
-                        source.removeFeature(features[j]);
-                        break;
-                }
+        if(popId in popStorageMap){
+                source.removeFeature(popStorageMap[popId]);
+                delete popStorageMap[popId];
         }
 }
 
@@ -66,6 +217,7 @@ function addPopToMap(popId, popName, long, lat, isYearly){
         else{
                 tempFeature.setStyle(styleFunction);
         }
+        popStorageMap[popId] = tempFeature;
         source.addFeature(tempFeature);
 }
 
@@ -194,90 +346,6 @@ function styleYearly() { //e57373
                         })
                 })
         ];
-}
-
-function setupOlInputMap(){
-        var teststyle = new ol.style.Style({
-                fill: new ol.style.Fill({ color: [0, 255, 0, 0.3]})
-        });
-        features = new ol.source.Vector();
-        geoGridFeatures = new ol.source.Vector();
-
-        var projection = new ol.proj.Projection({
-                code: 'EPSG:4326',
-                // The extent is used to determine zoom level 0. Recommended values for a
-                // projection's validity extent can be found at http://epsg.io/.
-                extent: [-180.0, -90.0, 180.0, 90.0],
-                units: 'm'
-        });
-        ol.proj.addProjection(projection);
-
-        bingLayers[0] = new ol.layer.Tile({
-                source: new ol.source.BingMaps({
-                        imagerySet: 'Road',
-                        key: API_KEYS.bingMaps,
-                        projection: 'EPSG:4326',
-                        wrapX: false
-                })
-        });
-        bingLayers[1] = new ol.layer.Tile({
-                source: new ol.source.BingMaps({
-                        imagerySet: 'Aerial',
-                        key: API_KEYS.bingMaps,
-                        projection: 'EPSG:4326',
-                        wrapX: false
-                })
-        });
-
-        map = new ol.Map({
-                target: 'popMapDiv', 
-                layers: [
-                        bingLayers[0],
-                        bingLayers[1],
-                        new ol.layer.Vector({
-                                source: features,
-                                style: teststyle
-                        })
-                ],
-                view: new ol.View({
-                        projection: 'EPSG:4326', //9835', 3410
-                        center: [37.41, 8.82],
-                        zoom: 2
-                }),
-                /*
-                controls: ol.control.defaults({
-                        attributionOptions: {
-                                collapsible: false
-                        }
-                }).extend([new ol.control.ScaleLine()])
-                */
-        });
-
-        map.addControl(new ol.control.ScaleLine());
-
-        pointVector = new ol.layer.Vector({
-                source: source,
-                style: new ol.style.Style({
-                        fill: new ol.style.Fill({color: 'rgba(255, 255, 255, 0.2)'}),
-                        stroke: new ol.style.Stroke({color: '#ffcc33', width: 2}),
-                        image: new ol.style.Circle({radius: 7, fill: new ol.style.Fill({color: '#ffcc33'})})
-                }),
-                projection: 'EPSG:4326',
-        });
-        pointVector.setZIndex(10);
-        map.addLayer(pointVector);
-
-        debugVector = new ol.layer.Vector({
-                source: debugSource,
-                projection: 'EPSG:4326',
-        });
-        debugVector.setZIndex(5);
-        map.addLayer(debugVector);
-
-        addPopFunction = map.on('click', placePopulation);
-        map.updateSize();
-        bingLayers[0].setVisible(true);
-        bingLayers[1].setVisible(false);
 }
 
 function drawDebugPoint(location, colorCode){

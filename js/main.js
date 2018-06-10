@@ -1,6 +1,3 @@
-/*eslint no-unused-vars: ["error", { "vars": "local" }]*/
-/* global imageLayer uiData:true map source addPopFunction otherPopup:true ol pointVector */
-
 var popupEvntFunction;
 var currentId;
 var olmapLocation;
@@ -16,21 +13,26 @@ $(document).ready(function() {
         $('#changelogPopup').modal();
         $('#popImportDialog').modal();
         $('#yearlyPopEditor').modal({dismissible: false});
+        $('#coverScreen').modal({dismissible: false});
         $('#fullScreenMap').modal({dismissible: false});
         $('#sysDialog').modal({dismissible: false});
         $('#advancedSettings').modal({
                 dismissible: false,
                 ready: showAdvancedSettings
         });
+        $('#dropDownTest').dropdown({
+                inDuration: 75,
+                outDuration: 25,
+        });
         $('#floatingPopEditor').modal({dismissible: false});
         $('#debugModeToggle').prop('checked', false);
+        $('#tabFillerButton').addClass('disabled');
         setupTabs();
         setupPersistConfigs();
         populatePersistSaves();
         mapWorkerFunctions();
         setupWorker();
-        setupOlInputMap();
-        checkCompatibility();
+        setupMapping();
 });
 
 function setupTabs(){
@@ -56,6 +58,7 @@ function newSimulation(){
         console.log("new simulation setup with ID: " + simData.simID);
         document.getElementById("parameterSetupTab").disabled = false;
         document.getElementById("popSetupTab").disabled = false;
+        $('#tabFillerButton').removeClass('disabled');
         document.getElementById("resetButton").classList.remove("hide");
         document.getElementById("newSimButton").classList.add("hide");
         document.getElementById("quickSaveButton").classList.remove("hide");
@@ -92,9 +95,6 @@ function resetSimulation(){
                 if(olmapLocation){ //move the map from output page back to pop page
                         document.getElementById("popMapRow").appendChild(document.getElementById("popMapDiv"));
                         olmapLocation = 0;
-                        //var parentDiv = document.getElementById("popMapRow");
-                        //map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
-                        //map.updateSize();
                         addPopFunction = map.on('click', placePopulation);
                         imageLayer.setVisible(false);
                         debugVector.setVisible(false);
@@ -106,7 +106,7 @@ function resetSimulation(){
                 }
         }
 
-        uiData = [];
+        uiData = {};
 
         if(source){
                 var features = source.getFeatures();
@@ -120,6 +120,7 @@ function resetSimulation(){
         document.getElementById("parameterSetupTab").disabled = true;
         document.getElementById("popSetupTab").disabled = true;
         document.getElementById("resultsPageTab").disabled = true;
+        $('#tabFillerButton').addClass('disabled');
         document.getElementById("resetButton").classList.add("hide");
         document.getElementById("quickSaveButton").classList.add("hide");
         document.getElementById("newSimButton").classList.remove("hide");
@@ -148,6 +149,7 @@ function changeToPopulations(){
                 document.getElementById("popMapRow").appendChild(document.getElementById("popMapDiv"));
                 olmapLocation = 0;
                 changeTab('popSetup');
+                ol.Observable.unByKey(addPopFunction);
                 addPopFunction = map.on('click', placePopulation);
                 imageLayer.setVisible(false);
                 debugVector.setVisible(false);
@@ -183,6 +185,7 @@ function changeToOutput(){
         document.getElementById("statsPageTab").disabled = false;
         changeTab('resultsPage');
         ol.Observable.unByKey(addPopFunction);
+        addPopFunction = map.on('click', resultsMapClick);
 
         if(simulationRun){
                 imageLayer.setVisible(true);

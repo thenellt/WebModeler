@@ -92,11 +92,11 @@ function closePopEditor(clear){
         $('#floatingPopEditor').modal('close');
 }
 
-function showPopUpdater(index){
-        console.log("showing popeditor in update mode");
+function showPopUpdater(popID){
+        console.log("showPopUpdater::showing popeditor in update mode");
         $('#editorDeleteButton').css('display', 'inline');
         
-        let village = uiData[index];
+        let village = uiData[popID];
         currentId = village.id;
         document.getElementById("floatLat").value = village.lat;
         document.getElementById("floatLong").value = village.long;
@@ -146,30 +146,24 @@ function closePopUpdater(input){ //0 - cancel, 1 - update village, 2 delete vill
                 var tempGrowth =  document.getElementById("floatGrowth").value;
                 var tempHPHY =  document.getElementById("floatHPHY").value;
 
-                var i;
-                for(i = 0; i < uiData.length; i++){
-                        if(uiData[i].id == currentId){
-                                break;
-                        }
-                }
-
-                if(tempName !== uiData[i].name || tempLat !== uiData[i].lat || tempLong !== uiData[i].long){
+                let settlement = uiData[currentId];
+                if(tempName !== settlement.name || tempLat !== settlement.lat || tempLong !== settlement.long){
                         removePopFromMapById(currentId);
                         addPopToMap(currentId, tempName, tempLong, tempLat, popEditorMode === editorModes.YEARLY);
                 }
                 
-                uiData[i].lat = tempLat;
-                uiData[i].long = tempLong;
-                uiData[i].name = tempName;
-                uiData[i].killRate = tempKill;
-                uiData[i].HPHY = tempHPHY;
+                settlement.lat = tempLat;
+                settlement.long = tempLong;
+                settlement.name = tempName;
+                settlement.killRate = tempKill;
+                settlement.HPHY = tempHPHY;
                 console.log("closePopUpdater::HPHY " + tempHPHY);
                 if(popEditorMode === editorModes.UPDATE){
-                        uiData[i].population = tempPop;
-                        uiData[i].growthRate = tempGrowth;
+                        settlement.population = tempPop;
+                        settlement.growthRate = tempGrowth;
                 }
 
-                updateTableRow(i);
+                updateTableRow(currentId);
         }
         else if(input === 2){ //delete village
                 removeRow('popTable', currentId);
@@ -301,15 +295,10 @@ function closeFullscreenViewer(){
 }
 
 function openYearlyEditor(id){
-        for(let i = 0; i < uiData.length; i++){
-                if(uiData[i].id === id && uiData[i].type === "yearly"){
-                        var data = uiData[i];
-                        break;
-                }
-                if(i === uiData.length - 1){
-                        console.log("#########Critital: YearlyEditor couldn't find " + id + " in uiData!");
-                        return;
-                }
+        let data = uiData[id];
+        if(typeof(data) == "undefined"){
+                console.log("#########Critital: YearlyEditor couldn't find " + id + " in uiData!");
+                return;
         }
         
         var showName = "No Name";
@@ -338,48 +327,35 @@ function closeYearlyEditor(mode){
         if(mode === 'save'){
                 let results = checkYearlyPops(document.getElementById('yearlyEditorInput').value);
                 if(Array.isArray(results)){
-                        let pos = -1;
-                        for(let i = 0; i < uiData.length; i++){
-                                if(uiData[i].id === yearlyEditorId && uiData[i].type === "yearly"){
-                                        pos = i;
-                                        break;
-                                }
-                                if(i === uiData.length - 1){
-                                        console.log("#########Critital: YearlyEditor couldn't find " + id + " in uiData!");
-                                        return;
-                                }
+                        if(!(yearlyEditorId in uiData)){
+                                console.log("#########Critital: closeYearlyEditor::couldn't find " + yearlyEditorId + " in uiData!");
+                                return;
                         }
                         
-                        if(pos > -1){
-                                uiData[pos].population = results;
-                                checkYearlyTableEntry(pos);
-                                $('#yearlyPopEditor').modal('close');
-                                notifyMessage("Found " + results.length + " years of data", 3);
-                        }
+                        uiData[yearlyEditorId].population = results;
+                        checkYearlyTableEntry(yearlyEditorId);
+                        $('#yearlyPopEditor').modal('close');
+                        notifyMessage("Found " + results.length + " years of data", 3);
                 }
-        }
-        else{
+        } else {
                 $('#yearlyPopEditor').modal('close');
         }
 }
 
-function checkYearlyTableEntry(pos){
+function checkYearlyTableEntry(popID){
         let isGood = true;
-        let rowData = uiData[pos];
+        let rowData = uiData[popID];
         if(isNaN(parseFloat(rowData.lat))){
-                console.log("check failed at lat: " + rowData.lat);
+                console.log("checkYearlyTableEntry::check failed at lat: " + rowData.lat);
                 isGood = false;
-        }
-        if(isNaN(parseFloat(rowData.long))){
-                console.log("check failed at long");
+        } else if(isNaN(parseFloat(rowData.long))){
+                console.log("checkYearlyTableEntry::check failed at long");
                 isGood = false;
-        }
-        if(!rowData.name || rowData.name.length === 0){
-                console.log("check failed at name");
+        } else if(!rowData.name || rowData.name.length === 0){
+                console.log("checkYearlyTableEntry::check failed at name");
                 isGood = false;
-        }
-        if(rowData.killRate && isNaN(parseFloat(rowData.killRate, 10)) && rowData.killRate.length > 0){
-                console.log("check failed at killrate");
+        } else if(rowData.killRate && isNaN(parseFloat(rowData.killRate, 10)) && rowData.killRate.length > 0){
+                console.log("checkYearlyTableEntry::check failed at killrate");
                 isGood = false;
         }
         

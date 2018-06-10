@@ -408,7 +408,9 @@ function setupGradient(){
         for(let i = 0; i < gradient.length; i++){
                 gradientOutput += gradient[i].toString() + " ";
         }
-        logMessage("setupGradient::Result: " + gradientOutput);
+        if(DEBUG){
+                logMessage("setupGradient::Result: " + gradientOutput);
+        }
         return gradient;
 }
 

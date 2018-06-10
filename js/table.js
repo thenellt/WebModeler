@@ -1,4 +1,4 @@
-var uiData = [];
+var uiData = {};
 
 function uiRow(long, lat, pop, kill, name, growth, hphy, id, validity){
         if(id === 0){
@@ -49,24 +49,8 @@ function isEmptyEntry(row){
 //temp row is a uiRow object
 function addEntry(tempRow){
         var table = document.getElementById("popTable");
+        addRow("popTable", tempRow.id);
         var row = table.rows[table.rows.length - 1];
-        if(isEmptyEntry(row)){
-                console.log("addEntry::last row was empty, using it");
-                row.valid = true;
-                for(let i = 0; i < uiData.length; i++){
-                        if(uiData[i].id == row.id){
-                                console.log("found emptry row in uiData");
-                                uiData[i].id = row.id;
-                                break;
-                        }
-                }
-                row.id = tempRow.id;
-        }
-        else{
-                console.log("addEntry::last row wasn't empty, adding one");
-                addRow("popTable", tempRow.id);
-        }
-        row = table.rows[table.rows.length - 1];
 
         row.cells[0].innerHTML = tempRow.name;
         row.cells[1].innerHTML = tempRow.long;
@@ -79,18 +63,14 @@ function addEntry(tempRow){
                 row.classList.add('validRow');
         }
 
-        uiData[uiData.length - 1] = tempRow;
+        uiData[tempRow.id] = tempRow;
 }
 
 //data is optional uiYearlyData object
 function addYearlyRow(data){
         let body = document.getElementById('popTableBody');
-        let lastRow = body.children[body.children.length - 1];
-        if(lastRow && isEmptyEntry(lastRow)){
-                removeRow("popTable", lastRow.id);
-        }
-        
         var tempId;
+
         if(data){
                 tempId = data.id;
         }
@@ -141,11 +121,11 @@ function addYearlyRow(data){
                 newRow.cells[2].innerHTML = data.lat || "";
                 newRow.cells[4].innerHTML = data.killRate || "";
                 newRow.cells[4].innerHTML = data.HPHY || "";
-                uiData.push(data);
+                uiData[data.id] = data;
         }
         else{
                 var newRowData = new uiYearlyRow("", "", "", [], "", "", tempId, false);
-                uiData.push(newRowData);
+                uiData[tempId] = newRowData;
         }
         
         document.getElementById('popTable').getElementsByTagName('tbody')[0].appendChild(newRow);
@@ -160,7 +140,7 @@ function addRow(tableId, rowId){
         }
         //add space for data storage
         var newRowData = new uiRow("", "", "", "", "", "", "", tempId, false);
-        uiData.push(newRowData);
+        uiData[tempId] = newRowData;
         //build a new table row for DOM
         var table = document.getElementById(tableId);
         var body = table.getElementsByTagName('tbody')[0];
@@ -192,95 +172,78 @@ function addRow(tableId, rowId){
 function editFinished(cell, x, y, origValue){
         var input = cell.lastChild;
         var value = input.value;
-        //TODO check value against origValue for sanity
         cell.removeChild(input);
         updateUIData(y, x, cell.cellType, value);
         if(value.length > 0){
                 cell.innerHTML = value;
         }
 
-        console.log("edit finished at pos: " + x + ", " + y + " value: " + value);
+        console.log("editFinished::finished at pos: " + x + ", " + y + " value: " + value);
 }
 
 function updateUIData(rowPos, cellPos, cellType, newValue){
         var tableRow = document.getElementById("popTable").rows[rowPos];
-        var i;
-        for(i = 0; i < uiData.length; i++){
-                if(uiData[i].id == tableRow.id){
-                        break;
-                }
-        }
-
-        if(i === uiData.length){
-                console.log("######CRITICAL####### - couldn't find row");
-                return;
-        }
+        let settlement = uiData[tableRow.id];
 
         switch(cellType){
-                case "name": uiData[i].name = newValue;
+                case "name": settlement.name = newValue;
                         break;
-                case "long": uiData[i].long = newValue;
+                case "long": settlement.long = newValue;
                         break;
-                case "lat": uiData[i].lat = newValue;
+                case "lat": settlement.lat = newValue;
                         break;
-                case "population": uiData[i].population = newValue;
+                case "population": settlement.population = newValue;
                         break;
-                case "growth": uiData[i].growthRate = newValue;
+                case "growth": settlement.growthRate = newValue;
                         break;
-                case "killRate": uiData[i].killRate = newValue;
+                case "killRate": settlement.killRate = newValue;
                         break;
-                case "HPHY": uiData[i].HPHY = newValue;
+                case "HPHY": settlement.HPHY = newValue;
                         break;
         }
 
-        let status = (uiData[i].type === "exp") ? checkRowData(uiData[i], rowPos) : checkYearlyRowData(uiData[i], rowPos);
-        if(status && !uiData[i].valid){ //data point has become complete -> add it to map and towns
-                addPopToMap(uiData[i].id, uiData[i].name, parseFloat(uiData[i].long),
-                            parseFloat(uiData[i].lat), uiData[i].type === "yearly");
-                uiData[i].valid = true;
+        let status = (settlement.type === "exp") ? checkRowData(settlement, rowPos) : checkYearlyRowData(settlement, rowPos);
+        if(status && !settlement.valid){ //data point has become complete -> add it to map and towns
+                addPopToMap(settlement.id, settlement.name, parseFloat(settlement.long),
+                            parseFloat(settlement.lat), settlement.type === "yearly");
+                settlement.valid = true;
                 $('#' + tableRow.id).addClass("validRow");
-                console.log("row " + rowPos + " has become valid");
+                console.log("updateUIData::row " + rowPos + " has become valid");
         }
-        else if(status && uiData[i].valid && (cellPos < 3)){ //update map with name, lat, or long change
-                removePopFromMapById(uiData[i].id);
-                addPopToMap(uiData[i].id, uiData[i].name, parseFloat(uiData[i].long),
-                            parseFloat(uiData[i].lat), uiData[i].type === "yearly");
+        else if(status && settlement.valid && (cellPos < 3)){ //update map with name, lat, or long change
+                removePopFromMapById(settlement.id);
+                addPopToMap(settlement.id, settlement.name, parseFloat(settlement.long),
+                            parseFloat(settlement.lat), settlement.type === "yearly");
         }
-        else if(!status && uiData[i].valid){ //data point is no longer complete -> remove from map
-                removePopFromMapById(uiData[i].id);
-                uiData[i].valid = false;
+        else if(!status && settlement.valid){ //data point is no longer complete -> remove from map
+                removePopFromMapById(settlement.id);
+                settlement.valid = false;
                 $('#' + tableRow.id).removeClass("validRow");
-                console.log("row " + rowPos + " has become invalid");
+                console.log("updateUIData::row " + rowPos + " has become invalid");
         }
 }
 
 function checkRowData(rowData, rowPos){
         if(isNaN(parseFloat(rowData.lat))){
-                //console.log("check failed at lat: " + rowData.lat);
+                console.log("checkRowData::failed at lat: " + rowData.lat);
                 return false;
-        }
-        if(isNaN(parseFloat(rowData.long))){
-                //console.log("check failed at long");
+        } else if(isNaN(parseFloat(rowData.long))){
+                console.log("checkRowData::failed at long");
                 return false;
-        }
-        if(rowData.name.length === 0){
-                //console.log("check failed at name");
+        } else if(rowData.name.length === 0){
+                console.log("checkRowData::failed at name");
                 return false;
-        }
-        if(!checkInt(rowData.population, 0, Number.MAX_SAFE_INTEGER)){
-                //console.log("check failed at pop");
+        } else if(!checkInt(rowData.population, 0, Number.MAX_SAFE_INTEGER)){
+                console.log("checkRowData::failed at pop");
                 return false;
-        }
-        if(rowData.killRate && isNaN(parseFloat(rowData.killRate, 10)) && rowData.killRate.length > 0){
-                //console.log("check failed at killrate");
+        } else if(rowData.killRate && isNaN(parseFloat(rowData.killRate, 10)) && rowData.killRate.length > 0){
+                console.log("checkRowData::failed at killrate");
                 return false;
-        }
-        if(rowData.HPHY && isNaN(parseFloat(rowData.HPHY, 10)) && rowData.HPHY.length > 0){
-                //console.log("check failed at killrate");
+        } else if(rowData.HPHY && isNaN(parseFloat(rowData.HPHY, 10)) && rowData.HPHY.length > 0){
+                console.log("checkRowData::failed at killrate");
                 return false;
-        }
-        if(isNaN(parseFloat(rowData.growthRate, 10))){
-                //console.log("check failed at growthrate");
+        } else if(isNaN(parseFloat(rowData.growthRate, 10))){
+                console.log("checkRowData::failed at growthrate");
                 return false;
         }
 
@@ -289,26 +252,22 @@ function checkRowData(rowData, rowPos){
 
 function checkYearlyRowData(rowData, rowPos){
         if(isNaN(parseFloat(rowData.lat))){
-                //console.log("check failed at lat: " + rowData.lat);
+                console.log("checkYearlyRowData::failed at lat: " + rowData.lat);
                 return false;
-        }
-        if(isNaN(parseFloat(rowData.long))){
-                //console.log("check failed at long");
+        } else if(isNaN(parseFloat(rowData.long))){
+                console.log("checkYearlyRowData::failed at long");
                 return false;
-        }
-        if(rowData.name.length === 0){
-                //console.log("check failed at name");
+        } else if(rowData.name.length === 0){
+                console.log("checkYearlyRowData::failed at name");
                 return false;
-        }
-        if(rowData.killRate && isNaN(parseFloat(rowData.killRate, 10)) && rowData.killRate.length > 0){
-                //console.log("check failed at killrate");
+        } else if(rowData.killRate && isNaN(parseFloat(rowData.killRate, 10)) && rowData.killRate.length > 0){
+                console.log("checkYearlyRowData::failed at killrate");
                 return false;
-        }
-        if(rowData.HPHY && isNaN(parseFloat(rowData.HPHY, 10)) && rowData.HPHY.length > 0){
-                //console.log("check failed at killrate");
+        } else if(rowData.HPHY && isNaN(parseFloat(rowData.HPHY, 10)) && rowData.HPHY.length > 0){
+                console.log("checkYearlyRowData::failed at killrate");
                 return false;
-        }
-        if(rowData.populations < 1){
+        } else if(rowData.populations < 1){
+                console.log("checkYearlyRowData::failed at population count");
                 return false;
         }
 
@@ -316,7 +275,6 @@ function checkYearlyRowData(rowData, rowPos){
 }
 
 function checkKey(e){
-        //console.log("ran key check");
         switch(e.keyCode){
         case 13: return 3;
         case  9: e.preventDefault();
@@ -337,7 +295,6 @@ function cellClicked(cell){
                         return;
                 }
         }
-        //console.log("Cell: " + cell.cellIndex + ", " + cell.parentNode.rowIndex + " id: " + cell.parentNode.id);
         var value = cell.innerHTML;
         cell.innerHTML = "";
         var input = document.createElement('input');
@@ -357,26 +314,22 @@ function cellClicked(cell){
                 if(!check){ //not a key we care about
                         return;
                 }
+
                 if(check === 3){ //enter
                         this.blur();
-                }
-                else if(check === 1){ //tab
+                } else if(check === 1){ //tab
                         this.blur();
                         if(cell.parentNode.type === "yearly"){
                                 if(cell.cellIndex === 2){
                                         cellClicked(cell.parentNode.children[4]);
-                                }
-                                else if(cell.cellIndex === 5){
+                                } else if(cell.cellIndex === 5){
                                         return;
-                                }
-                                else{
+                                } else{
                                         cellClicked(cell.nextElementSibling);
                                 }
-                        }
-                        else if(cell.cellIndex != 6){
+                        } else if(cell.cellIndex != 6){
                                 cellClicked(cell.nextElementSibling);
-                        }
-                        else{
+                        } else{
                                 var nextRow = cell.parentNode.nextElementSibling;
                                 if(!nextRow){
                                         addRow("popTable", -1);
@@ -385,17 +338,13 @@ function cellClicked(cell){
 
                                 cellClicked(nextRow.firstChild);
                         }
-
-                }
-                else if(check === 2){ //shift+tab
+                } else if(check === 2){ //shift+tab
                         this.blur();
                         if(cell.parentNode.type === "yearly" && cell.cellIndex === 4){
                                 cellClicked(cell.parentNode.children[2]);
-                        }
-                        else if(cell.cellIndex !== 0){
+                        } else if(cell.cellIndex !== 0){
                                 cellClicked(cell.previousElementSibling);
-                        }
-                        else{
+                        } else{
                                 var prevRow = cell.parentNode.previousElementSibling;
                                 if(prevRow){
                                         cellClicked(prevRow.lastChild.previousElementSibling);
@@ -409,10 +358,10 @@ function cellClicked(cell){
 }
 
 function emptyTable(){
-        console.log("clearing table");
+        console.log("emptyTable::clearing table");
         var table = document.getElementById("popTableBody");
         table.innerHTML = '';
-        uiData = [];
+        uiData = {};
 }
 
 function removeRow(tableId, rowId){
@@ -425,28 +374,26 @@ function removeRow(tableId, rowId){
                 }
         }
         //remove from map and ui storage
-        for(let k = 0; k < uiData.length; k++){
-                if(uiData[k].id === rowId){
-                        if(uiData[k].valid){
-                                removePopFromMapById(rowId);
-                        }
-                        uiData.splice(k, 1);
-                        break;
-                }
-        }
+        removePopFromMapById(rowId);
+        delete uiData[rowId];
 }
 
 //assumes uiData has been updated already
-function updateTableRow(uiDataPosition){
-        console.log("updateTableRow::data Position: " + uiDataPosition + " HPHY: " + uiData[uiDataPosition].HPHY);
+function updateTableRow(popID){
+        console.log("updateTableRow::data id: " + popID + " HPHY: " + uiData[popID].HPHY);
         var table = document.getElementById("popTable");
-        var villageData = uiData[uiDataPosition];
-        var row;
+        var villageData = uiData[popID];
+        var row = -1;
         for(var i = 0; i < table.rows.length; i++){
                 if(table.rows[i].id == villageData.id){
                         row = table.rows[i];
                         break;
                 }
+        }
+
+        if(row == -1){
+                console.log("########## Critical: updateTableRow::couldn't find html table row");
+                return;
         }
 
         row.cells[0].innerHTML = villageData.name;
