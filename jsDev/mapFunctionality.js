@@ -16,6 +16,8 @@ var addPopFunction;
 var isMenuOpen;
 var isPopMoving;
 var popStorageMap = {};
+var settlementStatsOpen;
+var statsCircleFeature;
 
 function setupMapping(){
         proj4.defs('espg4326', viewProjection);
@@ -105,6 +107,8 @@ function setupMapping(){
         bingLayers[0].setVisible(true);
         bingLayers[1].setVisible(false);
         isPopMoving = false;
+        settlementStatsOpen = false;
+        makeDraggable(document.getElementById('popInfoCard'));
 }
 
 function placePopulation(e){
@@ -181,19 +185,43 @@ function resultsMapClick(e){
                 tempFeatures.push(feature);
         }, {hitTolerance: 3});
 
-        if(tempFeatures.length)
-                displaySettlementStats(tempFeatures[0]);
+        if(tempFeatures.length){
+                if(statsCircleFeature){
+                        debugSource.removeFeature(statsCircleFeature);
+                        statsCircleFeature = false;
+                }
+                displaySettlementStats(tempFeatures[0], e.originalEvent);
+
+        } else if(settlementStatsOpen){
+                settlementStatsOpen = false;
+                debugSource.removeFeature(statsCircleFeature);
+                statsCircleFeature = false;
+                $('#popInfoCard').addClass('scale-out');
+                $('#popInfoCard').removeClass('scale-in');
+        }
 }
 
-function displaySettlementStats(feature){
+function closePopInfoCard(){
+        $('#popInfoCard').addClass('scale-out');
+        $('#popInfoCard').removeClass('scale-in');
+        debugSource.removeFeature(statsCircleFeature);
+        statsCircleFeature = false;
+        settlementStatsOpen = false;
+}
+
+function displaySettlementStats(feature, event){
         map.getView().setCenter(feature.getGeometry().getCoordinates());
-        if(simData.huntRange > 6)
-                map.getView().setZoom(11);
-        else
-                map.getView().setZoom(12);
+        map.getView().setZoom(11);
 
         let settlementID = feature.get('description');
         console.log("settlementID: " + settlementID);
+        console.log("position: " + feature.getGeometry().getCoordinates());
+        let circleCoords = generateCircleCoords(feature.getGeometry().getCoordinates(), simData.huntRange);
+        statsCircleFeature = drawDebugCircle(circleCoords, [255, 255, 255, .1]);
+        document.getElementById('infoCardName').innerHTML = '<i>' + uiData[settlementID].name + '</i>';
+        $('#popInfoCard').addClass('scale-in');
+        $('#popInfoCard').removeClass('scale-out');
+        settlementStatsOpen = true;
 }
 
 function removePopFromMapById(popId){
@@ -410,6 +438,26 @@ function drawDebugCircle(points, colorCode){
         });
         tempFeature1.setStyle(teststyle1);
         debugSource.addFeature(tempFeature1);
+        return tempFeature1;
+}
+
+function generateCircleCoords(origCenter, radius){
+        var center = proj4(proj4('espg4326'), proj4('mollweide'), origCenter);
+        var coordinates = [];   
+        var angle = 0;
+
+        for(let i = 0; i < 36; i++, angle += (Math.PI * 2)/36){
+                const xMod = Math.cos(angle) * (radius * 1000);
+                const yMod = Math.sin(angle) * (radius * 1000);
+                coordinates.push([center[0] + xMod, center[1] + yMod]);
+        }
+        coordinates.push([coordinates[0][0], coordinates[0][1]]);
+
+        let translatedCoordinates = [];
+        for(let i = 0; i < coordinates.length; i++)
+                translatedCoordinates.push(proj4(proj4('mollweide'), proj4('espg4326'), coordinates[i]));
+
+        return translatedCoordinates;
 }
 
 function generateCanvas(year, scale, imgArray, dest, position){

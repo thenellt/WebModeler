@@ -400,6 +400,37 @@ function checkYearlyPops(text){
         }
 }
 
+//based on https://www.w3schools.com/howto/howto_js_draggable.asp
+function makeDraggable(elmnt){
+        var pos1 = 0, pos2 = 0;
+        document.getElementById(elmnt.id + "Header").onmousedown = dragMouseDown;
+      
+        function dragMouseDown(e) {
+                console.log("mouse done");
+                e = e || window.event;
+                e.stopPropagation();
+                e.preventDefault();
+                pos2 = e.clientX;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+        }
+      
+        function elementDrag(e) {
+                e = e || window.event;
+                e.stopPropagation();
+                e.preventDefault();
+                pos1 = pos2 - e.clientX;
+                pos2 = e.clientX;
+                elmnt.style.top = e.clientY + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+        }
+      
+        function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+        }
+}
+
 //based on a stack overflow: https://stackoverflow.com/questions/27840222/how-can-i-load-the-contents-of-a-small-text-file-into-a-javascript-var-wo-jquery
 function readLocalFile(url, type, callback) {
         var xhr = new XMLHttpRequest();

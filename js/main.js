@@ -95,7 +95,7 @@ function resetSimulation(){
                         olmapLocation = 0;
                         addPopFunction = map.on('click', placePopulation);
                         imageLayer.setVisible(false);
-                        debugVector.setVisible(false);
+                        debugVector.getSource().clear();
                 }
 
                 var cleanup = document.getElementById("rawHeatmapContainer");
