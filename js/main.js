@@ -33,7 +33,6 @@ $(document).ready(function() {
         mapWorkerFunctions();
         setupWorker();
         setupMapping();
-        checkCompatibility();
 });
 
 function setupTabs(){

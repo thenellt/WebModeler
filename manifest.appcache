@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# manifest v25
+# manifest v26b
 
 CACHE:
 index.html
@@ -16,7 +16,8 @@ js/main.js
 js/table.js
 js/tabs.js
 js/ol.js
-js/chartist.min.js
+js/Chart.min.js
+js/chartjs-plugin-datalabels.min.js
 js/materialize.min.js
 js/jquery-3.2.1.min.js
 js/FileSaver.min.js
