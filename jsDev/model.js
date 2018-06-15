@@ -26,7 +26,7 @@ var geoGrid = [[[]]];
 onmessage = function(oEvent) {
         switch(oEvent.data.type){
         case 'newSim':
-                startWork(oEvent.data);
+                runSimulation(oEvent.data);
                 break;
         case 'genImage':
                 generateImageData(oEvent.data);
@@ -37,22 +37,34 @@ onmessage = function(oEvent) {
         case 'allYearsCSV':
                 generateCSV(oEvent.data.year, 'allYearsCSV');
                 break;
+                /*
         case 'getCDFData':
                 generateCDFBins(oEvent.data.year);
                 break;
         case 'getLocalCDFData':
                 genLocalCDFBins(oEvent.data.year);
                 break;
+                */
         }
 };
 
-function startWork(parameters){
+function runSimulation(parameters){
         unpackParams(parameters);
-        let bounds = generateBounds(15 + simData.huntRange);
+        let bounds = generateBounds();
         generategeoGrid(bounds);
-        allocateMemory();
+        try{
+                allocateMemory();
+        } catch(err) {
+                self.postMessage({type:'error', text: err.message});
+                return;
+        }
         placeLocations();
-        runSimulation();
+        calculateModel();
+        generateAnimationData();
+        generateEntireCDFData();
+        generateSingleCDFData();
+        self.postMessage({type:'finished', paramData:{name: simData.simName, duration:simData.years, 
+                          xSize:xSize, ySize:ySize, geoGrid:geoGrid, townData:towns}});
 }
 
 function unpackParams(data){
@@ -99,9 +111,10 @@ function allocateMemory(){
         }
 }
 
-function generateBounds(range){
+function generateBounds(){
         var topLeft = eaPointSet[0].slice(0);
         var botRight = eaPointSet[0].slice(0);
+        let range = simData.huntRange * 2 + simData.boundryWidth;
 
         for(let i = 1; i < eaPointSet.length; i++){
                 if(eaPointSet[i][0] < topLeft[0])
@@ -202,8 +215,8 @@ function placeLocations(){
         }
 }
 
-function runSimulation(){
-        logMessage("runSimulation: Starting run. Years: " + simData.years + " samples: " + simData.diffusionSamples);
+function calculateModel(){
+        logMessage("calculateModel: Starting run. Years: " + simData.years + " samples: " + simData.diffusionSamples);
         var top, bot, locationValue;
         var up, down, center, right, left;
         var x, y;
@@ -283,16 +296,27 @@ function runSimulation(){
                                 if(grid[curYear + 1][y][x] < 0)
                                         grid[curYear + 1][y][x] = 0;
 
-                logMessage("runSimulation: finished year " + curYear);
+                logMessage("calculateModel: finished year " + curYear);
                 self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Finished Year " + curYear, statusValue: 100 * (curYear / simData.years)});
         }
-
-        self.postMessage({type:'finished', paramData:{xSize:xSize, ySize:ySize, geoGrid:geoGrid, townData:towns}});
 }
 
-function generateImageData(params){
+function generateAnimationData(){
+        self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Visualizing Data", statusValue: 100});
+        let gradient = setupGradient();
+        for(let curYear = 0; curYear <= simData.years - 1; curYear++){
+                let params = {'scale': 1, 'year': curYear, 'dest': 'animationFrame'};
+                generateImageData(params, gradient);
+        }
+
+        let params = {'scale': 1, 'year': simData.years, 'dest': 'finalFrame'};
+        generateImageData(params, gradient);
+}
+
+function generateImageData(params, gradient){
         let scale = params.scale;
-        var gradient = setupGradient();
+        if(!gradient)
+                gradient = setupGradient();
         var gradientSteps = Math.floor(simData.carryCapacity) - 1;
 
         var pos = 0;
@@ -326,7 +350,8 @@ function generateImageData(params){
         }
 
         const posArray = [geoGrid[ySize - 1][0][0], geoGrid[ySize - 1][0][1], geoGrid[0][xSize - 1][0], geoGrid[0][xSize - 1][1]];
-        self.postMessage({type:'imgData', year:params.year, scale:params.scale, dest:params.dest, position:posArray, array:imgData}, [imgData.buffer]);
+        self.postMessage({type:'imgData', year:params.year, scale:params.scale, dest:params.dest, position:posArray, 
+                          x:xSize, y:ySize, array:imgData}, [imgData.buffer]);
 }
 
 function setupGradient(){
@@ -414,6 +439,15 @@ function setupGradient(){
         return gradient;
 }
 
+function generateEntireCDFData(){
+        for(let i = 0; i <= simData.years; i++)
+                generateCDFBins(i);
+}
+
+function generateSingleCDFData(){
+
+}
+
 function generateCDFBins(year){
         var numCells = 0;
         var dataValues = new Array(11);
@@ -432,9 +466,9 @@ function generateCDFBins(year){
         });
 
         for(let i = 0; i < dataValues.length; i++)
-                dataValues[i] = parseFloat(dataValues[i] / (1.0 *numCells));
+                dataValues[i] = parseFloat(dataValues[i] / (1.0 *numCells)) * 100;
 
-        self.postMessage({type:'mapped', fnc:'updateCDFChart', densities:dataValues});
+        self.postMessage({type:'mapped', fnc:'entireCDFData', densities:dataValues, year:year});
 }
 
 function genLocalCDFBins(year){

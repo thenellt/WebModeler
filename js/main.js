@@ -6,6 +6,7 @@ var advSettingsFnc;
 var modalEventFnc;
 var simData = {};
 var simResults = {};
+var progBarDet;
 
 $(document).ready(function() {
         $('#projBackground').modal();
@@ -32,6 +33,7 @@ $(document).ready(function() {
         mapWorkerFunctions();
         setupWorker();
         setupMapping();
+        checkCompatibility();
 });
 
 function setupTabs(){
@@ -82,17 +84,20 @@ function resetSimulation(){
         document.getElementById("rangeHphy").value = "";
         document.getElementById("paramName").value = "";
 
-        document.getElementById("paramTheta").value = "";
+        document.getElementById("paramTheta").value = "1";
         document.getElementById("paramLowColor").value = "#ffeda0";
         document.getElementById("paramHighColor").value = "#f03b20";
-        document.getElementById("diffSamples").value = "";
-        document.getElementById("imgOpacity").value = "";
+        document.getElementById("diffSamples").value = "1";
+        document.getElementById("imgOpacity").value = "0.8";
+        document.getElementById("boundryWidth").value = "10";
+        document.getElementById("debugModeToggle").checked = false;
 
         if(simulationRun){
                 simulationRun = 0;
                 if(olmapLocation){ //move the map from output page back to pop page
                         document.getElementById("popMapRow").appendChild(document.getElementById("popMapDiv"));
                         olmapLocation = 0;
+                        ol.Observable.unByKey(addPopFunction);
                         addPopFunction = map.on('click', placePopulation);
                         imageLayer.setVisible(false);
                         debugVector.getSource().clear();
@@ -249,7 +254,13 @@ function closeNotifyMessage(){
 
 function showProgressBar(message, value){
         document.getElementById("progressText").innerHTML = message;
-        document.getElementById("progressBar").style.width = value;
+        if(value === 100){
+                progBarDet = false;
+                $('#progressBar').css({'width': ""}).removeClass('determinate').addClass('indeterminate');
+        } else{
+                progBarDet = true;
+                $('#progressBar').removeClass('indeterminate').addClass('determinate').css({'width': value + '%'});
+        }
 
         let element = document.getElementById("prgressContainer");
         element.classList.add("scale-in")
@@ -259,12 +270,18 @@ function showProgressBar(message, value){
 function updateProgressBar(message, value){
         document.getElementById("progressText").innerHTML = message;
         document.getElementById("progressBar").style.width = value + "%";
+        if(value === 100 && progBarDet){
+                progBarDet = false;
+                $('#progressBar').css({'width': ""}).removeClass('determinate').addClass('indeterminate');
+        } else if(!progBarDet){
+                $('#progressBar').removeClass('indeterminate').addClass('determinate').css({'width': value  + '%'});
+        } else{
+                $('#progressBar').css({'width': value  + '%'});
+        }
 }
 
 function closeProgressBar(){
-        let element = document.getElementById("prgressContainer");
-        element.classList.add("scale-out")
-        element.classList.remove("scale-in");
+        $('#prgressContainer').addClass("scale-out").removeClass("scale-in");
 }
 
 function modalDialog(title, msg, callback){
@@ -348,6 +365,8 @@ function populateDefaultValues(){
         document.getElementById("paramHighColor").value = "#f03b20";
         document.getElementById("diffSamples").value = "1";
         document.getElementById("imgOpacity").value = "0.8";
+        document.getElementById("boundryWidth").value = "10";
+        document.getElementById("debugModeToggle").checked = false;
 
         document.getElementById("paramName").focus();
 }
@@ -361,7 +380,7 @@ function checkSettings(){
                 return false;
         }
         //id, min value, max value, isAdvanced
-        let intParams = [["paramYears", 0, 200, 0], ['diffSamples', 1, 365, 1]];
+        let intParams = [["paramYears", 0, 200, 0], ['diffSamples', 1, 365, 1], ['boundryWidth', 0, 100, 1]];
         let floatParams = [['imgOpacity', 0, 1, 1], ['paramTheta', 0, 100, 1], ['rangeHphy', 1, 1000, 0],
                            ['paramHphy', 0, 365, 0], ['paramKillProb', 0, 1, 0], ['paramEncounterRate', 0, 1, 0],
                            ['paramDifRate', 0, 1, 0], ['paramGrowthRate', 0, 1, 0], ['paramCarry', 0, 1000, 0]];

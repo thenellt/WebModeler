@@ -1,4 +1,4 @@
-var uiData = {};
+var uiData = [];
 
 function uiRow(long, lat, pop, kill, name, growth, hphy, id, validity){
         if(id === 0){

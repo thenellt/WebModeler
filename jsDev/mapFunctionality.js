@@ -18,6 +18,7 @@ var isPopMoving;
 var popStorageMap = {};
 var settlementStatsOpen;
 var statsCircleFeature;
+var mousePosControl;
 
 function setupMapping(){
         proj4.defs('espg4326', viewProjection);
@@ -93,14 +94,15 @@ function setupMapping(){
         });
 
         map.addControl(new ol.control.ScaleLine());
-        map.addControl(new ol.control.MousePosition({
+        mousePosControl = new ol.control.MousePosition({
                 undefinedHTML: '-',
                 className: 'ol-mouse-position',
                 projection: 'EPSG:4326',
                 coordinateFormat: function(coordinate) {
                     return ol.coordinate.format(coordinate, '{x}, {y}', 4);
                 }
-        }));
+        });
+        map.addControl(mousePosControl);
 
         addPopFunction = map.on('click', placePopulation);
         map.updateSize();
@@ -460,49 +462,52 @@ function generateCircleCoords(origCenter, radius){
         return translatedCoordinates;
 }
 
-function generateCanvas(year, scale, imgArray, dest, position){
-        console.log("generateCanvas:: year: " + year + " scale: " + scale + " mode: " + dest);
-        console.log("data length: " + imgArray.length + " xSize: " + simResults.xSize);
-        canvas = document.createElement('canvas');
+function generateCanvas(data){
+        console.log("generateCanvas:: year: " + data.year + " scale: " + data.scale + " mode: " + data.dest);
+        console.log("data length: " + data.array.length + " xSize: " + data.x);
+        let canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
 
-        canvas.width = simResults.xSize * scale;
-        canvas.height = simResults.ySize * scale;
+        canvas.width = data.x * data.scale;
+        canvas.height = data.y * data.scale;
 
-        let picData = new ImageData(imgArray, simResults.xSize * scale, simResults.ySize * scale);
+        let picData = new ImageData(data.array, data.x * data.scale, data.y * data.scale);
 
         ctx.putImageData(picData, 0, 0);
         let canvasImage = new Image();
-        canvasImage.id = 'image' + year;
+        canvasImage.id = 'image' + data.year;
 
-        switch(dest){
-        case 'mapViewer':
+        switch(data.dest){
+        case 'animationFrame':
                 canvasImage.onload = function(){
-                        drawCanvasToMap(canvasImage, position);
-                        document.getElementById('rawHeatmapContainer').appendChild(canvasImage);
-                        rawHWScaleInput(100);
-                };
+                        console.log('generateCanvas::added frame for year: ' + data.year);
+                        heatMapImages.pos = data.position;
+                        heatMapImages.images[data.year] = canvasImage;
+                }
                 break;
-        case 'mapViewerUpdate':
+        case 'finalFrame':
                 canvasImage.onload = function(){
-                        drawCanvasToMap(canvasImage, position);
-                        $('#overlayYear').prop('disabled', false);
-                        $('#overlayYear').blur();
-                };
+                        console.log('generateCanvas::added frame for year: ' + data.year);
+                        heatMapImages.pos = data.position;
+                        heatMapImages.images[data.year] = canvasImage;
+                        drawCanvasToMap(data.year);
+                        canvasImage.classList.add('rawHeatmapImage');
+                        document.getElementById('rawHeatmapContainer').appendChild(canvasImage);
+                }
                 break;
         case 'save':
                 canvas.toBlob(function(blob) {
-                        saveAs(blob, simData.simName + '_year' + year + '_heatmap.png');
+                        saveAs(blob, simData.simName + '_year' + data.year + '_heatmap.png');
                 });
-                break;
-        case 'saveAll':
                 break;
         }
 
         canvasImage.src = canvas.toDataURL();
 }
 
-function drawCanvasToMap(canvasImage, location){
+function drawCanvasToMap(year){
+        let canvasImage = heatMapImages.images[year];
+        let location = heatMapImages.pos;
         console.log("drawCanvasToMap: height: " + canvasImage.naturalHeight + " width: " + canvasImage.naturalWidth); //1059340.815974956
         if(imageLayer)
                 map.removeLayer(imageLayer);

@@ -107,13 +107,14 @@ function loadSimConfig(fileData){
         if(simData.threeColorMode)
                 simData.midColorCode = config.midColorCode;
 
-        //support saves with old color formatting
+        //support older save files
         if(simData.lowColorCode[0] !== '#'){
                 simData.lowColorCode = "#" + simData.lowColorCode;
         }
         if(simData.highColorCode[0] !== '#'){
                 simData.highColorCode = "#" + simData.highColorCode;
         }
+        simData.boundryWidth = config.hasOwnProperty('boundryWidth') ? config.boundryWidth : 10;
         
         emptyTable();
         loadPopulationData(config.popData);
@@ -133,6 +134,7 @@ function loadSimConfig(fileData){
         document.getElementById("paramHighColor").value = simData.highColorCode;
         document.getElementById("diffSamples").value = simData.diffusionSamples;
         document.getElementById("imgOpacity").value = simData.opacity;
+        document.getElementById("boundryWidth").value = simData.boundryWidth;
         if(simData.threeColorMode){
                 document.getElementById("enable3ColorMode").checked = true;
                 document.getElementById("midColorReset").classList.remove("disabled");
@@ -215,6 +217,7 @@ function generateConfigObject(){
                 saveObject.midColorCode = simData.midColorCode;
         saveObject.opacity = simData.opacity;
         saveObject.popData = [];
+        saveObject.boundryWidth = simData.boundryWidth;
 
         for(settlement in uiData)
                 saveObject.popData.push(uiData[settlement]);
@@ -226,7 +229,7 @@ function generateConfigObject(){
 function saveImgToFile(){
         const year = document.getElementById('overlayYear').value;
         map.once('postcompose', function(event) {
-                var tempCanvas = event.context.canvas;
+                let tempCanvas = event.context.canvas;
 
                 tempCanvas.toBlob(function(blob) {
                         saveAs(blob, simData.simName + '_year' + year + '_map.png');
@@ -238,8 +241,13 @@ function saveImgToFile(){
 function saveHeatmapToFile(){
         const requestYear = document.getElementById('rawHeatmapYear').value;
         const requestScale = document.getElementById('heatmapScale').value / 100;
-
-        workerThread.postMessage({type:'genImage', dest:'save', year:requestYear, scale:requestScale});
+        if(requestScale === 1){ 
+                heatMapImages.images[requestYear].toBlob(function(blob) {
+                        saveAs(blob, simData.simName + '_year' + requestYear + '_heatmap.png');
+                });
+        } else{
+                workerThread.postMessage({type:'genImage', dest:'save', year:requestYear, scale:requestScale});
+        }
 }
 
 function generatePersistObject(config){

@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" manifest="manifest.appcache">
+<html lang="en"> <!--manifest="manifest.appcache"-->
 <head>
         <meta charset="UTF-8">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="css/ol.css">
         <link rel="stylesheet" type="text/css" href="css/materialize.min.css">
         <link rel="stylesheet" type="text/css" href="css/chartist.min.css">
+        <link rel="stylesheet" type="text/css" href="css/chartist-plugin-tooltip.css">
         <link rel="stylesheet" type="text/css" href="css/otherStyle.css">
         <link rel="stylesheet" type="text/css" href="css/table.css">
         <title>WebModeler Beta</title>
@@ -117,51 +118,51 @@
                                                         Load Defaults</a>
                                                 </div>
                                         </div>
-                                        <div class="row" style="margin-bottom: 8px;">
+                                        <div class="row parameterRow" >
                                                 <div class="col s8"><h5>Simulation Name:</h5></div>
-                                                <div class="col s3"><input type="text" id="paramName"></div>
+                                                <div class="col s3"><input type="text" id="paramName" class="parameterInputText"></div>
                                         </div>
                                         <div class="divider" style="margin-bottom: 8px;"></div>
-                                        <div class="row" style="margin-bottom: 8px;">
+                                        <div class="row parameterRow" >
                                                 <div class="col s8"><h5>Duration (Years):</h5></div>
-                                                <div class="col s3"><input type="text" id="paramYears"></div>
+                                                <div class="col s3"><input type="text" id="paramYears" class="parameterInputText"></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Number of years over which the simulation will be run."><i>?</i></a></div>
                                         </div>
-                                        <div class="row" style="margin-bottom: 8px;">
+                                        <div class="row parameterRow" >
                                                 <div class="col s8"><h5>Carrying Capacity:</h5></div>
-                                                <div class="col s3"><input type="text" id="paramCarry"></div>
+                                                <div class="col s3"><input type="text" id="paramCarry" class="parameterInputText"></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Number of animals the landscape can support per square kilometer."><i>?</i></a></div>
                                         </div>
                                         <div class="divider" style="margin-bottom: 8px;"></div>
-                                        <div class="row" style="margin-bottom: 8px;">
+                                        <div class="row parameterRow" >
                                                 <div class="col s8"><h5>Animal Diffusion Rate:</h5></div>
-                                                <div class="col s3"><input type="text" id="paramDifRate"></div>
+                                                <div class="col s3"><input type="text" id="paramDifRate" class="parameterInputText"></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Impacts that rate at which animals migrate from higher to lower population areas."><i>?</i></a></div>
                                         </div>
-                                        <div class="row" style="margin-bottom: 8px;">
+                                        <div class="row parameterRow" >
                                                 <div class="col s8"><h5>Animal Growth Rate:</h5></div>
-                                                <div class="col s3"><input type="text" id="paramGrowthRate"></div>
+                                                <div class="col s3"><input type="text" id="paramGrowthRate" class="parameterInputText"></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Maximum intrinsic growth rate for exponential growth formula."><i>?</i></a></div>
                                         </div>
-                                        <div class="row" style="margin-bottom: 8px;">
+                                        <div class="row parameterRow" >
                                                 <div class="col s8"><h5>Animal Encounter Rate:</h5></div>
-                                                <div class="col s3"><input type="text" id="paramEncounterRate"></div>
+                                                <div class="col s3"><input type="text" id="paramEncounterRate" class="parameterInputText"></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Encounter rate constant. Ex: 0.02"><i>?</i></a></div>
                                         </div>
                                         <div class="divider" style="margin-bottom: 8px;"></div>
-                                        <div class="row" style="margin-bottom: 8px;">
+                                        <div class="row parameterRow" >
                                                 <div class="col s8"><h5>Encounter Kill Probability:</h5></div>
-                                                <div class="col s3"><input type="text" id="paramKillProb"></div>
+                                                <div class="col s3"><input type="text" id="paramKillProb" class="parameterInputText"></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Probability that an animal encounter results in a kill."><i>?</i></a></div>
                                         </div>
-                                        <div class="row" style="margin-bottom: 8px;">
+                                        <div class="row parameterRow" >
                                                 <div class="col s8"><h5>Hunts per Hunter per Year:</h5></div>
-                                                <div class="col s3"><input type="text" id="paramHphy"></div>
+                                                <div class="col s3"><input type="text" id="paramHphy" class="parameterInputText"></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Used in simulating hunting effort."><i>?</i></a></div>
                                         </div>
-                                        <div class="row" style="margin-bottom: 8px;">
+                                        <div class="row parameterRow">
                                                 <div class="col s8"><h5>Hunter Range (km):</h5></div>
-                                                <div class="col s3"><input type="text" id="rangeHphy"></div>
+                                                <div class="col s3"><input type="text" id="rangeHphy" class="parameterInputText"></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Distance that simulated hunts extend from a village."><i>?</i></a></div>
                                         </div>
                                         <div class="divider" style="margin-bottom: 8px;"></div>
@@ -223,7 +224,7 @@
                                                                 <p>Kill rate and HPHY are both optional and leaving them blank will use the values from the parameters page.</p>
                                                         </div>
                                                 </div>
-                                                <div class="row" style="min-height: 500px;">
+                                                <div class="row" style="min-height: 450px; max-height: 620px; margin-bottom: 8px;">
                                                         <table class="bordered highlight" id="popTable" style="margin-bottom: 8px;">
                                                                 <thead>
                                                                         <tr>
@@ -264,7 +265,7 @@
                                         <ul class="collapsible" data-collapsible="accordion" id="visualCollapsable">
                                                 <li>
                                                 <div class="collapsible-header active"><i class="material-icons">map</i>Heatmap with Sattelite Overlay</div>
-                                                <div class="collapsible-body">
+                                                <div class="collapsible-body" style="padding: 12px;">
                                                         <div class="row" style="margin-bottom: 4px;">
                                                                 <div class="col s7">
                                                                         The saved image will look as you see it below. Zoom or pan the map preview to select the area to save.
@@ -281,7 +282,7 @@
                                                                         </div>
                                                                 </div>
                                                                 <div class="col s3">
-                                                                        <a class="waves-effect waves-light btn" onclick="openFullscreenViewer()">Fullscreen</a>
+                                                                        <a class="waves-effect waves-light btn right" onclick="openFullscreenViewer()">Fullscreen</a>
                                                                 </div>
                                                         </div>
                                                         <div class="row" id="resultsMapContainer">
@@ -289,7 +290,7 @@
                                                         </div>
                                                         <div id="viewControlsContainer">
                                                         <div class="row" style="margin-bottom: 0px;" id="viewerControls">
-                                                                <div class="col s3">
+                                                                <div class="col s4">
                                                                         <div id="opacityLabel">
                                                                                 Overlay Opacity:
                                                                         </div>
@@ -308,30 +309,32 @@
                                                                                 </label>
                                                                         </div>
                                                                 </div>
-                                                                <div class="col s4">
+                                                                <div class="col s3"><div class="right">
                                                                         <div id="heatmapYearLabel">
                                                                                 Heatmap Year:
                                                                         </div>
                                                                         <div>
-                                                                                <a class="waves-effect waves-light btn" onclick="changeOverlayYear(false);">Prev</a>
-                                                                                <a class="waves-effect waves-light btn" onclick="changeOverlayYear(true);">Next</a>                
+                                                                                <a class="waves-effect waves-light btn" onclick="changeHeatmapOverlayYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
+                                                                                <a class="waves-effect waves-light btn" onclick="changeHeatmapOverlayYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
+                                                                                <a class="waves-effect waves-light btn blue lighten-2 tooltipped" onclick="heatmapOverlayAnimation(0);"style="display: inline-block;"
+                                                                                        data-position="bottom" data-delay="100" data-tooltip="Cycle through the images for each year with a quarter-second delay.">Play</a>                
                                                                         </div>
-                                                                </div>
+                                                                </div></div>
                                                                 <div class="col s3" style="margin-top: 8px;">
-                                                                        <a class="waves-effect waves-light btn saveButton right" onclick="saveImgToFile();">Save Image</a>
+                                                                        <a class="waves-effect waves-light btn saveButton right" id="overlaySaveButton" onclick="saveImgToFile();">Save Image</a>
                                                                 </div>
                                                         </div></div>
                                                 </div>
                                                 </li>
                                                 <li>
                                                 <div class="collapsible-header"><i class="material-icons">leak_add</i>Plain Heatmap</div>
-                                                <div class="collapsible-body">
+                                                <div class="collapsible-body" style="padding: 12px;">
                                                         <div class="row">
                                                                 <div class="col s12">
                                                                         Heatmap images are generated with a resolution of 1 pixel per square kilometer. For small simulations this can lead to a very small resulting picture which is why a scaler is provided. A preview of the the final year is shown below.
                                                                 </div>
                                                         </div>
-                                                        <div class="row" id="rawHeatmapContainer">
+                                                        <div class="row" id="rawHeatmapContainer" style="max-height: 500px; max-width: 1300px; min-width: 300px; overflow: auto;">
 
                                                         </div>
                                                         <div class="row" id="rawHMControlsContainer">
@@ -358,67 +361,112 @@
                                         </ul>
                                 </div>
                                 <div class="tabcontent" id="statsPage" style="display: none;">
-                                        <div class="row">
+                                        <div class="row" style="margin-bottom: 8px;">
                                                 <div class="col s12" style="margin-bottom: 0px;">
-                                                        <h4>Graphs</h4>
+                                                        <h4>Statistics</h4>
                                                 </div>
                                         </div>
                                         <ul class="collapsible" data-collapsible="accordion">
                                                 <li>
-                                                        <div class="collapsible-header active">Entire Area Depletion</div>
+                                                        <div class="collapsible-header active">Entire Map CDF</div>
                                                         <div class="collapsible-body">
-                                                                <div class="row"><div class="col 12">PLACEHOLDER: describe chart meaning</div></div>
                                                                 <div class="row">
                                                                         <div class="col s12" id="entireAreaChartContainer" style="resize: both;">
-                                                                                <div class="ct-chart ct-perfect-fourth" id="entireMapChart">
+                                                                                <canvas id="entireMapChart" style="width: 800px; height: 400px; margin: 0 auto;"></canvas>
+                                                                        </div>
+                                                                </div>
+                                                                <div class="row">
+                                                                        <div class="col s4 offset-s5"><div class="right">
+                                                                                <div id="entireCDFYearLabel">
+                                                                                        Simulation Year:
                                                                                 </div>
+                                                                                <div>
+                                                                                        <a class="waves-effect waves-light btn" onclick="changeEntireCDFYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
+                                                                                        <a class="waves-effect waves-light btn" onclick="changeEntireCDFYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
+                                                                                        <a class="waves-effect waves-light btn blue lighten-2 tooltipped" onclick="entireCDFAnimation(0);"style="display: inline-block;"
+                                                                                                data-position="bottom" data-delay="100" data-tooltip="Cycle through the data for each year with a quarter-second delay.">Play</a>                
+                                                                                </div>
+                                                                        </div></div>
+                                                                        <div class="col s3" style="margin-top: 8px;">
+                                                                                <a class="waves-effect waves-light btn saveButton right" id="entireCDFSaveButton" onclick="downloadGraph('entireMapChart');">Save Image</a>
                                                                         </div>
                                                                 </div>
                                                         </div>
                                                 </li>
                                                 <li>
-                                                        <div class="collapsible-header">Surrounding Area Depletion</div>
+                                                        <div class="collapsible-header">Single Settlement CDF</div>
                                                         <div class="collapsible-body">
                                                                 <div class="row"><div class="col 12">Charts the depletion of the cells in a square around each population with side lengths equal to the hunt range.</div></div>
                                                                 <div class="row">
                                                                         <div class="col s12" id="localAreaChartContainer">
                                                                                 <div class="ct-chart ct-perfect-fourth" id="surroundingChart">
-                                                                                        WIP
+                                                                                        
                                                                                 </div>
+                                                                        </div>
+                                                                </div>
+                                                                <div class="row" style="margin-bottom: 0px;">
+                                                                        <div class="col s3 input-field">
+                                                                                <select id="CDFSetSelection"></select>
+                                                                                <label>Select a Settlement</label>
+                                                                        </div>
+                                                                        <div class="col s4">
+                                                                                <div id="singleCDFYearLabel">
+                                                                                        Simulation Year:
+                                                                                </div>
+                                                                                <div>
+                                                                                        <a class="waves-effect waves-light btn" onclick="changeHeatmapOverlayYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
+                                                                                        <a class="waves-effect waves-light btn" onclick="changeHeatmapOverlayYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
+                                                                                        <a class="waves-effect waves-light btn blue lighten-2 tooltipped" onclick="heatmapOverlayAnimation(0);"style="display: inline-block;"
+                                                                                                data-position="bottom" data-delay="100" data-tooltip="Cycle through the data for each year with a quarter-second delay.">Play</a>                
+                                                                                </div>
+                                                                        </div>
+                                                                        <div class="col s3" style="margin-top: 8px;">
+                                                                                <a class="waves-effect waves-light btn saveButton right" id="singleCDFSaveButton" onclick="saveSettlementCDF();">Save Chart</a>
+                                                                        </div>
+                                                                </div>
+                                                        </div>
+                                                </li>
+                                                <li>
+                                                        <div class="collapsible-header active">Simulation Information</div>
+                                                        <div class="collapsible-body">
+
+                                                        </div>
+                                                </li>
+                                                <li>
+                                                        <div class="collapsible-header active">Data Files</div>
+                                                        <div class="collapsible-body">
+                                                                <div class="row" style="margin-bottom: 0px;">
+                                                                        <div class="col s12">
+                                                                                <h4>Save Data Files</h4>
+                                                                        </div>
+                                                                </div>
+                                                                <div class="divider" style="margin-bottom: 8px;"></div>
+                                                                <div class="row">
+                                                                        <div class="col s4" id="csvOptions">
+                                                                                <h5>Save depletion data (CSVs): </h5>
+                                                                        </div>
+                                                                        <div class="col s1" style="margin-top: 10px;">Year:</div>
+                                                                        <div class="col s1">
+                                                                                <input type="number" min="0" step="1" value="0" id="csvNumberInput">
+                                                                        </div>
+                                                                        <div class="col s3" style="margin-top: 4px;">
+                                                                                <a class="waves-effect waves-light btn saveButton" onclick="csvSingleYear()">Single Year</a>
+                                                                        </div>
+                                                                        <div class="col s3" style="margin-top: 4px;">
+                                                                                <a class="waves-effect waves-light btn saveButton" onclick="csvAllYears()">All Years</a>
+                                                                        </div>
+                                                                </div>
+                                                                <div class="row">
+                                                                        <div class="col s9">
+                                                                                <h5>Save configuration:</h5>
+                                                                        </div>
+                                                                        <div class="col s3">
+                                                                                <a class="waves-effect waves-light btn saveButton" onclick="saveSimToFile();">Save Configuration</a>
                                                                         </div>
                                                                 </div>
                                                         </div>
                                                 </li>
                                         </ul>
-                                        <div class="row" style="margin-bottom: 0px;">
-                                                <div class="col s12">
-                                                        <h4>Save Data Files</h4>
-                                                </div>
-                                        </div>
-                                        <div class="divider" style="margin-bottom: 8px;"></div>
-                                        <div class="row">
-                                                <div class="col s4" id="csvOptions">
-                                                        <h5>Save depletion data (CSVs): </h5>
-                                                </div>
-                                                <div class="col s1" style="margin-top: 10px;">Year:</div>
-                                                <div class="col s1">
-                                                        <input type="number" min="0" step="1" value="0" id="csvNumberInput">
-                                                </div>
-                                                <div class="col s3" style="margin-top: 4px;">
-                                                        <a class="waves-effect waves-light btn saveButton" onclick="csvSingleYear()">Single Year</a>
-                                                </div>
-                                                <div class="col s3" style="margin-top: 4px;">
-                                                        <a class="waves-effect waves-light btn saveButton" onclick="csvAllYears()">All Years</a>
-                                                </div>
-                                        </div>
-                                        <div class="row">
-                                                <div class="col s9">
-                                                        <h5>Save the configuration to file (includes populations):</h5>
-                                                </div>
-                                                <div class="col s3">
-                                                        <a class="waves-effect waves-light btn saveButton" onclick="saveSimToFile();">Save Configuration</a>
-                                                </div>
-                                        </div>
                                 </div>
                         </td>
                 </tr>
@@ -430,14 +478,14 @@
                         <h4>Advanced Settings:</h4>
                         <p>Changing these settings can have a <b>huge</b> impact on simulation results and/or runtime.</p>
                         <ul class="collection">
-                                <li class="collection-item">
+                                <li class="collection-item advancedColItem">
                                         <div class="row" style="margin-bottom: 0;">
                                                 <div class="col s8"><h5>Theta:</h5></div>
                                                 <div class="col s3"><input type="text" id="paramTheta" style="margin-bottom: 0;"></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Logistic theta parameter."><i>?</i></a></div>
                                         </div>
                                 </li>
-                                <li class="collection-item">
+                                <li class="collection-item advancedColItem">
                                         <div class="row" style="margin-bottom: 0;">
                                                 <div class="col s7"><h5>Diffusion Samples:</h5></div>
                                                 <div class="col s1"></div>
@@ -445,45 +493,53 @@
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Subdivides diffusion calculations each year. Very large performance impact." id="diffSamplesHelp"><i>?</i></a></div>
                                         </div>
                                 </li>
-                                <li class="collection-item">
+                                <li class="collection-item advancedColItem">
+                                        <div class="row" style="margin-bottom: 0;">
+                                                <div class="col s7"><h5>Boundry Width (km):</h5></div>
+                                                <div class="col s1"></div>
+                                                <div class="col s3"><input type="text" id="boundryWidth" style="margin-bottom: 0;"></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Number of kilometers between boundry hunting zones and edge of simulation." id="boundryHelp"><i>?</i></a></div>
+                                        </div>
+                                </li>
+                                <li class="collection-item advancedColItem">
                                         <div class="row" style="margin-bottom: 0;">
                                                 <div class="col s8"><h5>Heatmap Saturated Color:</h5></div>
-                                                <div class="col s1"><input type="color" value="#ffeda0" style="margin-top: 6px;" id="paramLowColor"></div>
-                                                <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode('low');">Reset</a></div>
+                                                <div class="col s1"><input type="color" value="#ffeda0" style="margin-top: 12px;" id="paramLowColor"></div>
+                                                <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode('low');" style="margin-top: 6px;">Reset</a></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="At Carrying Capacity color in the heatmap gradient."><i>?</i></a></div>
                                         </div>
                                 </li>
-                                <li class="collection-item">
+                                <li class="collection-item advancedColItem">
                                         <div class="row" style="margin-bottom: 0;">
                                                 <div class="col s6"><h5>Heatmap Mid Color (Optional):</h5></div>
-                                                <div class="col s2" style="margin-top: 6px;">
+                                                <div class="col s2" style="margin-top: 12px;">
                                                         <input type="checkbox" id="enable3ColorMode" onchange="toggleThirdColorMode(this.checked)"/>
                                                         <label for="enable3ColorMode">Enabled</label>
                                                 </div>
-                                                <div class="col s1"><input type="color" value="#ffeda0" style="margin-top: 6px;" id="paramMidColor"></div>
-                                                <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode('mid');" id="midColorReset">Reset</a></div>
+                                                <div class="col s1"><input type="color" value="#ffeda0" style="margin-top: 12px;" id="paramMidColor"></div>
+                                                <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode('mid');" id="midColorReset" style="margin-top: 6px;">Reset</a></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Color of the middle of the heatmap gradient."><i>?</i></a></div>
                                         </div>
                                 </li>
-                                <li class="collection-item">
+                                <li class="collection-item advancedColItem">
                                         <div class="row" style="margin-bottom: 0;">
                                                 <div class="col s8"><h5>Heatmap Depleted Color:</h5></div>
-                                                <div class="col s1"><input type="color" value="#f03b20" style="margin-top: 6px;" id="paramHighColor"></div>
-                                                <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode('high');">Reset</a></div>
+                                                <div class="col s1"><input type="color" value="#f03b20" style="margin-top: 12px;" id="paramHighColor"></div>
+                                                <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode('high');" style="margin-top: 6px;">Reset</a></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Depleted color in the heatmap gradient."><i>?</i></a></div>
                                         </div>
                                 </li>
-                                <li class="collection-item">
+                                <li class="collection-item advancedColItem">
                                         <div class="row" style="margin-bottom: 0;">
                                                 <div class="col s8"><h5>Heatmap Overlay Opacity (0.0 - 1.0):</h5></div>
                                                 <div class="col s3"><input type="text" id="imgOpacity" style="margin-bottom: 0;"></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Sets how transparent the heatmap overlay is over the background map."><i>?</i></a></div>
                                         </div>
                                 </li>
-                                <li class="collection-item">
+                                <li class="collection-item advancedColItem">
                                         <div class="row" style="margin-bottom: 0;">
                                                 <div class="col s8"><h5>Project Debug Mode:</h5></div>
-                                                <div class="col s3">
+                                                <div class="col s3" style="margin-top: 12px;">
                                                         <div class="switch">
                                                                 <label>
                                                                         Off
@@ -505,7 +561,6 @@
                                 style="margin-right: 24px;">Cancel</a>
                 </div>
         </div>
-        
         <div id="floatingPopEditor" class="modal modal-fixed-footer"
                 style="width: 90%; max-height: 80% !important; height: 80% !important; max-width: 1000px;">
                 <div class="modal-content">
@@ -760,6 +815,7 @@
         </div>
         <div id="coverScreen" class="modal" style="visibility:hidden;">
         </div>
+        <canvas id="svgRenderCanvas" style="height: 400px; width: 800px;"></canvas>
         
         <script src="keys.js" type="text/javascript"></script>
         <script src="js/jquery-3.2.1.min.js" type="text/javascript"></script>
@@ -769,7 +825,8 @@
         <script src="js/main.js" type="text/javascript"></script>
         <script src="js/table.js" type="text/javascript"></script>
         <script src="js/FileSaver.min.js" type="text/javascript"></script>
-        <script src="js/chartist.min.js" type="text/javascript"></script>
+        <script src="js/Chart.min.js" type="text/javascript"></script>
+        <script src="js/chartjs-plugin-datalabels.min.js" type="text/javascript"></script>
         <script src="js/jszip.min.js" type="text/javascript"></script>
         <script src="js/proj4js.js" type="text/javascript"></script>
         <script src="js/ol.js" type="text/javascript"></script>

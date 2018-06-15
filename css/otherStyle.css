@@ -126,11 +126,6 @@ li.active .collapsible-body {
         z-index: 1003;
 }
 
-img {
-        max-width: 100%;
-        max-height: 100%;
-}
-
 .ol-mouse-position {
         margin: 1px;
         right: 1em;
@@ -149,4 +144,20 @@ img {
         width: 400px;
         height: 250px;
         z-index: 20;
+}
+
+.parameterRow {
+        margin-bottom: 0px;
+}
+
+input[type=text].parameterInputText {
+        margin-bottom: 10px;
+}
+
+.collection-item.advancedColItem {
+        padding: 4px 0px 4px 10px;
+}
+
+.rawHeatmapImage {
+        border:1px solid #a2a3a3;
 }

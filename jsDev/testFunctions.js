@@ -16,6 +16,7 @@ function setupSimDefaults(){
         simData.highColorCode = "f03b20";
         simData.simName = "defaultName";
         simData.opacity = 0.8;
+        simData.boundryWidth = 10;
 }
 
 function readUserParameters(){
@@ -56,6 +57,7 @@ function readUserParameters(){
         simData.theta = parseFloat(document.getElementById("paramTheta").value) || simData.theta;
         simData.diffusionSamples = parseInt(document.getElementById("diffSamples").value, 10) || simData.diffusionSamples;
         simData.opacity = parseFloat(document.getElementById("imgOpacity").value) || simData.opacity;
+        simData.boundryWidth = parseInt(document.getElementById("boundryWidth").value, 10) || simData.boundryWidth;
 
         console.log("readUserParameters::finished reading user input");
 }
@@ -165,6 +167,10 @@ function setupSimulation(){
         geoGridFeatures.clear(true);
         debugSource.clear(true);
 
+        heatMapImages = {images:new Array(simData.years + 1), pos:false};
+        entireAreaData = [];
+        localAreaData = [];
+
         showProgressBar("Setting up simulation", 0);
         workerThread.postMessage({type:"newSim", params:simData, towns:townData, debug:debugMode});
 }
@@ -172,7 +178,8 @@ function setupSimulation(){
 function mapWorkerFunctions(){
         workerFunctions = {
                 'progress': function(data) {updateProgressBar(data.statusMsg, data.statusValue);},
-                'updateCDFChart': function(data) {createCDFChart(data.densities);},
+                'entireCDFData': function(data) {storeCDFData('entire', data.year, data.densities);},
+                'localCDFData': function(data) {storeCDFData('single', data.year, data.densities, data.id);},
                 'extentDebug': function(data) {drawDebugBounds(data.data.points, data.data.color);},
                 'circleDebug': function(data) {drawDebugCircle(data.data.points, data.data.color);},
                 'pointDebug': function(data) {drawDebugPoint(data.data.point, data.data.color);},
@@ -188,11 +195,11 @@ function handleWorkerMessage(data){
                 break;
         case 'finished': {
                 simResults = data.paramData;
-                updateProgressBar("Visualizing Data", 100);
-                workerThread.postMessage({type:'genImage', dest:'mapViewer', year:simData.years, scale:1});
                 synchPersisObject();
                 changeToOutput();
                 setupOutputRanges();
+                rawHWScaleInput(100);
+                populateCDFSelection('CDFSetSelection');
                 workerThread.postMessage({type:'getCDFData', year:simData.years});
                 //workerThread.postMessage({type:'getLocalCDFData', year:simData.years});
                 closeProgressBar();
@@ -205,12 +212,13 @@ function handleWorkerMessage(data){
         case 'error':
                 let title = "An Error Occured";
                 let msg = "An error prevented the simulation from running. Please verify parameters and populations and try again. </br>";
-                msg += "If you would like to report this error: return to the Get Started page -> Quicksave -> Download that config -> email it to the developer.";
+                msg += "If you would like to report this error: return to the Get Started page -> Save -> Download the config -> email it to the developer. </br>";
+                msg += "<b>Error Contents: </b>" + data.text;
+                $('#coverScreen').modal('close');
                 modalDialog(title, msg, changeToPopulations);
                 break;
         case 'imgData': {
-                console.log("handleWorkerMessage: array[10]: " + data.array[10] + " size: " + data.array.length);
-                generateCanvas(data.year, data.scale, data.array, data.dest, data.position);
+                generateCanvas(data);
                 break;
                 }
         }
