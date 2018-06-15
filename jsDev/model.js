@@ -37,14 +37,12 @@ onmessage = function(oEvent) {
         case 'allYearsCSV':
                 generateCSV(oEvent.data.year, 'allYearsCSV');
                 break;
-                /*
-        case 'getCDFData':
-                generateCDFBins(oEvent.data.year);
+        case 'getSingleCDFPictures':
+                generateCDFPictureData(oEvent.data.id, oEvent.data.range);
                 break;
-        case 'getLocalCDFData':
-                genLocalCDFBins(oEvent.data.year);
+        case 'getSingleCDFData':
+                generateSingleCDFData(oEvent.data.id, oEvent.data.range);
                 break;
-                */
         }
 };
 
@@ -62,7 +60,8 @@ function runSimulation(parameters){
         calculateModel();
         generateAnimationData();
         generateEntireCDFData();
-        generateSingleCDFData();
+        generateSingleCDFData(towns[0].id, simData.huntRange);
+        generateCDFPictureData(towns[0].id, simData.huntRange);
         self.postMessage({type:'finished', paramData:{name: simData.simName, duration:simData.years, 
                           xSize:xSize, ySize:ySize, geoGrid:geoGrid, townData:towns}});
 }
@@ -439,13 +438,106 @@ function setupGradient(){
         return gradient;
 }
 
+function generateCDFPictureData(id, range){
+        for(elmnt in towns)
+                if(towns[elmnt].id === id){
+                        var selectedTown = towns[elmnt];
+                }
+
+        let gradient = setupGradient();
+        let gradientSteps = Math.floor(simData.carryCapacity) - 1;
+        let xStart = selectedTown.x - range;
+        let yStart = selectedTown.y - range;
+        let xSize = 2 * range + 1;
+        let ySize = 2 * range + 1;
+        let xEnd = xStart + xSize;
+        let yEnd = yStart + ySize;
+        let scale = 5;
+
+        for(let year = 0; year <= simData.years; year++){
+                let pos = 0;
+                let imgData = new Uint8ClampedArray((xSize * scale) * (ySize * scale) * 4);
+                for(var y = yStart; y < yEnd; y++) {
+                        for(var row = 0; row < scale; row++){
+                                for(var x = xStart; x < xEnd; x++) {
+                                        let gradientPosition = Math.ceil(gradientSteps * (1 - (grid[year][y][x] / simData.carryCapacity)));
+                                        if(gradientPosition < 0 || !gradientPosition){
+                                                for(let s = 0; s < scale; s++){
+                                                        imgData[pos] = gradient[0][0];
+                                                        imgData[pos + 1] = gradient[0][1];
+                                                        imgData[pos + 2] = gradient[0][2];
+                                                        imgData[pos + 3] = gradient[0][3];
+                                                        pos += 4;
+                                                }
+                                        }
+                                        else{
+                                                for(let s = 0; s < scale; s++){
+                                                        imgData[pos] = gradient[gradientPosition][0];
+                                                        imgData[pos + 1] = gradient[gradientPosition][1];
+                                                        imgData[pos + 2] = gradient[gradientPosition][2];
+                                                        imgData[pos + 3] = gradient[gradientPosition][3];
+                                                        pos += 4;
+                                                }
+                                        }
+                                }
+                        }
+                }
+
+                self.postMessage({type:'singleCDFImages', year:year, x:xSize, y:ySize, 
+                                  array:imgData}, [imgData.buffer]);
+        }
+}
+
 function generateEntireCDFData(){
         for(let i = 0; i <= simData.years; i++)
                 generateCDFBins(i);
 }
 
-function generateSingleCDFData(){
+function generateSingleCDFData(settlementID, range){
+        for(elmnt in towns)
+                if(towns[elmnt].id === settlementID){
+                        var selectedTown = towns[elmnt];
+                }
 
+        let r = range;
+        let x = selectedTown.x;
+        let y = selectedTown.y;
+        var dataValues = [];
+        for(let i = 0; i <= simData.years; i++){
+                dataValues.push(new Array(11));
+                for(let j = 0; j < 11; j++)
+                        dataValues[i][j] = 0;
+        }
+
+        for(let year = 0; year <= simData.years; year++){
+                let numCells = 0;
+                for (let i = y-r; i < y+r; i++) {
+                        let condition = Math.pow(r, 2);
+                        for (let j = x; Math.pow(j - x, 2) + Math.pow(i - y, 2) <= condition; j--) {
+                                let ele = grid[year][i][j];
+                                numCells++;
+                                let temp = ele / simData.carryCapacity;
+                                if(temp > .99)
+                                        dataValues[year][10]++;
+                                else
+                                        dataValues[year][Math.floor(temp * 10)]++;
+                        }
+                        for (let j = x + 1; (j - x) * (j - x) + (i - y) * (i - y) <= condition; j++) {
+                                let ele = grid[year][i][j];
+                                numCells++;
+                                let temp = ele / simData.carryCapacity;
+                                if(temp > .99)
+                                        dataValues[year][10]++;
+                                else
+                                        dataValues[year][Math.floor(temp * 10)]++;
+                        }
+                }
+
+                for(let i = 0; i < 11; i++)
+                        dataValues[year][i] = parseFloat(dataValues[year][i] / (1.0 *numCells)) * 100;
+        }
+
+        self.postMessage({type:'mapped', fnc:'localCDFData', densities:dataValues, year:simData.years, id:settlementID});
 }
 
 function generateCDFBins(year){
@@ -469,29 +561,6 @@ function generateCDFBins(year){
                 dataValues[i] = parseFloat(dataValues[i] / (1.0 *numCells)) * 100;
 
         self.postMessage({type:'mapped', fnc:'entireCDFData', densities:dataValues, year:year});
-}
-
-function genLocalCDFBins(year){
-        let pointMask = generateVillageMask();
-
-        var numCells = 0;
-        var dataValues = new Array(11);
-        for(let i = 0; i < dataValues.length; i++){
-                dataValues[i] = 0;
-        }
-
-        grid[year].forEach(function(element){
-                element.forEach(function(ele){
-                        numCells++;
-                        let temp = ele / simData.carryCapacity;
-                        if(temp > .99){
-                                dataValues[10]++;
-                        }
-                        else{
-                                dataValues[Math.floor(temp * 10)]++;
-                        }
-                });
-        });
 }
 
 function generateCSV(requestYear, callbackType){

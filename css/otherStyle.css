@@ -161,3 +161,9 @@ input[type=text].parameterInputText {
 .rawHeatmapImage {
         border:1px solid #a2a3a3;
 }
+
+.localCDFImage {
+        width: 250px;
+        max-height: 250px;
+        object-fit: contain;
+}

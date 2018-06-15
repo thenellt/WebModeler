@@ -170,6 +170,9 @@ function setupSimulation(){
         heatMapImages = {images:new Array(simData.years + 1), pos:false};
         entireAreaData = [];
         localAreaData = [];
+        simRunData = JSON.parse(JSON.stringify(simData));
+        simRunData.towns = JSON.parse(JSON.stringify(townData));
+        setupOutputRanges();
 
         showProgressBar("Setting up simulation", 0);
         workerThread.postMessage({type:"newSim", params:simData, towns:townData, debug:debugMode});
@@ -197,7 +200,6 @@ function handleWorkerMessage(data){
                 simResults = data.paramData;
                 synchPersisObject();
                 changeToOutput();
-                setupOutputRanges();
                 rawHWScaleInput(100);
                 populateCDFSelection('CDFSetSelection');
                 workerThread.postMessage({type:'getCDFData', year:simData.years});
@@ -221,5 +223,8 @@ function handleWorkerMessage(data){
                 generateCanvas(data);
                 break;
                 }
+        case 'singleCDFImages':
+                storeLocalCDFPictures(data);
+                break;
         }
 }

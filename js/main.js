@@ -5,6 +5,7 @@ var simulationRun;
 var advSettingsFnc;
 var modalEventFnc;
 var simData = {};
+var simRunData;
 var simResults = {};
 var progBarDet;
 
@@ -24,6 +25,9 @@ $(document).ready(function() {
                 inDuration: 75,
                 outDuration: 25,
         });
+        $("#CDFSetSelection").change(function() {
+                changeCDFSettlement();
+        }); 
         $('#floatingPopEditor').modal({dismissible: false});
         $('#debugModeToggle').prop('checked', false);
         $('#tabFillerButton').addClass('disabled');
