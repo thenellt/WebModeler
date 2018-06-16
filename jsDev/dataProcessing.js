@@ -242,10 +242,14 @@ function changeHeatmapOverlayYear(isNext){
                 heatMapYear += 1;
                 drawCanvasToMap(heatMapYear);
                 document.getElementById("heatmapYearLabel").innerHTML = "Heatmap Year: " + heatMapYear;
+                if(mouseLastPosition)
+                        workerThread.postMessage({type:"mouseKCheck", pos:mouseLastPosition, year:heatMapYear});
         } else if(!isNext && heatMapYear > 0){
                 heatMapYear -= 1;
                 drawCanvasToMap(heatMapYear);
                 document.getElementById("heatmapYearLabel").innerHTML = "Heatmap Year: " + heatMapYear;
+                if(mouseLastPosition)
+                        workerThread.postMessage({type:"mouseKCheck", pos:mouseLastPosition, year:heatMapYear});
         }
 }
 
@@ -253,6 +257,8 @@ function heatmapOverlayAnimation(year){
         if(year === 0){
                 $('#overlaySaveButton').addClass('disabled');
                 heatMapYear = 0;
+                if(mouseLastPosition)
+                        workerThread.postMessage({type:"mouseKCheck", pos:mouseLastPosition, year:heatMapYear});
                 drawCanvasToMap(heatMapYear);
                 document.getElementById("heatmapYearLabel").innerHTML = "Heatmap Year: " + heatMapYear;
         } else{
@@ -297,9 +303,7 @@ function storeLocalCDFPictures(data){
         let scale = 5;
         canvas.width = data.x * scale;
         canvas.height = data.y * scale;
-
         let picData = new ImageData(data.array, data.x * scale, data.y * scale);
-
         ctx.putImageData(picData, 0, 0);
         let canvasImage = new Image();
         canvasImage.id = 'image' + data.year;

@@ -101,7 +101,9 @@ function resetSimulation(){
                         document.getElementById("popMapRow").appendChild(document.getElementById("popMapDiv"));
                         olmapLocation = 0;
                         ol.Observable.unByKey(addPopFunction);
+                        ol.Observable.unByKey(mouseKListner);
                         addPopFunction = map.on('click', placePopulation);
+                        map.removeControl(mouseKControl);
                         imageLayer.setVisible(false);
                         debugVector.getSource().clear();
                 }
@@ -156,7 +158,9 @@ function changeToPopulations(){
                 olmapLocation = 0;
                 changeTab('popSetup');
                 ol.Observable.unByKey(addPopFunction);
+                ol.Observable.unByKey(mouseKListner);
                 addPopFunction = map.on('click', placePopulation);
+                map.removeControl(mouseKControl);
                 imageLayer.setVisible(false);
                 debugVector.setVisible(false);
                 pointVector.setVisible(true);
@@ -192,7 +196,9 @@ function changeToOutput(){
         changeTab('resultsPage');
         ol.Observable.unByKey(addPopFunction);
         addPopFunction = map.on('click', resultsMapClick);
-
+        map.addControl(mouseKControl);
+        mouseKListner = map.on('pointermove', requestUpdateKControl);
+        
         if(simulationRun){
                 imageLayer.setVisible(true);
                 if(document.getElementById("debugModeToggle").checked){

@@ -43,6 +43,9 @@ onmessage = function(oEvent) {
         case 'getSingleCDFData':
                 generateSingleCDFData(oEvent.data.id, oEvent.data.range);
                 break;
+        case 'mouseKCheck':
+                checkPositionInformation(oEvent.data.pos, oEvent.data.year);
+                break;
         }
 };
 
@@ -165,6 +168,7 @@ function generategeoGrid(extremePoints){
                 self.postMessage({type:'mapped', fnc:'extentDebug', data:{
                         points:[geoGrid[0][0], geoGrid[0][xSize], geoGrid[ySize][xSize], geoGrid[ySize][0]], color:[255, 0, 0, .2]
                 }});
+                /*
                 self.postMessage({type:'mapped', fnc:'extentDebug', data:{
                         points:[geoGrid[ySize - 2][xSize - 2], geoGrid[ySize - 2][xSize - 1], geoGrid[ySize - 1][xSize - 1], geoGrid[ySize - 1][xSize - 2]], color:[255, 0, 0, .5]
                 }});
@@ -180,6 +184,7 @@ function generategeoGrid(extremePoints){
                 self.postMessage({type:'mapped', fnc:'extentDebug', data:{
                         points:[geoGrid[ySize - 1][0], geoGrid[ySize - 1][1], geoGrid[ySize][1], geoGrid[ySize][0]], color:[255, 0, 0, .5]
                 }});
+                */
         }
 }
 
@@ -374,7 +379,6 @@ function setupGradient(){
 
         var gradientSteps = Math.floor(simData.carryCapacity) - 1;
         if(simData.threeColorMode === false){
-                logMessage("setupGradient::Running in 2 color mode");
                 var redRange = hotColor[0] - coolColor[0];
                 var greenRange = hotColor[1] - coolColor[1];
                 var blueRange = hotColor[2] - coolColor[2];
@@ -389,7 +393,6 @@ function setupGradient(){
                 }
         }     
         else{
-                logMessage("setupGradient::Running in 3 color mode");
                 var redRange = midColor[0] - coolColor[0];
                 var greenRange = midColor[1] - coolColor[1];
                 var blueRange = midColor[2] - coolColor[2];
@@ -571,6 +574,22 @@ function generateCSV(requestYear, callbackType){
         }
 
         self.postMessage({type:'mapped', fnc:callbackType, csvString:outputString, year:requestYear});
+}
+
+function checkPositionInformation(pos, year){
+        //[geoGrid[0][0], geoGrid[0][xSize], geoGrid[ySize][xSize], geoGrid[ySize][0]]
+        let mPos = proj4(proj4('espg4326'), proj4('mollweide'), pos);
+        let xMin = geoGrid[0][0][0];
+        let xMax = geoGrid[ySize - 1][xSize - 1][0];
+        let yMax = geoGrid[0][0][1];
+        let yMin = geoGrid[ySize - 1][xSize - 1][1];
+        if(mPos[0] > xMin && mPos[0] < xMax && mPos[1] > yMin && mPos[1] < yMax){
+                let mouseX = Math.floor(Math.abs(mPos[0] - xMin) / 1000);
+                let mouseY = Math.floor(Math.abs(yMax - mPos[1]) / 1000);
+                self.postMessage({type:'mapped', fnc:'posKUpdate', text:'Pop: ' + grid[year][mouseY][mouseX].toFixed(2)});
+        } else{
+                self.postMessage({type:'mapped', fnc:'posKUpdate', text:'-'});
+        }
 }
 
 function getTownPop(town, year){

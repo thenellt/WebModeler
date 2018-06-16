@@ -188,6 +188,7 @@ function mapWorkerFunctions(){
                 'pointDebug': function(data) {drawDebugPoint(data.data.point, data.data.color);},
                 'singleCSV': function(data) {saveSingleCSV(data.csvString, data.year);},
                 'allYearsCSV': function(data) {saveAllYearsCSV(data.csvString, data.year);},
+                'posKUpdate': function(data) {updateKControl(data.text);}
         };
 }
 

@@ -304,6 +304,8 @@ function getPersistObjects(){
 }
 
 function setupPersistConfigs(){
+        if(localStorage.getItem('numEntries'))
+                updateLegacySaves();
         var entryIDs = JSON.parse(localStorage.getItem('entryIDs'));
         let container = document.getElementById("persistSaveContainer");
 
@@ -643,4 +645,32 @@ function getPopsFromConfig(fileText){
                 console.log("problem parsing file as json");
                 return 0;
         }
+}
+
+function updateLegacySaves(){
+        let numEntries = parseInt(localStorage.getItem('numEntries'));
+        if(numEntries < 1 && !localStorage.getItem('entry0')){
+                localStorage.removeItem('numEntries');
+                return;
+        }
+
+        let newEntries = [];
+        for(let i = 0; i <= numEntries; i++){
+                let name = 'entry' + i;
+                let entry = JSON.parse(localStorage.getItem(name));
+                newEntries.push(entry.id);
+                localStorage.setItem(entry.id, JSON.stringify(entry));
+                localStorage.removeItem(name);
+        }
+
+        let oldEntries = JSON.parse(localStorage.getItem('entryIDs'));
+        if(!oldEntries || !oldEntries.length){
+                localStorage.setItem('entryIDs', JSON.stringify(newEntries));
+        } else{
+                for(let j = 0; j < newEntries.length; j++)
+                        oldEntries.push(newEntries[j]);
+                localStorage.setItem('entryIDs', JSON.stringify(oldEntries));
+        }
+
+        localStorage.removeItem('numEntries');
 }

@@ -19,6 +19,9 @@ var popStorageMap = {};
 var settlementStatsOpen;
 var statsCircleFeature;
 var mousePosControl;
+var mouseKControl;
+var mouseKListner;
+var mouseLastPosition;
 
 function setupMapping(){
         proj4.defs('espg4326', viewProjection);
@@ -102,6 +105,8 @@ function setupMapping(){
                     return ol.coordinate.format(coordinate, '{x}, {y}', 4);
                 }
         });
+        setupCustomMouseControl();
+        mouseKControl = new app.CustomMouseControl();
         map.addControl(mousePosControl);
 
         addPopFunction = map.on('click', placePopulation);
@@ -111,6 +116,48 @@ function setupMapping(){
         isPopMoving = false;
         settlementStatsOpen = false;
         makeDraggable(document.getElementById('popInfoCard'));
+}
+
+function setupCustomMouseControl(){
+        window.app = {};
+        var app = window.app;
+
+        app.CustomMouseControl = function(opt_options) {
+                var options = opt_options || {};
+
+                var textDiv = document.createElement('div');
+                textDiv.id = 'mouseKText';
+                textDiv.innerHTML = '-';
+                
+                var this_ = this;
+
+                var element = document.createElement('div');
+                element.className = 'ol-unselectable ol-mouse-position';
+                element.setAttribute('style', 'top: 46px;');
+                element.appendChild(textDiv);
+
+                ol.control.Control.call(this, {
+                        element: element,
+                        target: options.target
+                });
+
+        };
+        ol.inherits(app.CustomMouseControl, ol.control.Control);
+}
+
+function requestUpdateKControl(e){
+        if(e){
+                mouseLastPosition = e.coordinate;
+                workerThread.postMessage({type:"mouseKCheck", pos:e.coordinate, year:heatMapYear});
+        }
+        else{
+                mouseLastPosition = false;
+                updateKControl('-');
+        }
+}
+
+function updateKControl(text){
+        document.getElementById('mouseKText').innerHTML = text;
 }
 
 function placePopulation(e){
@@ -188,10 +235,12 @@ function resultsMapClick(e){
         }, {hitTolerance: 3});
 
         if(tempFeatures.length){
+                /*
                 if(statsCircleFeature){
                         debugSource.removeFeature(statsCircleFeature);
                         statsCircleFeature = false;
                 }
+                */
                 displaySettlementStats(tempFeatures[0], e.originalEvent);
 
         } else if(settlementStatsOpen){
@@ -214,7 +263,7 @@ function closePopInfoCard(){
 function displaySettlementStats(feature, event){
         map.getView().setCenter(feature.getGeometry().getCoordinates());
         map.getView().setZoom(11);
-
+        /*
         let settlementID = feature.get('description');
         console.log("settlementID: " + settlementID);
         console.log("position: " + feature.getGeometry().getCoordinates());
@@ -224,6 +273,7 @@ function displaySettlementStats(feature, event){
         $('#popInfoCard').addClass('scale-in');
         $('#popInfoCard').removeClass('scale-out');
         settlementStatsOpen = true;
+        */
 }
 
 function removePopFromMapById(popId){
