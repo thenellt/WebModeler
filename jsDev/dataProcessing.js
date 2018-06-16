@@ -24,7 +24,7 @@ function setupOutputRanges(){
         localAreaRange = simRunData.huntRange;
         localAreaSelectedID = uiData[Object.keys(uiData)[0]].id;
         localAreaPictures = new Array(simRunData.years + 1);
-        document.getElementById("singleCDFRangeLabel").innerHTML = "Range: " + localAreaRange + " km";
+        document.getElementById("singleCDFRangeLabel").innerHTML = "Radius: " + localAreaRange + " km";
 }
 
 Chart.plugins.register({
@@ -360,12 +360,12 @@ function changeLocalCDFRange(isNext){
                 localAreaRange += 1;
                 workerThread.postMessage({type:"getSingleCDFData", id:localAreaSelectedID, range:localAreaRange});
                 workerThread.postMessage({type:"getSingleCDFPictures", id:localAreaSelectedID, range:localAreaRange});
-                document.getElementById("singleCDFRangeLabel").innerHTML = "Range: " + localAreaRange + " km";
+                document.getElementById("singleCDFRangeLabel").innerHTML = "Radius: " + localAreaRange + " km";
         } else if(!isNext && localAreaRange > 1){
                 localAreaRange -= 1;
                 workerThread.postMessage({type:"getSingleCDFData", id:localAreaSelectedID, range:localAreaRange});
                 workerThread.postMessage({type:"getSingleCDFPictures", id:localAreaSelectedID, range:localAreaRange});
-                document.getElementById("singleCDFRangeLabel").innerHTML = "Range: " + localAreaRange + " km";
+                document.getElementById("singleCDFRangeLabel").innerHTML = "Radius: " + localAreaRange + " km";
         }
 }
 
