@@ -514,7 +514,6 @@ function generateCircleCoords(origCenter, radius){
 
 function generateCanvas(data){
         console.log("generateCanvas:: year: " + data.year + " scale: " + data.scale + " mode: " + data.dest);
-        console.log("data length: " + data.array.length + " xSize: " + data.x);
         let canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
 
@@ -530,14 +529,12 @@ function generateCanvas(data){
         switch(data.dest){
         case 'animationFrame':
                 canvasImage.onload = function(){
-                        console.log('generateCanvas::added frame for year: ' + data.year);
                         heatMapImages.pos = data.position;
                         heatMapImages.images[data.year] = canvasImage;
                 }
                 break;
         case 'finalFrame':
                 canvasImage.onload = function(){
-                        console.log('generateCanvas::added frame for year: ' + data.year);
                         heatMapImages.pos = data.position;
                         heatMapImages.images[data.year] = canvasImage;
                         drawCanvasToMap(data.year);
@@ -558,7 +555,6 @@ function generateCanvas(data){
 function drawCanvasToMap(year){
         let canvasImage = heatMapImages.images[year];
         let location = heatMapImages.pos;
-        console.log("drawCanvasToMap: height: " + canvasImage.naturalHeight + " width: " + canvasImage.naturalWidth); //1059340.815974956
         if(imageLayer)
                 map.removeLayer(imageLayer);
 

@@ -657,10 +657,13 @@ function updateLegacySaves(){
         let newEntries = [];
         for(let i = 0; i <= numEntries; i++){
                 let name = 'entry' + i;
-                let entry = JSON.parse(localStorage.getItem(name));
-                newEntries.push(entry.id);
-                localStorage.setItem(entry.id, JSON.stringify(entry));
-                localStorage.removeItem(name);
+                let temp = localStorage.getItem(name);
+                if(temp){
+                        let entry = JSON.parse(temp);
+                        newEntries.push(entry.id);
+                        localStorage.setItem(entry.id, JSON.stringify(entry));
+                        localStorage.removeItem(name);
+                }
         }
 
         let oldEntries = JSON.parse(localStorage.getItem('entryIDs'));

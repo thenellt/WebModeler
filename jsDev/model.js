@@ -496,6 +496,7 @@ function generateEntireCDFData(){
                 generateCDFBins(i);
 }
 
+//alg based on https://stackoverflow.com/questions/40779343/java-loop-through-all-pixels-in-a-2d-circle-with-center-x-y-and-radius
 function generateSingleCDFData(settlementID, range){
         for(elmnt in towns)
                 if(towns[elmnt].id === settlementID){
