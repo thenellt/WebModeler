@@ -462,7 +462,7 @@ function loadConfigByID(persistID){
                 document.getElementById("resetButton").classList.remove("hide");
                 document.getElementById("quickSaveButton").classList.remove("hide");
                 document.getElementById("newSimButton").classList.add("hide");
-                changeTab("parameterSetup");
+                tabManager.changeTab(pageTabs.PARAMS, false);
                 console.log("loadConfigByID::Persist config loaded with id: " + persistID);
         }
 }

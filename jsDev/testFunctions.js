@@ -200,7 +200,7 @@ function handleWorkerMessage(data){
         case 'finished': {
                 simResults = data.paramData;
                 synchPersisObject();
-                changeToOutput();
+                tabManager.changeTab(pageTabs.MAPS);
                 rawHWScaleInput(100);
                 populateCDFSelection('CDFSetSelection');
                 workerThread.postMessage({type:'getCDFData', year:simData.years});

@@ -31,42 +31,27 @@ $(document).ready(function() {
         $('#floatingPopEditor').modal({dismissible: false});
         $('#debugModeToggle').prop('checked', false);
         $('#tabFillerButton').addClass('disabled');
-        setupTabs();
         setupPersistConfigs();
         populatePersistSaves();
         mapWorkerFunctions();
         setupWorker();
         setupMapping();
+        setupTabSystem();
+        checkCompatibility();
 });
-
-function setupTabs(){
-        var tabs = document.getElementsByClassName("tablinks");
-        for(let i = 0; i < tabs.length; i++){
-                if(!tabs[i].classList.contains("defaultOpen")){
-                        tabs[i].disabled = true;
-                }
-                else{
-                        var contentName = tabs[i].id;
-                        changeTab(contentName.substring(0, contentName.length - 3));
-                }
-        }
-
-        olmapLocation = 0;
-        simulationRun = 0;
-}
 
 function newSimulation(){
         var tempDate = new Date();
         simData.simID = tempDate.valueOf();
         console.log("new simulation setup with ID: " + simData.simID);
-        document.getElementById("parameterSetupTab").disabled = false;
-        document.getElementById("popSetupTab").disabled = false;
         $('#tabFillerButton').removeClass('disabled');
         document.getElementById("resetButton").classList.remove("hide");
         document.getElementById("newSimButton").classList.add("hide");
         document.getElementById("quickSaveButton").classList.remove("hide");
 
-        changeTab("parameterSetup");
+        tabManager.enableTab(pageTabs.PARAMS);
+        tabManager.enableTab(pageTabs.POPS);
+        tabManager.changeTab(pageTabs.PARAMS);
 }
 
 function resetSimulationCheck(){
@@ -124,10 +109,10 @@ function resetSimulation(){
                 }
         }
 
-        document.getElementById("statsPageTab").disabled = true;
-        document.getElementById("parameterSetupTab").disabled = true;
-        document.getElementById("popSetupTab").disabled = true;
-        document.getElementById("resultsPageTab").disabled = true;
+        tabManager.disableTab(pageTabs.STATS);
+        tabManager.disableTab(pageTabs.PARAMS);
+        tabManager.disableTab(pageTabs.POPS);
+        tabManager.disableTab(pageTabs.MAPS);
         $('#tabFillerButton').addClass('disabled');
         document.getElementById("resetButton").classList.add("hide");
         document.getElementById("quickSaveButton").classList.add("hide");
@@ -156,7 +141,6 @@ function changeToPopulations(){
         if(olmapLocation){ //move the map from output page back to pop page
                 document.getElementById("popMapRow").appendChild(document.getElementById("popMapDiv"));
                 olmapLocation = 0;
-                changeTab('popSetup');
                 ol.Observable.unByKey(addPopFunction);
                 ol.Observable.unByKey(mouseKListner);
                 addPopFunction = map.on('click', placePopulation);
@@ -166,16 +150,13 @@ function changeToPopulations(){
                 pointVector.setVisible(true);
                 changeMapView(document.getElementById("mapTypeToggle").checked);
         }
-        else{
-                changeTab('popSetup');
-        }
+
         map.updateSize();
 }
 
 function changeToGetStarted(){
         let contentDiv = document.getElementById("getStarted");
         if(contentDiv.style.display == "none"){
-                //TODO only update saves when necessary
                 console.log("changeToGetStarted::updating persist display");
                 var saveContainer = document.getElementById("persistSaveContainer");
                 while (saveContainer.firstChild) {
@@ -184,16 +165,14 @@ function changeToGetStarted(){
 
                 setupPersistConfigs();
                 populatePersistSaves();
-                changeTab('getStarted');
         }
 }
 
 function changeToOutput(){
         document.getElementById("resultMapDiv").appendChild(document.getElementById("popMapDiv"));
         olmapLocation = 1;
-        document.getElementById("resultsPageTab").disabled = false;
-        document.getElementById("statsPageTab").disabled = false;
-        changeTab('resultsPage');
+        tabManager.enableTab(pageTabs.MAPS);
+        tabManager.enableTab(pageTabs.STATS);
         ol.Observable.unByKey(addPopFunction);
         addPopFunction = map.on('click', resultsMapClick);
         map.addControl(mouseKControl);
@@ -383,7 +362,7 @@ function populateDefaultValues(){
 function checkSettings(){
         if($('#paramName').val().length === 0){
                 modalDialog("Settings Error", "One or more settings has an invalid value. Please fix it and try again.", function(){
-                        changeTab('parameterSetup');
+                        tabManager.changeTab(pageTabs.PARAMS, true);
                         $('#paramName').focus();
                 });
                 return false;
@@ -398,7 +377,7 @@ function checkSettings(){
                 let tempValue = $('#' + intParams[i][0]).val();
                 if(!checkInt(tempValue, intParams[i][1], intParams[i][2])){
                         modalDialog("Settings Error", "One or more settings has an invalid value. Please fix it and try again.", function(){
-                                changeTab('parameterSetup');
+                                tabManager.changeTab(pageTabs.PARAMS, true);
                                 if(intParams[i][3]){
                                         $('#advancedSettings').modal('open');
                                 }
@@ -411,7 +390,7 @@ function checkSettings(){
                 let tempValue = $('#' + floatParams[i][0]).val();
                 if(!checkFloat(tempValue, floatParams[i][1], floatParams[i][2])){
                         modalDialog("Settings Error", "One or more settings has an invalid value. Please fix it and try again.", function(){
-                                changeTab('parameterSetup');
+                                tabManager.changeTab(pageTabs.PARAMS, true);
                                 if(floatParams[i][3]){
                                         $('#advancedSettings').modal('open');
                                 }

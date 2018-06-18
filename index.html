@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" manifest="manifest.appcache">
+<html lang="en" > <!-- manifest="manifest.appcache"-->
 <head>
         <meta charset="UTF-8">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -43,14 +43,14 @@
                 <tr>
                         <td class="sideBar">
                                 <div class="sidebarTabContainer">
-                                        <button id="getStartedTab" class="tablinks waves-effect waves-light defaultOpen" onclick="changeToGetStarted()" style=" border-bottom: 1px solid LightGrey;">Main Menu</button>
-                                        <button id="parameterSetupTab" class="tablinks waves-effect waves-light" onclick="changeTab('parameterSetup')">Simulation Parameters</button>
-                                        <button id="popSetupTab" class="tablinks waves-effect waves-light" onclick="changeToPopulations()">Setup Populations</button>
+                                        <button id="getStartedTab" class="tablinks waves-effect waves-light defaultOpen" style=" border-bottom: 1px solid LightGrey;">Main Menu</button>
+                                        <button id="parameterSetupTab" class="tablinks waves-effect waves-light" >Simulation Parameters</button>
+                                        <button id="popSetupTab" class="tablinks waves-effect waves-light">Setup Populations</button>
                                         <div id="tabFiller" class="fillerTab" style=" border-bottom: 1px solid LightGrey; border-top: 1px solid LightGrey;">
                                                 <a id="tabFillerButton" class="waves-effect waves-light btn" onclick="setupSimulation()">Run Simulation</a>
                                         </div>
-                                        <button id="resultsPageTab" class="tablinks waves-effect waves-light" onclick="changeToOutput()">Visual Results</button>
-                                        <button id="statsPageTab" class="tablinks waves-effect waves-light" onclick="changeTab('statsPage')">Statistical Results</button>
+                                        <button id="resultsPageTab" class="tablinks waves-effect waves-light">Visual Results</button>
+                                        <button id="statsPageTab" class="tablinks waves-effect waves-light">Statistical Results</button>
                                 </div>
                         </td>
                         <td class="content">
