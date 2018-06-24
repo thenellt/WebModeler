@@ -8,10 +8,13 @@ var localAreaPictures;
 var localAreaYear;
 var localAreaSelectedID;
 var localAreaRange;
+var offtakeChart;
+var offtakeChartData;
+var offtakeSelectedID;
 var heatMapYear;
 var heatMapImages;
 
-function setupOutputRanges(){
+function setupStatsPage(){
         heatMapYear = simRunData.years;
         document.getElementById("heatmapYearLabel").innerHTML = "Heatmap Year: " + heatMapYear;
         document.getElementById("entireCDFYearLabel").innerHTML = "Simulation Year: " + heatMapYear;
@@ -19,12 +22,30 @@ function setupOutputRanges(){
         document.getElementById("rawHeatmapYear").max = simRunData.years;
         document.getElementById("rawHeatmapYear").value = simRunData.years;
         document.getElementById("csvNumberInput").max = simRunData.years;
-        entireAreaYear = simRunData.years;
-        localAreaYear = simRunData.years;
+        entireAreaYear = localAreaYear = simRunData.years;
+        offtakeSelectedID = 'all';
         localAreaRange = simRunData.huntRange;
         localAreaSelectedID = uiData[Object.keys(uiData)[0]].id;
         localAreaPictures = new Array(simRunData.years + 1);
         document.getElementById("singleCDFRangeLabel").innerHTML = "Radius: " + localAreaRange + " km";
+}
+
+function populateOtherInfo(){
+        let timeString = simulationTime > 1000 ? (simulationTime / 1000).toFixed(2) + ' s' : simulationTime + ' ms';
+        document.getElementById('oStatsTime').innerHTML = timeString;
+        document.getElementById('oStatsArea').innerHTML = simResults.xSize * simResults.ySize + ' km2';
+        document.getElementById('oStatsWidth').innerHTML = simResults.xSize + ' km';
+        document.getElementById('oStatsHeight').innerHTML = simResults.ySize + ' km';
+        let popTotal = 0;
+        for(let i = 0, length = simResults.townData.length; i < length; i++){
+                if(simResults.townData[i].type == "yearly")
+                        popTotal += simResults.townData[i].population[simRunData.years];
+                else{
+                        let tTown = simResults.townData[i];
+                        popTotal += tTown.population*Math.pow(1 + tTown.growthRate, simRunData.years);
+                }
+        }
+        document.getElementById('oStatsTotalPop').innerHTML = Math.ceil(popTotal);
 }
 
 Chart.plugins.register({
@@ -43,27 +64,17 @@ function createEntireCDFChart(){
                 data: {
                         labels: ['0.0 - 0.1', '0.1 - 0.2','0.2 - 0.3','0.3 - 0.4','0.4 - 0.5','0.5 - 0.6',
                          '0.6 - 0.7','0.7 - 0.8','0.8 - 0.9','0.9 - 0.99','> 0.99'],
-                        datasets: [{
-                                legend: {
-                                        display: false,
-                                },
-                                backgroundColor: "#90caf9",
-                                data: [0],
-                        }]
+                        datasets: [{ legend: { display: false }, backgroundColor: "#90caf9", data: [0], }]
                 },
                 options: {
-                        legend: { 
-                                display: false 
-                        },
+                        legend: { display: false },
                         plugins: {
                                 datalabels: {
                                         anchor: 'end',
                                         align: 'top',
                                         offset: 4,
                                         color: 'grey',
-                                        font: {
-                                                weight: 'bold'
-                                        },
+                                        font: { weight: 'bold' },
                                         formatter: function(value, context) {
                                                 return value.toFixed(2) + ' %';
                                         }
@@ -71,9 +82,7 @@ function createEntireCDFChart(){
                         },
                         scales: {
                                 xAxes: [{
-                                        ticks: {
-                                                min: 0
-                                        },
+                                        ticks: { min: 0 },
                                         scaleLabel: {
                                                 display: true,
                                                 fontSize: 12,
@@ -81,11 +90,7 @@ function createEntireCDFChart(){
                                         }
                                 }],
                                 yAxes: [{
-                                        ticks: {
-                                                beginAtZero: true,
-                                                min: 0,
-                                                max: 100
-                                        },
+                                        ticks: { beginAtZero: true, min: 0, max: 100 },
                                         scaleLabel: {
                                                 display: true,
                                                 fontSize: 12,
@@ -93,20 +98,13 @@ function createEntireCDFChart(){
                                         }
                                 }]
                         },
-                        title: {
-                                display: true,
-                                fontSize: 16,
-                                text: 'Entire Map CDF Graph'
-                        },
+                        title: { display: true, fontSize: 16, text: 'Entire Map CDF Graph' },
                         responsive: false,
-                        tooltips: {
-                                callbacks: {
+                        tooltips: { callbacks: {
                                         label: function(tooltipItem, data) {
                                                 var label = data.datasets[tooltipItem.datasetIndex].label || '';
-                    
-                                                if (label) {
+                                                if (label)
                                                         label += ': ';
-                                                }
                                                 label += Math.round(tooltipItem.yLabel * 100) / 100;
                                                 return label + ' %';
                                         }
@@ -114,17 +112,6 @@ function createEntireCDFChart(){
                         }
                 }
         }); 
-}
-
-function downloadGraph(containerID){
-        if(containerID === "entireMapChart"){
-                var name = "entireMapCDF_year" + entireAreaYear + ".png";
-        } else if(containerID === "entireMapChart"){
-                var name = "";
-        }
-        $('#' + containerID).get(0).toBlob(function(blob) {
-                saveAs(blob, name);
-        });
 }
 
 function createLocalCDFChart(){
@@ -138,27 +125,17 @@ function createLocalCDFChart(){
                 data: {
                         labels: ['0.0 - 0.1', '0.1 - 0.2','0.2 - 0.3','0.3 - 0.4','0.4 - 0.5','0.5 - 0.6',
                          '0.6 - 0.7','0.7 - 0.8','0.8 - 0.9','0.9 - 0.99','> 0.99'],
-                        datasets: [{
-                                legend: {
-                                        display: false,
-                                },
-                                backgroundColor: "#90caf9",
-                                data: [0],
-                        }]
+                        datasets: [{ legend: { display: false, }, backgroundColor: "#90caf9", data: [0], }]
                 },
                 options: {
-                        legend: { 
-                                display: false 
-                        },
+                        legend: { display: false },
                         plugins: {
                                 datalabels: {
                                         anchor: 'end',
                                         align: 'top',
                                         offset: 4,
                                         color: 'grey',
-                                        font: {
-                                                weight: 'bold'
-                                        },
+                                        font: { weight: 'bold' },
                                         formatter: function(value, context) {
                                                 return value.toFixed(2) + ' %';
                                         }
@@ -166,9 +143,7 @@ function createLocalCDFChart(){
                         },
                         scales: {
                                 xAxes: [{
-                                        ticks: {
-                                                min: 0
-                                        },
+                                        ticks: { min: 0 },
                                         scaleLabel: {
                                                 display: true,
                                                 fontSize: 12,
@@ -176,11 +151,7 @@ function createLocalCDFChart(){
                                         }
                                 }],
                                 yAxes: [{
-                                        ticks: {
-                                                beginAtZero: true,
-                                                min: 0,
-                                                max: 100
-                                        },
+                                        ticks: { beginAtZero: true, min: 0, max: 100 },
                                         scaleLabel: {
                                                 display: true,
                                                 fontSize: 12,
@@ -188,26 +159,40 @@ function createLocalCDFChart(){
                                         }
                                 }]
                         },
-                        title: {
-                                display: true,
-                                fontSize: 16,
-                                text: labelText
-                        },
+                        title: { display: true, fontSize: 16, text: labelText },
                         responsive: false,
                         tooltips: {
                                 callbacks: {
                                         label: function(tooltipItem, data) {
                                                 var label = data.datasets[tooltipItem.datasetIndex].label || '';
-                    
-                                                if (label) {
+                                                if (label)
                                                         label += ': ';
-                                                }
                                                 label += Math.round(tooltipItem.yLabel * 100) / 100;
                                                 return label + ' %';
                                         }
                                 }
                         }
                 }
+        });
+}
+
+function createOfftakeChart(){
+
+}
+
+function downloadGraph(containerID){
+        if(containerID === "entireMapChart"){
+                var name = "entireMapCDF_year_" + entireAreaYear + ".png";
+        } else if(containerID === "localAreaCDF"){
+                var name = "localAreaCDF_year_" + localAreaYear + ".png";
+        } else if(containerID === "offtakeChart"){
+                for(let i = 0; i < simResults.townData.length; i++)
+                        if(simResults.townData[i].id = offtakeSelectedID)
+                                var vName = simResults.townData[i].name;
+                var name = vName + "_offtake.png";
+        }
+        $('#' + containerID).get(0).toBlob(function(blob) {
+                saveAs(blob, name);
         });
 }
 
@@ -218,18 +203,28 @@ function rawHWScaleInput(value){
         document.getElementById('heatmapScaleText').innerHTML = "Image Resolution: " + newWidth + "px by " + newHeight + "px";
 }
 
-function populateCDFSelection(selectorID){
-        $('#' + selectorID).children('option').remove();
-        var selector = document.getElementById(selectorID);
+function populateSelectionsFields(){
+        $('#CDFSetSelection').children('option').remove();
+        $('#offtakeSetSelection').children('option').remove();
+        var CDFselector = document.getElementById('CDFSetSelection');
+        var offtakeSelector = document.getElementById('offtakeSetSelection');
+
+        let option = document.createElement("option");
+        option.text = 'All';
+        option.value = 'all';
+        offtakeSelector.add(option);
+
         for(let settlementID in uiData){
                 let settlement = uiData[settlementID];
                 let option = document.createElement("option");
                 option.text = settlement.name;
                 option.value = settlement.id;
-                selector.add(option);
+                CDFselector.add(option);
+                offtakeSelector.add(option.cloneNode(true));
         }
 
-        $('#' + selectorID).material_select();
+        $('#CDFSetSelection').material_select();
+        $('#offtakeSetSelection').material_select();
 }
 
 function setupOpacitySlider(){
@@ -322,6 +317,20 @@ function storeLocalCDFPictures(data){
         canvasImage.src = canvas.toDataURL();
 }
 
+function storeOfftakeData(data){
+        offtakeChartData = JSON.parse(data);
+        let allPopData = new Array(simRunData.years);
+        for(let i = 0; i < simRunData.years; i++)
+                allPopData[i] = 0;
+        for(key in offtakeChartData)
+                for(let y = 0; y < simRunData.years; y++)
+                        allPopData[y] += offtakeChartData[key][y];
+
+        offtakeChartData['all'] = allPopData;
+
+        changeOfftakeSettlement();
+}
+
 function changeEntireCDFYear(isNext){
         if(isNext && entireAreaYear != simRunData.years){
                 entireAreaYear += 1;
@@ -356,7 +365,7 @@ function entireCDFAnimation(year){
 }
 
 function changeLocalCDFRange(isNext){
-        if(isNext && localAreaRange < simData.huntRange * 2 + simData.boundryWidth - 2){
+        if(isNext && localAreaRange < simRunData.huntRange * 2 + simRunData.boundryWidth - 2){
                 localAreaRange += 1;
                 workerThread.postMessage({type:"getSingleCDFData", id:localAreaSelectedID, range:localAreaRange});
                 workerThread.postMessage({type:"getSingleCDFPictures", id:localAreaSelectedID, range:localAreaRange});
@@ -411,11 +420,11 @@ function localCDFAnimation(year){
                 changeLocalCDFYear(true);
         }
 
-        if(year === 0) 
+        if(year === 0){
                 setTimeout(localCDFAnimation, 1000, year + 1);
-        else if(year < simRunData.years)
+        } else if(year < simRunData.years){
                 setTimeout(localCDFAnimation, 500, year + 1);
-        else{
+        } else{
                 $('#singleCDFSaveButton').removeClass('disabled');
                 $('#localCDFdownRange').removeClass('disabled');
                 $('#localCDFupRange').removeClass('disabled');
@@ -431,6 +440,18 @@ function changeCDFSettlement(){
         localAreaSelectedID = parseInt(value, 10);
         workerThread.postMessage({type:"getSingleCDFData", id:localAreaSelectedID, range:localAreaRange});
         workerThread.postMessage({type:"getSingleCDFPictures", id:localAreaSelectedID, range:localAreaRange});
+}
+
+function changeOfftakeSettlement(){
+        let value = $("#CDFSetSelection").val();
+        if(value == 'all'){
+                offtakeSelectedID = 'all';
+        } else{
+                offtakeSelectedID = parseInt(value, 10);
+        }
+
+        //offtakeChart.data.datasets[0].data = offtakeChartData[offtakeSelectedID];
+        //offtakeChart.update();
 }
 
 function csvSingleYear(){
@@ -454,8 +475,7 @@ function saveAllYearsCSV(csvString, curYear){
 
         if(csvStrings.length <= simRunData.years){
                 workerThread.postMessage({type:"allYearsCSV", year:(curYear + 1),});
-        }
-        else if(csvStrings.length === simRunData.years + 1){
+        } else if(csvStrings.length === simRunData.years + 1){
                 var zip = new JSZip();
                 for(let i = 0; i < csvStrings.length; i++){
                         zip.file(simRunData.simName + "_year" + i + "data.csv", csvStrings[i]);

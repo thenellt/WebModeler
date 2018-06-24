@@ -65,6 +65,7 @@ function runSimulation(parameters){
         generateEntireCDFData();
         generateSingleCDFData(towns[0].id, simData.huntRange);
         generateCDFPictureData(towns[0].id, simData.huntRange);
+        generateOfftakeData();
         self.postMessage({type:'finished', paramData:{name: simData.simName, duration:simData.years, 
                           xSize:xSize, ySize:ySize, geoGrid:geoGrid, townData:towns}});
 }
@@ -84,8 +85,7 @@ function unpackParams(data){
         if(data.debug){
                 logMessage("unpackParams: debugMode set");
                 DEBUG = true;  
-        }
-        else
+        } else
                 DEBUG = false;
 }
 
@@ -168,7 +168,6 @@ function generategeoGrid(extremePoints){
                 self.postMessage({type:'mapped', fnc:'extentDebug', data:{
                         points:[geoGrid[0][0], geoGrid[0][xSize], geoGrid[ySize][xSize], geoGrid[ySize][0]], color:[255, 0, 0, .2]
                 }});
-                /*
                 self.postMessage({type:'mapped', fnc:'extentDebug', data:{
                         points:[geoGrid[ySize - 2][xSize - 2], geoGrid[ySize - 2][xSize - 1], geoGrid[ySize - 1][xSize - 1], geoGrid[ySize - 1][xSize - 2]], color:[255, 0, 0, .5]
                 }});
@@ -184,7 +183,6 @@ function generategeoGrid(extremePoints){
                 self.postMessage({type:'mapped', fnc:'extentDebug', data:{
                         points:[geoGrid[ySize - 1][0], geoGrid[ySize - 1][1], geoGrid[ySize][1], geoGrid[ySize][0]], color:[255, 0, 0, .5]
                 }});
-                */
         }
 }
 
@@ -228,7 +226,6 @@ function calculateModel(){
         for(let curYear = 0; curYear < simData.years; curYear++){
                 //d*[i+1,j] + d*[i-1,j] + d*[i,j+1] + d*[i,j-1] + ([i,j] - 4*d*[i,j])
                 //D*a       + D*b       + D*d       + D*e       + (c     - 4*D*c    )
-                //TODO check diffusion sample calculation correctness
                 for(var i = 0; i < simData.diffusionSamples; i++){
                         for(y = 1; y < ySize - 1; y++){
                                 for(x = 1; x < xSize - 1; x++){
@@ -241,8 +238,7 @@ function calculateModel(){
                                                 left   = grid[curYear][y][x-1] + diffusionGrid[y][x-1];
                                                 diffusionGrid[y][x] += (simData.animalDiffRate * (up + down + right + left - (4 * center))) / simData.diffusionSamples;
                                                 //diffusionGrid[y][x] = (simData.animalDiffRate * (up + down + left + right - (4 * center))) / simData.diffusionSamples;
-                                        }
-                                        else{
+                                        } else{
                                                 //diffusionGrid[y][x] = (animalDiffRate*(a + b) + (1-4*animalDiffRate)*(c + animalDiffRate*(d + e)))/diffusionSamples;
                                                 up     = grid[curYear][y+1][x];
                                                 down   = grid[curYear][y-1][x];
@@ -260,7 +256,7 @@ function calculateModel(){
                         for(x = 0; x < xSize; x++){
                                 if(y > 0 && y < ySize - 1){
                                         if(x > 0 && x < xSize - 1){
-                                                for(var settleNum = 0; settleNum < towns.length; settleNum++){
+                                                for(let settleNum = 0, length = towns.length; settleNum < length; settleNum++){
                                                         //((comlocation[numb,0]-i)**2+(comlocation[numb,1]-j)**2))
                                                         //console.log("town info: " + towns[settleNum].x +  "," + towns[settleNum].y);
                                                         locationValue = Math.pow(towns[settleNum].x - x, 2) + Math.pow(towns[settleNum].y - y, 2);
@@ -273,8 +269,7 @@ function calculateModel(){
                                                         //console.log("Top: " + top + " bot: " + bot);
                                                         if(settleNum === 0){
                                                                 effort[y][x] = (towns[settleNum].HPHY*getTownPop(towns[settleNum], curYear)*top)/bot;
-                                                        }
-                                                        else{
+                                                        } else{
                                                                 effort[y][x] += (towns[settleNum].HPHY*getTownPop(towns[settleNum], curYear)*top)/bot;
                                                         }
                                                         //console.log("effort at: " + x + "," + y + " is: " + effort[y][x]);
@@ -284,12 +279,10 @@ function calculateModel(){
                                                 //growth[y][x] = animalGrowthRate*grid[curYear][y][x] - animalGrowthRate*grid[curYear][y][x]*Math.pow((grid[curYear][y][x]/carryCapacity), theta);
                                                 growth[y][x] = (simData.animalGrowthRate * grid[curYear][y][x]) * (1 - (grid[curYear][y][x]/simData.carryCapacity));
                                                 grid[curYear + 1][y][x] = grid[curYear][y][x] + diffusionGrid[y][x] + growth[y][x] - simData.killProb * simData.encounterRate*effort[y][x]*grid[curYear][y][x];
-                                        }
-                                        else{
+                                        } else{
                                                 grid[curYear + 1][y][x] = simData.carryCapacity;
                                         }
-                                }
-                                else{
+                                } else{
                                         grid[curYear + 1][y][x] = simData.carryCapacity;
                                 }
                         }
@@ -300,7 +293,6 @@ function calculateModel(){
                                 if(grid[curYear + 1][y][x] < 0)
                                         grid[curYear + 1][y][x] = 0;
 
-                logMessage("calculateModel: finished year " + curYear);
                 self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Finished Year " + curYear, statusValue: 100 * (curYear / simData.years)});
         }
 }
@@ -565,6 +557,13 @@ function generateCDFBins(year){
                 dataValues[i] = parseFloat(dataValues[i] / (1.0 *numCells)) * 100;
 
         self.postMessage({type:'mapped', fnc:'entireCDFData', densities:dataValues, year:year});
+}
+
+function generateOfftakeData(){
+        let dataValues = {};
+        for(let i = 0; i < towns.length; i++)
+                dataValues[towns[i].id] = towns[i].offtake;
+        self.postMessage({type:'mapped', fnc:'offtakeData', dataString:JSON.stringify(dataValues)});
 }
 
 function generateCSV(requestYear, callbackType){

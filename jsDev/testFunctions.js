@@ -1,5 +1,21 @@
-var workerThread;
-var workerFunctions = {};
+var simulationTime;
+var workerThread = new Worker('jsDev/model.js');
+workerThread.onmessage = function(oEvent) {
+        handleWorkerMessage(oEvent.data);
+};
+
+var workerFunctions = {
+        'progress':      function(data) {updateProgressBar(data.statusMsg, data.statusValue);},
+        'entireCDFData': function(data) {storeCDFData('entire', data.year, data.densities);},
+        'localCDFData':  function(data) {storeCDFData('single', data.year, data.densities, data.id);},
+        'offtakeData':   function(data) {storeOfftakeData(data.dataString);},
+        'extentDebug':   function(data) {drawDebugBounds(data.data.points, data.data.color);},
+        'circleDebug':   function(data) {drawDebugCircle(data.data.points, data.data.color);},
+        'pointDebug':    function(data) {drawDebugPoint(data.data.point, data.data.color);},
+        'singleCSV':     function(data) {saveSingleCSV(data.csvString, data.year);},
+        'allYearsCSV':   function(data) {saveAllYearsCSV(data.csvString, data.year);},
+        'posKUpdate':    function(data) {updateKControl(data.text);},
+};
 
 function setupSimDefaults(){
         simData.animalDiffRate = 0.1;
@@ -44,8 +60,7 @@ function readUserParameters(){
                 console.log("readUserParameters::detected 3 color mode");
                 simData.threeColorMode = true;
                 simData.midColorCode = document.getElementById("paramMidColor").value;
-        }
-        else{
+        } else{
                 simData.threeColorMode = false;
         }
 
@@ -89,8 +104,7 @@ function checkYearlyPopDuration(){
                 if(village.type === "yearly" && village.population.length < simData.years){
                         if(!nameString.length){
                                 nameString = village.name;
-                        }
-                        else{
+                        } else{
                                 nameString += ", " + village.name;
                         }
                 }
@@ -103,8 +117,7 @@ function checkYearlyPopDuration(){
                 msg += nameString + "</i> have less than <b>" + simData.years + "</b> years worth of data. </br></br>Please adjust the simulation duration or provide additional data.";
                 modalDialog(title, msg);
                 return false;
-        }
-        else{
+        } else{
                 return true;
         }
 }
@@ -137,19 +150,10 @@ function sanitizeTownData(uiTown){
         return data;
 }
 
-function setupWorker(){
-        workerThread = new Worker('jsDev/model.js');
-        workerThread.onmessage = function(oEvent) {
-                handleWorkerMessage(oEvent.data);
-        };
-}
-
 function setupSimulation(){
         if(!checkSettings())
                 return;
 
-        console.log("----------------Starting sim setup-------------------");
-        //maybe move this to output display setup
         var cleanup = document.getElementById("rawHeatmapContainer");
         while (cleanup.firstChild) {
                 cleanup.removeChild(cleanup.firstChild);
@@ -163,6 +167,7 @@ function setupSimulation(){
         if(!townData)
                 return;
         
+        simulationTime = getTime();
         $('#coverScreen').modal('open');
         geoGridFeatures.clear(true);
         debugSource.clear(true);
@@ -172,24 +177,10 @@ function setupSimulation(){
         localAreaData = [];
         simRunData = JSON.parse(JSON.stringify(simData));
         simRunData.towns = JSON.parse(JSON.stringify(townData));
-        setupOutputRanges();
+        setupStatsPage();
 
         showProgressBar("Setting up simulation", 0);
         workerThread.postMessage({type:"newSim", params:simData, towns:townData, debug:debugMode});
-}
-
-function mapWorkerFunctions(){
-        workerFunctions = {
-                'progress': function(data) {updateProgressBar(data.statusMsg, data.statusValue);},
-                'entireCDFData': function(data) {storeCDFData('entire', data.year, data.densities);},
-                'localCDFData': function(data) {storeCDFData('single', data.year, data.densities, data.id);},
-                'extentDebug': function(data) {drawDebugBounds(data.data.points, data.data.color);},
-                'circleDebug': function(data) {drawDebugCircle(data.data.points, data.data.color);},
-                'pointDebug': function(data) {drawDebugPoint(data.data.point, data.data.color);},
-                'singleCSV': function(data) {saveSingleCSV(data.csvString, data.year);},
-                'allYearsCSV': function(data) {saveAllYearsCSV(data.csvString, data.year);},
-                'posKUpdate': function(data) {updateKControl(data.text);}
-        };
 }
 
 function handleWorkerMessage(data){
@@ -202,9 +193,10 @@ function handleWorkerMessage(data){
                 synchPersisObject();
                 tabManager.changeTab(pageTabs.MAPS);
                 rawHWScaleInput(100);
-                populateCDFSelection('CDFSetSelection');
+                populateSelectionsFields();
                 workerThread.postMessage({type:'getCDFData', year:simData.years});
-                //workerThread.postMessage({type:'getLocalCDFData', year:simData.years});
+                simulationTime = getTime() - simulationTime;
+                populateOtherInfo();
                 closeProgressBar();
                 $('#coverScreen').modal('close');
                 break;

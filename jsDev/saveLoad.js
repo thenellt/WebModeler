@@ -116,7 +116,6 @@ function loadSimConfig(fileData){
         }
         simData.boundryWidth = config.hasOwnProperty('boundryWidth') ? config.boundryWidth : 10;
         
-        emptyTable();
         loadPopulationData(config.popData);
 
         document.getElementById("paramYears").value = simData.years;
@@ -188,12 +187,11 @@ function savePersistConfig(persistID){
 }
 
 function findConfig(persistID){
-        let entries = getPersistObjects();
-        for(index in entries)
-                if(entries[index].id === persistID)
-                        return entries[index];
-        
-        return false;
+        let entry = JSON.parse(localStorage.getItem(persistID));
+        if(entry)
+                return entry;
+        else
+                return false;
 }
 
 function generateConfigObject(){
@@ -456,8 +454,8 @@ function loadConfigByID(persistID){
         if(entry){
                 resetSimulation();
                 loadSimConfig(entry);
-                document.getElementById("popSetupTab").disabled = false;
-                document.getElementById("parameterSetupTab").disabled = false;
+                tabManager.enableTab(pageTabs.POPS);
+                tabManager.enableTab(pageTabs.PARAMS);
                 $('#tabFillerButton').removeClass('disabled');
                 document.getElementById("resetButton").classList.remove("hide");
                 document.getElementById("quickSaveButton").classList.remove("hide");

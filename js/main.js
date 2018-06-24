@@ -28,13 +28,14 @@ $(document).ready(function() {
         $("#CDFSetSelection").change(function() {
                 changeCDFSettlement();
         }); 
+        $("#offtakeSetSelection").change(function() {
+                changeOfftakeSettlement();
+        });
         $('#floatingPopEditor').modal({dismissible: false});
         $('#debugModeToggle').prop('checked', false);
         $('#tabFillerButton').addClass('disabled');
         setupPersistConfigs();
         populatePersistSaves();
-        mapWorkerFunctions();
-        setupWorker();
         setupMapping();
         setupTabSystem();
         checkCompatibility();
@@ -103,7 +104,6 @@ function resetSimulation(){
 
         if(source){
                 var features = source.getFeatures();
-
                 for(var j = 0; j < features.length; j++){
                         source.removeFeature(features[j]);
                 }
@@ -185,8 +185,7 @@ function changeToOutput(){
                         $('#debugViewToggle').prop('checked', true);
                         $('#debugViewToggleF').prop('checked', true);        
                 }
-        }
-        else{
+        } else{
                 simulationRun = 1;
                 var parentDiv = document.getElementById("resultMapDiv");
                 console.log("changeToOutput::resize map offsetHeight: " + parentDiv.offsetHeight);
@@ -207,8 +206,7 @@ function toggleThirdColorMode(isEnabled){
         if(isEnabled){
                 document.getElementById("paramMidColor").disabled = false;
                 document.getElementById("midColorReset").classList.remove("disabled");
-        }
-        else{
+        } else{
                 document.getElementById("paramMidColor").disabled = true;
                 document.getElementById("midColorReset").classList.add("disabled");
         }
@@ -219,8 +217,7 @@ function changeMapView(isRoadMap){
         if(isRoadMap && !bingLayers[0].getVisible()){
                 bingLayers[1].setVisible(false);
                 bingLayers[0].setVisible(true);
-        }
-        else if(!isRoadMap && !bingLayers[1].getVisible()){
+        } else if(!isRoadMap && !bingLayers[1].getVisible()){
                 bingLayers[0].setVisible(false);
                 bingLayers[1].setVisible(true);
         }
@@ -447,8 +444,7 @@ function toggleDebugControl(element){
         if(element.checked){
                 $("#debugVisControlBox").css('visibility', 'visible');
                 $("#debugVisFControlBox").css('visibility', 'visible');
-        }
-        else{
+        } else{
                 $("#debugVisControlBox").css('visibility', 'hidden');
                 $("#debugVisFControlBox").css('visibility', 'hidden');
         }
