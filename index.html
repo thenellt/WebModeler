@@ -262,7 +262,7 @@
                                         </div>
                                         <ul class="collapsible" data-collapsible="accordion" id="visualCollapsable">
                                                 <li>
-                                                <div class="collapsible-header active"><i class="material-icons">map</i>Heatmap with Sattelite Overlay</div>
+                                                <div class="collapsible-header active">Heatmap with Sattelite Overlay</div>
                                                 <div class="collapsible-body" style="padding: 12px;">
                                                         <div class="row" style="margin-bottom: 4px;">
                                                                 <div class="col s7">
@@ -325,7 +325,7 @@
                                                 </div>
                                                 </li>
                                                 <li>
-                                                <div class="collapsible-header"><i class="material-icons">leak_add</i>Plain Heatmap</div>
+                                                <div class="collapsible-header">Plain Heatmap</div>
                                                 <div class="collapsible-body" style="padding: 12px;">
                                                         <div class="row">
                                                                 <div class="col s12">
@@ -453,38 +453,59 @@
                                                         </div>
                                                 </li>
                                                 <li>
-                                                        <div class="collapsible-header active">Basic Information</div>
+                                                        <div class="collapsible-header active">Additional Results</div>
                                                         <div class="collapsible-body" style="padding: 12px;">
-                                                                <div class="row parameterRow">
-                                                                        <div class="col s4"><h5>Simulation Area:</h5></div>
-                                                                        <div class="col s2" id="oStatsArea" style="padding-top: 12px;"></div>
-                                                                        <div class="col s4"><h5>Running Time:</h5></div>
-                                                                        <div class="col s2" id="oStatsTime" style="padding-top: 12px;"></div>
-                                                                </div>
-                                                                <div class="row parameterRow">
-                                                                        <div class="col s4"><h5>Width:</h5></div>
-                                                                        <div class="col s2" id="oStatsWidth" style="padding-top: 12px;"></div>
-                                                                        <div class="col s4"><h5>Height:</h5></div>
-                                                                        <div class="col s2" id="oStatsHeight" style="padding-top: 12px;"></div>
-                                                                </div>
-                                                                <div class="row parameterRow">
-                                                                        <div class="col s4"><h5>Left Upper Corner:</h5></div>
-                                                                        <div class="col s2" id="oStatsLeftCorner"></div>
-                                                                        <div class="col s4"><h5>Right Bottom Corner:</h5></div>
-                                                                        <div class="col s2" id="oStatsRightCorner" style="padding-top: 12px;"></div>
-                                                                </div>
-                                                                <div class="row parameterRow">
-                                                                        <div class="col s4"><h5>Total Population:</h5></div>
-                                                                        <div class="col s2" id="oStatsTotalPop" style="padding-top: 12px;"></div>
-                                                                        <div class="col s4"><h5>Average Depletion</h5></div>
-                                                                        <div class="col s2" id="oStatsAvgDepletion" style="padding-top: 12px;"></div>
-                                                                </div>
-                                                                <div class="row parameterRow">
-                                                                        <div class="col s4"><h5>Total Offtake:</h5></div>
-                                                                        <div class="col s2" id="oStatsTotalOfftake" style="padding-top: 12px;"></div>
-                                                                        <div class="col s4"><h5>Yearly Offtake:</h5></div>
-                                                                        <div class="col s2" id="oStatsAvgOfftake" style="padding-top: 12px;"></div>
-                                                                </div>
+                                                                <table class="highlight striped" id="oStatsTable">
+                                                                        <thead>
+                                                                                <tr>
+                                                                                        <th>Statistic</th>
+                                                                                        <th>Value</th>
+                                                                                </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                                <tr>
+                                                                                        <td class="oStatLabel">Simulation Area:</td>
+                                                                                        <td id="oStatsArea"></td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                        <td class="oStatLabel">Width:</td>
+                                                                                        <td id="oStatsWidth"></td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                        <td class="oStatLabel">Height:</td>
+                                                                                        <td id="oStatsHeight"></td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                        <td class="oStatLabel">Left Upper Corner:</td>
+                                                                                        <td id="oStatsLeftCorner"></td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                        <td class="oStatLabel">Right Lower Corner:</td>
+                                                                                        <td id="oStatsRightCorner"></td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                        <td class="oStatLabel">Total Population:</td>
+                                                                                        <td id="oStatsTotalPop"></td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                        <td class="oStatLabel">Total Offtake:</td>
+                                                                                        <td id="oStatsTotalOfftake"></td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                        <td class="oStatLabel">Average Offtake:</td>
+                                                                                        <td id="oStatsAvgOfftake"></td>
+                                                                                </tr>
+
+                                                                                <tr>
+                                                                                        <td class="oStatLabel">Running Time:</td>
+                                                                                        <td id="oStatsTime"></td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                        <td class="oStatLabel">Memory Consumption:</td>
+                                                                                        <td id="oStatsMemUsage"></td>
+                                                                                </tr>
+                                                                        </tbody>
+                                                                </table>
                                                                 <div class="divider" style="margin: 12px 0 12px 0;"></div>
                                                                 <div class="row parameterRow">
                                                                         <div class="col s6" id="csvOptions"><h5>Save depletion data (CSVs):</h5></div>
@@ -704,7 +725,7 @@
                         </div>
                 </div>
                 <div class="modal-footer">
-                        <a href="#!" class="waves-effect waves-green btn" style="margin-right: 8px;" onclick="closeFullscreenViewer()"><i class="material-icons left">fullscreen_exit</i>Done</a>
+                        <a href="#!" class="waves-effect waves-green btn" style="margin-right: 8px;" onclick="closeFullscreenViewer()">Done</a>
                 </div>
         </div>
         <div id="popImportDialog" class="modal modal-fixed-footer" style="max-width: 80%; width: 80%; max-height: 90%; height: 90% !important;">

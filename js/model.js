@@ -99,17 +99,23 @@ function allocateMemory(){
         growth = new Array(ySize);
         effort = new Array(ySize);
 
-        for(var i = 0; i < simData.years + 1; i++){
+        for(let i = 0; i < simData.years + 1; i++){
                 grid[i] = new Array(ySize);
-                for(var j = 0; j < ySize; j++){
+                for(let j = 0; j < ySize; j++){
                         grid[i][j] = new Array(xSize).fill(simData.carryCapacity);
                 }
         }
 
-        for(var k = 0; k < ySize; k++){
+        for(let k = 0; k < ySize; k++){
                 diffusionGrid[k] = new Array(xSize).fill(0.0);
                 growth[k] = new Array(xSize).fill(0.0);
                 effort[k] = new Array(xSize).fill(0.0);
+        }
+
+        for(let i = 0; i < towns.length; i++){
+                towns[i].offtake = [];
+                for(let j = 0; j < simData.years; j++)
+                        towns[i].offtake.push(0.0);
         }
 }
 
@@ -220,78 +226,59 @@ function placeLocations(){
 function calculateModel(){
         logMessage("calculateModel: Starting run. Years: " + simData.years + " samples: " + simData.diffusionSamples);
         var top, bot, locationValue;
-        var up, down, center, right, left;
         var x, y;
 
         for(let curYear = 0; curYear < simData.years; curYear++){
                 //d*[i+1,j] + d*[i-1,j] + d*[i,j+1] + d*[i,j-1] + ([i,j] - 4*d*[i,j])
                 //D*a       + D*b       + D*d       + D*e       + (c     - 4*D*c    )
-                for(var i = 0; i < simData.diffusionSamples; i++){
-                        for(y = 1; y < ySize - 1; y++){
-                                for(x = 1; x < xSize - 1; x++){
+                let xEnd = xSize - 1;
+                let yEnd = ySize - 1;
+                for(let i = 0; i < simData.diffusionSamples; i++){
+                        for(y = 1; y < yEnd; y++){
+                                for(x = 1; x < xEnd; x++){
                                         if(i){
-                                                //diffusionGrid[y][x] += (animalDiffRate*(a + b) + (1-4*animalDiffRate)*(c + animalDiffRate*(d + e)))/diffusionSamples;
-                                                up     = grid[curYear][y+1][x] + diffusionGrid[y+1][x];
-                                                down   = grid[curYear][y-1][x] + diffusionGrid[y-1][x];
-                                                center = grid[curYear][y][x] + diffusionGrid[y][x];
-                                                right  = grid[curYear][y][x+1] + diffusionGrid[y][x+1];
-                                                left   = grid[curYear][y][x-1] + diffusionGrid[y][x-1];
-                                                diffusionGrid[y][x] += (simData.animalDiffRate * (up + down + right + left - (4 * center))) / simData.diffusionSamples;
-                                                //diffusionGrid[y][x] = (simData.animalDiffRate * (up + down + left + right - (4 * center))) / simData.diffusionSamples;
+                                                let val = grid[curYear][y+1][x] + diffusionGrid[y+1][x];
+                                                val    += grid[curYear][y-1][x] + diffusionGrid[y-1][x];
+                                                val    += grid[curYear][y][x+1] + diffusionGrid[y][x+1];
+                                                val    += grid[curYear][y][x-1] + diffusionGrid[y][x-1];
+                                                diffusionGrid[y][x] += (simData.animalDiffRate * (val - (4 * grid[curYear][y][x] + diffusionGrid[y][x]))) / simData.diffusionSamples;
                                         } else{
-                                                //diffusionGrid[y][x] = (animalDiffRate*(a + b) + (1-4*animalDiffRate)*(c + animalDiffRate*(d + e)))/diffusionSamples;
-                                                up     = grid[curYear][y+1][x];
-                                                down   = grid[curYear][y-1][x];
-                                                center = grid[curYear][y][x];
-                                                right  = grid[curYear][y][x+1];
-                                                left   = grid[curYear][y][x-1];
-                                                diffusionGrid[y][x] = (simData.animalDiffRate * (up + down + right + left - (4 * center))) / simData.diffusionSamples;
-                                                //diffusionGrid[y][x] = (simData.animalDiffRate * (up + down + left + right - (4 * center))) / simData.diffusionSamples;
+                                                let val = grid[curYear][y+1][x];
+                                                val    += grid[curYear][y-1][x];
+                                                val    += grid[curYear][y][x+1];
+                                                val    += grid[curYear][y][x-1];
+                                                diffusionGrid[y][x] = (simData.animalDiffRate * (val - (4 * grid[curYear][y][x]))) / simData.diffusionSamples;
                                         }
                                 }
                         }
                 }
 
-                for(y = 0; y < ySize; y++){
-                        for(x = 0; x < xSize; x++){
-                                if(y > 0 && y < ySize - 1){
-                                        if(x > 0 && x < xSize - 1){
-                                                for(let settleNum = 0, length = towns.length; settleNum < length; settleNum++){
-                                                        //((comlocation[numb,0]-i)**2+(comlocation[numb,1]-j)**2))
-                                                        //console.log("town info: " + towns[settleNum].x +  "," + towns[settleNum].y);
-                                                        locationValue = Math.pow(towns[settleNum].x - x, 2) + Math.pow(towns[settleNum].y - y, 2);
-                                                        //console.log(locationValue);
-                                                        //math.exp(-1/(2*std**2)*locationValue)
-                                                        top = Math.exp((-1)/(2*Math.pow(simData.huntRange, 2)) * locationValue);
-
-                                                        //(2*math.pi*math.sqrt(locationValue+1)
-                                                        bot = 2*Math.PI*Math.sqrt(locationValue + 1);
-                                                        //console.log("Top: " + top + " bot: " + bot);
-                                                        if(settleNum === 0){
-                                                                effort[y][x] = (towns[settleNum].HPHY*getTownPop(towns[settleNum], curYear)*top)/bot;
-                                                        } else{
-                                                                effort[y][x] += (towns[settleNum].HPHY*getTownPop(towns[settleNum], curYear)*top)/bot;
-                                                        }
-                                                        //console.log("effort at: " + x + "," + y + " is: " + effort[y][x]);
-                                                        towns[settleNum].offtake[curYear] += simData.killProb * simData.encounterRate * ((towns[settleNum].HPHY * getTownPop(towns[settleNum], curYear) * top)/bot) * grid[curYear][y][x];
-                                                }
-                                                //n[year,:,:]*lambdas-lambdas*n[year,:,:]*(n[year,:,:]/density)**theta
-                                                //growth[y][x] = animalGrowthRate*grid[curYear][y][x] - animalGrowthRate*grid[curYear][y][x]*Math.pow((grid[curYear][y][x]/carryCapacity), theta);
-                                                growth[y][x] = (simData.animalGrowthRate * grid[curYear][y][x]) * (1 - (grid[curYear][y][x]/simData.carryCapacity));
-                                                grid[curYear + 1][y][x] = grid[curYear][y][x] + diffusionGrid[y][x] + growth[y][x] - simData.killProb * simData.encounterRate*effort[y][x]*grid[curYear][y][x];
-                                        } else{
-                                                grid[curYear + 1][y][x] = simData.carryCapacity;
-                                        }
-                                } else{
-                                        grid[curYear + 1][y][x] = simData.carryCapacity;
-                                }
-                        }
+                for(let i = 0; i < ySize; i++){
+                        grid[curYear + 1][i][0] = simData.carryCapacity;
+                        grid[curYear + 1][i][xEnd] = simData.carryCapacity;
+                }
+                for(let i = 0; i < xSize; i++){
+                        grid[curYear + 1][0][i] = simData.carryCapacity;
+                        grid[curYear + 1][yEnd][i] = simData.carryCapacity;
                 }
 
-                for(y = 0; y < ySize; y++)
-                        for(x = 0; x < xSize; x++)
-                                if(grid[curYear + 1][y][x] < 0)
-                                        grid[curYear + 1][y][x] = 0;
+                for(y = 1; y < yEnd; y++){
+                        for(x = 1; x < xEnd; x++){
+                                for(let settleNum = 0, length = towns.length; settleNum < length; settleNum++){
+                                        locationValue = Math.pow(towns[settleNum].x - x, 2) + Math.pow(towns[settleNum].y - y, 2);
+                                        top = Math.exp((-1)/(2*Math.pow(simData.huntRange, 2)) * locationValue);
+                                        bot = 2*Math.PI*Math.sqrt(locationValue + 1);
+                                        let effortValue = (towns[settleNum].HPHY*getTownPop(towns[settleNum], curYear)*top)/bot;
+                                        effort[y][x] = settleNum ? effort[y][x] + effortValue : effortValue;            
+                                        towns[settleNum].offtake[curYear] += simData.killProb * simData.encounterRate * effortValue * grid[curYear][y][x];
+                                }
+                                //n[year,:,:]*lambdas-lambdas*n[year,:,:]*(n[year,:,:]/density)**theta
+                                //growth[y][x] = animalGrowthRate*grid[curYear][y][x] - animalGrowthRate*grid[curYear][y][x]*Math.pow((grid[curYear][y][x]/carryCapacity), theta);
+                                growth[y][x] = simData.animalGrowthRate * grid[curYear][y][x] * (1 - Math.pow((grid[curYear][y][x]/simData.carryCapacity), simData.theta));
+                                let gridValue = grid[curYear][y][x] + diffusionGrid[y][x] + growth[y][x] - simData.killProb * simData.encounterRate*effort[y][x]*grid[curYear][y][x];
+                                grid[curYear + 1][y][x] = gridValue > 0.0 ? gridValue : 0.0;
+                        }
+                }
 
                 self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Finished Year " + curYear, statusValue: 100 * (curYear / simData.years)});
         }

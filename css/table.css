@@ -55,3 +55,35 @@ tbody.highlight tr:hover{
 #popTable td:nth-child(6), #popTable th:nth-child(6){
         width: 10%;
 }
+
+#oStatsTable {
+        max-height: 440px;
+        height: 440px;
+        width: 100%;
+        overflow-x: hidden;
+        overflow-y: scroll;
+}
+
+#oStatsTable>tbody>tr:nth-child(odd){
+        background-color: #dce0e2;
+}
+
+#oStatsTable>tbody>tr:nth-child(even){
+        background-color: #d4d9db;
+}
+
+#oStatsTable>tbody>tr:hover{
+        background-color: #c1c7c9;
+}
+
+#oStatsTable>tbody>tr>td{
+        padding: 4px 5px 4px 5px;
+}
+
+#oStatsTable td:nth-child(1), #oStatsTable th:nth-child(1){
+        width: 60%;
+}
+
+#oStatsTable td:nth-child(2), #oStatsTable th:nth-child(2){
+        width: 40%;
+}

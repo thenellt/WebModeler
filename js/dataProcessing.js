@@ -46,6 +46,11 @@ function populateOtherInfo(){
                 }
         }
         document.getElementById('oStatsTotalPop').innerHTML = Math.ceil(popTotal);
+        document.getElementById('oStatsMemUsage').innerHTML = calculateMemoryUsage();
+        let leftCorner = proj4(proj4('mollweide'), proj4('espg4326'), simResults.geoGrid[0][0]);
+        let rightCorner = proj4(proj4('mollweide'), proj4('espg4326'), simResults.geoGrid[simResults.ySize - 1][simResults.xSize - 1]);
+        document.getElementById('oStatsLeftCorner').innerHTML = leftCorner[0].toFixed(3) + ', ' + leftCorner[1].toFixed(3);
+        document.getElementById('oStatsRightCorner').innerHTML = rightCorner[0].toFixed(3) + ', ' + rightCorner[1].toFixed(3);
 }
 
 Chart.plugins.register({
@@ -485,4 +490,19 @@ function saveAllYearsCSV(csvString, curYear){
                         saveAs(content, simRunData.simName + "_csvData.zip");
                 });
         }
+}
+
+function calculateMemoryUsage(){
+        let gridFloats  = 2 * simRunData.years * simResults.xSize * simResults.ySize;
+        let geoFloats   = 2 * simResults.xSize * simResults.ySize * 2;
+        let otherFloats = 3 * simResults.xSize * simResults.ySize;
+
+        let imageBytes    = simRunData.years * simResults.xSize * simResults.ySize * 4;
+        let floatBytes    = (gridFloats + geoFloats + otherFloats) * 8;
+
+        let numBytes = imageBytes + floatBytes;
+        if(numBytes < 1000000)
+                return (numBytes/1000).toFixed(2) + ' KB';
+        else
+                return (numBytes/1000000).toFixed(2) + ' MB';
 }

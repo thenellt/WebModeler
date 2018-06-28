@@ -188,9 +188,6 @@ function changeToOutput(){
         } else{
                 simulationRun = 1;
                 var parentDiv = document.getElementById("resultMapDiv");
-                console.log("changeToOutput::resize map offsetHeight: " + parentDiv.offsetHeight);
-                console.log("changeToOutput::resize map clientHeight: " + parentDiv.clientHeight);
-
                 map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
         }
 
@@ -213,7 +210,6 @@ function toggleThirdColorMode(isEnabled){
 }
 
 function changeMapView(isRoadMap){
-        console.log("changeMapView::toggled: " + isRoadMap);
         if(isRoadMap && !bingLayers[0].getVisible()){
                 bingLayers[1].setVisible(false);
                 bingLayers[0].setVisible(true);

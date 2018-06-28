@@ -513,7 +513,6 @@ function generateCircleCoords(origCenter, radius){
 }
 
 function generateCanvas(data){
-        console.log("generateCanvas:: year: " + data.year + " scale: " + data.scale + " mode: " + data.dest);
         let canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
 

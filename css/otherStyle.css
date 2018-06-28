@@ -150,6 +150,10 @@ li.active .collapsible-body {
         margin-bottom: 0px;
 }
 
+.oStatLabel {
+        font-size: large;
+}
+
 input[type=text].parameterInputText {
         margin-bottom: 10px;
 }
