@@ -1,3 +1,4 @@
+6/28/18 v27 - Additional results, and performance optimization. \n
 6/16/18 v26a - Pop mouseover and legacy save updater. \n
 6/15/18 v26 - First Version of the stats package is included. \n
 6/10/18 v25 - UI cleanup release. Number of interface improvements and bug fixes. \n

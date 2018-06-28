@@ -5,12 +5,11 @@ CACHE:
 index.html
 changelog.txt
 
-jsDev/model.js
-jsDev/testFunctions.js
-jsDev/mapFunctionality.js
-jsDev/saveLoad.js
-jsDev/dataProcessing.js
-
+js/model.js
+js/simulationSetup.js
+js/mapFunctionality.js
+js/saveLoad.js
+js/dataProcessing.js
 js/floatingContent.js
 js/main.js
 js/table.js

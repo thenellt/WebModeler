@@ -1,5 +1,5 @@
 var simulationTime;
-var workerThread = new Worker('jsDev/model.js');
+var workerThread = new Worker('js/model.js');
 workerThread.onmessage = function(oEvent) {
         handleWorkerMessage(oEvent.data);
 };
@@ -73,8 +73,6 @@ function readUserParameters(){
         simData.diffusionSamples = parseInt(document.getElementById("diffSamples").value, 10) || simData.diffusionSamples;
         simData.opacity = parseFloat(document.getElementById("imgOpacity").value) || simData.opacity;
         simData.boundryWidth = parseInt(document.getElementById("boundryWidth").value, 10) || simData.boundryWidth;
-
-        console.log("readUserParameters::finished reading user input");
 }
 
 function setupTowns(){
