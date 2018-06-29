@@ -4,7 +4,7 @@ workerThread.onmessage = function(oEvent) {
         handleWorkerMessage(oEvent.data);
 };
 
-var workerFunctions = {
+const workerFunctions = {
         'progress':      function(data) {updateProgressBar(data.statusMsg, data.statusValue);},
         'entireCDFData': function(data) {storeCDFData('entire', data.year, data.densities);},
         'localCDFData':  function(data) {storeCDFData('single', data.year, data.densities, data.id);},
@@ -109,7 +109,6 @@ function checkYearlyPopDuration(){
         }
 
         if(nameString.length){
-                //TODO add the option to hold populations steady.
                 const title = "Insufficient Population Data";
                 let msg = "The specified simulation duration is longer than the amount of population data supplied. Population(s) <i>";
                 msg += nameString + "</i> have less than <b>" + simData.years + "</b> years worth of data. </br></br>Please adjust the simulation duration or provide additional data.";
@@ -133,15 +132,13 @@ function sanitizeTownData(uiTown){
 
         if(data.killRate && !isNaN(parseFloat(data.killRate))){
                 data.killRate = parseFloat(data.killRate);
-        }
-        else{
+        } else{
                 data.killRate = simData.killProb;
         }
 
         if(data.HPHY && !isNaN(parseFloat(data.HPHY))){
                 data.HPHY = parseFloat(data.HPHY);
-        }
-        else{
+        } else{
                 data.HPHY = simData.HpHy;
         }
 
