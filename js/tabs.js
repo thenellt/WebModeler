@@ -29,16 +29,16 @@ class TabManager {
                 }
         }
         changeTab(tab, isDirect) {
-                if (this.tabChanges[tab] && !isDirect)
-                        for (let i = 0; i < this.tabChanges[tab].length; i++)
-                                if (this.tabChanges[tab][i].src == this.currentPage || this.tabChanges[tab][i].src == pageTabs.ANY)
-                                        this.tabChanges[tab][i].func();
                 $('#' + tabNames[this.currentPage]).css("display", "none");
                 $('#' + tabNames[tab]).css("display", "block");
                 $('#' + tabNames[this.currentPage] + 'Tab').removeClass("active");
                 $('#' + tabNames[tab] + 'Tab').addClass("active");
                 this.currentPage = tab;
                 document.body.scrollTop = document.documentElement.scrollTop = 0;
+                if (this.tabChanges[tab] && !isDirect)
+                        for (let i = 0; i < this.tabChanges[tab].length; i++)
+                                if (this.tabChanges[tab][i].src == this.currentPage || this.tabChanges[tab][i].src == pageTabs.ANY)
+                                        this.tabChanges[tab][i].func();
         }
         togglePopView(mode) {
                 if (mode == this.populationView)

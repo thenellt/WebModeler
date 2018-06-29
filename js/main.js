@@ -138,7 +138,7 @@ function resetColorCode(whichColor){
 }
 
 function changeToPopulations(){
-        if(olmapLocation){ //move the map from output page back to pop page
+        if(olmapLocation){
                 document.getElementById("popMapRow").appendChild(document.getElementById("popMapDiv"));
                 olmapLocation = 0;
                 ol.Observable.unByKey(addPopFunction);
@@ -149,9 +149,8 @@ function changeToPopulations(){
                 debugVector.setVisible(false);
                 pointVector.setVisible(true);
                 changeMapView(document.getElementById("mapTypeToggle").checked);
+                map.updateSize();
         }
-
-        map.updateSize();
 }
 
 function changeToGetStarted(){

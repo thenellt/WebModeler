@@ -241,7 +241,7 @@ function calculateModel(){
                                                 val    += grid[curYear][y-1][x] + diffusionGrid[y-1][x];
                                                 val    += grid[curYear][y][x+1] + diffusionGrid[y][x+1];
                                                 val    += grid[curYear][y][x-1] + diffusionGrid[y][x-1];
-                                                diffusionGrid[y][x] += (simData.animalDiffRate * (val - (4 * grid[curYear][y][x] + diffusionGrid[y][x]))) / simData.diffusionSamples;
+                                                diffusionGrid[y][x] += (simData.animalDiffRate * (val - (4 * (grid[curYear][y][x] + diffusionGrid[y][x])))) / simData.diffusionSamples;
                                         } else{
                                                 let val = grid[curYear][y+1][x];
                                                 val    += grid[curYear][y-1][x];
