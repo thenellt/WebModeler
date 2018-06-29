@@ -209,13 +209,11 @@ function updateUIData(rowPos, cellPos, cellType, newValue){
                 settlement.valid = true;
                 $('#' + tableRow.id).addClass("validRow");
                 console.log("updateUIData::row " + rowPos + " has become valid");
-        }
-        else if(status && settlement.valid && (cellPos < 3)){ //update map with name, lat, or long change
+        } else if(status && settlement.valid && (cellPos < 3)) { //update map with name, lat, or long change
                 removePopFromMapById(settlement.id);
                 addPopToMap(settlement.id, settlement.name, parseFloat(settlement.long),
                             parseFloat(settlement.lat), settlement.type === "yearly");
-        }
-        else if(!status && settlement.valid){ //data point is no longer complete -> remove from map
+        } else if(!status && settlement.valid) { //data point is no longer complete -> remove from map
                 removePopFromMapById(settlement.id);
                 settlement.valid = false;
                 $('#' + tableRow.id).removeClass("validRow");

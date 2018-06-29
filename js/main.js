@@ -38,6 +38,7 @@ $(document).ready(function() {
         populatePersistSaves();
         setupMapping();
         setupTabSystem();
+        checkCompatibility();
 });
 
 function newSimulation(){

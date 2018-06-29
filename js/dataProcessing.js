@@ -214,10 +214,15 @@ function populateSelectionsFields(){
         var CDFselector = document.getElementById('CDFSetSelection');
         var offtakeSelector = document.getElementById('offtakeSetSelection');
 
-        let option = document.createElement("option");
-        option.text = 'All';
-        option.value = 'all';
-        offtakeSelector.add(option);
+        let option1 = document.createElement("option");
+        option1.text = 'All Settlements';
+        option1.value = 'all';
+        offtakeSelector.add(option1);
+
+        let option2 = document.createElement("option");
+        option2.text = 'Combined Average';
+        option2.value = 'combined';
+        offtakeSelector.add(option2);
 
         for(let settlementID in uiData){
                 let settlement = uiData[settlementID];
@@ -261,7 +266,7 @@ function heatmapOverlayAnimation(year){
                         workerThread.postMessage({type:"mouseKCheck", pos:mouseLastPosition, year:heatMapYear});
                 drawCanvasToMap(heatMapYear);
                 document.getElementById("heatmapYearLabel").innerHTML = "Heatmap Year: " + heatMapYear;
-        } else{
+        } else {
                 changeHeatmapOverlayYear(true);
         }
 
@@ -313,7 +318,7 @@ function storeLocalCDFPictures(data){
                         localAreaPictures[data.year] = canvasImage;
                         setLocalCDFPicture();
                 }
-        } else{
+        } else {
                 canvasImage.onload = function(){
                         localAreaPictures[data.year] = canvasImage;
                 } 
@@ -342,7 +347,7 @@ function changeEntireCDFYear(isNext){
                 entireAreaChart.data.datasets[0].data = entireAreaData[entireAreaYear];
                 entireAreaChart.update();
                 document.getElementById("entireCDFYearLabel").innerHTML = "Simulation Year: " + entireAreaYear;
-        } else if(!isNext && entireAreaYear > 0){
+        } else if(!isNext && entireAreaYear > 0) {
                 entireAreaYear -= 1;
                 entireAreaChart.data.datasets[0].data = entireAreaData[entireAreaYear];
                 entireAreaChart.update();
@@ -357,7 +362,7 @@ function entireCDFAnimation(year){
                 entireAreaChart.data.datasets[0].data = entireAreaData[entireAreaYear];
                 entireAreaChart.update();
                 document.getElementById("entireCDFYearLabel").innerHTML = "Simulation Year: " + entireAreaYear;
-        } else{
+        } else {
                 changeEntireCDFYear(true);
         }
 
@@ -421,15 +426,15 @@ function localCDFAnimation(year){
                 localAreaChart.data.datasets[0].data = localAreaData[localAreaSelectedID][localAreaYear];
                 localAreaChart.update();
                 document.getElementById("singleCDFYearLabel").innerHTML = "Simulation Year: " + localAreaYear;
-        } else{
+        } else {
                 changeLocalCDFYear(true);
         }
 
         if(year === 0){
                 setTimeout(localCDFAnimation, 1000, year + 1);
-        } else if(year < simRunData.years){
+        } else if(year < simRunData.years) {
                 setTimeout(localCDFAnimation, 500, year + 1);
-        } else{
+        } else {
                 $('#singleCDFSaveButton').removeClass('disabled');
                 $('#localCDFdownRange').removeClass('disabled');
                 $('#localCDFupRange').removeClass('disabled');
@@ -451,7 +456,7 @@ function changeOfftakeSettlement(){
         let value = $("#CDFSetSelection").val();
         if(value == 'all'){
                 offtakeSelectedID = 'all';
-        } else{
+        } else {
                 offtakeSelectedID = parseInt(value, 10);
         }
 
@@ -480,7 +485,7 @@ function saveAllYearsCSV(csvString, curYear){
 
         if(csvStrings.length <= simRunData.years){
                 workerThread.postMessage({type:"allYearsCSV", year:(curYear + 1),});
-        } else if(csvStrings.length === simRunData.years + 1){
+        } else if(csvStrings.length === simRunData.years + 1) {
                 var zip = new JSZip();
                 for(let i = 0; i < csvStrings.length; i++){
                         zip.file(simRunData.simName + "_year" + i + "data.csv", csvStrings[i]);

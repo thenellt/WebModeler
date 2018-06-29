@@ -15,12 +15,30 @@ function updateApp(){
 }
 
 function checkCompatibility(){
-        console.log("checking for browser support... passed");
-        document.getElementById("javascriptError").style.display = "none";
-        document.getElementById('getStarted').classList.remove("hide");
-        persistCompatibility = true;
-        document.body.scrollTop = document.documentElement.scrollTop = 0;
-        document.getElementById('getStarted').classList.add('scale-in');
+        let compatible = true;
+        if(typeof(Worker) == "undefined") //web workers
+                compatible = false;
+        let testVar = 'test';
+        try {                           //local storage
+                localStorage.setItem(testVar, testVar);
+                localStorage.removeItem(testVar);
+        } catch(e) {
+                compatible = false;
+        }
+
+        if(compatible){
+                document.getElementById("javascriptError").style.display = "none";
+                document.getElementById('getStarted').classList.remove("hide");
+                persistCompatibility = true;
+                document.body.scrollTop = document.documentElement.scrollTop = 0;
+                document.getElementById('getStarted').classList.add('scale-in');
+        } else {
+                let title = "Unsupported Browser";
+                let msg = "Your browser lacks support for critical features used by WebModeler. <br>";
+                mst += "Please update your browser or download the latest version of Chrome/Chromium for best support."
+                $('#coverScreen').modal('close');
+                modalDialog(title, msg);
+        }
 }
 
 function loadFromFile(fileName){

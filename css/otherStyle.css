@@ -1,10 +1,12 @@
 html {
-        font-family: GillSans, Calibri, Trebuchet, sans-serif;
+        font-family: Trebuchet, sans-serif;
 }
 
 #mainNavbar {
         z-index: 19;
 }
+
+nav .brand-logo { white-space: nowrap; }
 
 #mainContentContainer {
         table-layout: fixed;
