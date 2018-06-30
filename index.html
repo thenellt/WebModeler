@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" > <!--manifest="manifest.appcache"-->
+<html lang="en" manifest="manifest.appcache">
 <head>
         <meta charset="UTF-8">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -12,7 +12,10 @@
 <body>
         <nav id="mainNavbar" class="navbar-fixed" style="z-index:10;">
                 <div class="nav-wrapper fixed">
-                        <a href="#" class="brand-logo left" style="margin-left: 8px;">WebModeler<span class="new badge red" data-badge-caption="beta"></span></a>
+                        <a href="#" class="brand-logo left" style="margin-left: 8px;">
+                                WebModeler
+                                <span class="new badge red" data-badge-caption="beta" style="position: absolute; top: 0px;"></span>
+                        </a>
                         <ul class="right">
                                 <li><a class="waves-effect waves-light modal-trigger" href="#projBackground">Project Background</a></li>
                                 <li><a class="waves-effect waves-light modal-trigger" href="#changelogPopup">Changelog</a></li>
@@ -293,7 +296,7 @@
                                                                                 Overlay Opacity:
                                                                         </div>
                                                                         <p class="range-field" style="margin: 0px;">
-                                                                                <input type="range" id="opacitySlider" min="0" max="100" scale="1" oninput="updateOutputOpacity(this)"/>
+                                                                                <input type="range" id="opacitySlider" min="0" max="100" scale="1" oninput="updateOutputOpacity(this)" style="border: 0px;"/>
                                                                         </p>
                                                                 </div>
                                                                 <div class="col s2">

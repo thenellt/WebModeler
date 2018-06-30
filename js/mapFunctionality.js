@@ -167,23 +167,20 @@ function placePopulation(e){
                 return;
         }
 
-        var tempFeatures = [];
+        let tempFeatures = [];
         map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
                 tempFeatures.push(feature);
         }, {hitTolerance: 3});
+        let dropdownActive = document.getElementById('dropdown1').classList.contains('active');
 
-        if(isMenuOpen){
+        if(isMenuOpen && dropdownActive){
                 isMenuOpen = false;
-                var testFeature = [];
-                map.forEachFeatureAtPixel(e.pixel, function(f, layer) {
-                        testFeature.push(f);
-                }, {hitTolerance: 3});
-                if(testFeature.length){
+                if(tempFeatures.length){
                         setTimeout(function(){
                                 placePopulation(e);
                         }, 50);
                 }
-        } else if(!tempFeatures.length){
+        } else if(!tempFeatures.length && !dropdownActive){
                 showPopEditor(e.coordinate);
         } else {
                 isMenuOpen = true;

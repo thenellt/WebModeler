@@ -1,5 +1,5 @@
 html {
-        font-family: Trebuchet, sans-serif;
+        font-family: 'Roboto', Trebuchet, sans-serif;
 }
 
 #mainNavbar {
@@ -125,7 +125,7 @@ li.active .collapsible-body {
         margin: 0 auto;
         width: 350px;
         height: 80px;
-        z-index: 1003;
+        z-index: 1050;
 }
 
 .ol-mouse-position {

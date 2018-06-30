@@ -364,6 +364,7 @@ function buildHTMLSaveEntry(entry){
         var saveName = document.createElement('div');
         saveName.className = "col s4";
         var nameText = document.createElement('h5');
+        nameText.style.margin = '8px 0px 8px 0px';
         nameText.innerHTML = entry.name;
         saveName.appendChild(nameText);
         
@@ -402,6 +403,7 @@ function buildHTMLSaveEntry(entry){
 
         var createdContainer = document.createElement('div');
         createdContainer.className = "col s4";
+        createdContainer.style.marginTop = '8px';
         var created = new Date(entry.created);
         createdContainer.innerHTML = "<strong> Created: </strong>" + created.toLocaleTimeString() + " " + created.toLocaleDateString();
         

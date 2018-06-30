@@ -56,6 +56,10 @@ tbody.highlight tr:hover{
         width: 10%;
 }
 
+.tableDelButton{
+        background-color: rgb(221, 221, 221);
+}
+
 #oStatsTable {
         max-height: 440px;
         height: 440px;
