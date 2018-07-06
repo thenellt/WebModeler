@@ -285,101 +285,46 @@ function addPopToMap(popId, popName, long, lat, isYearly){
         tempFeature.set('description', popId);
         tempFeature.set('name', popName);
         if(isYearly){
-                tempFeature.setStyle(styleYearly);
-        }
-        else{
-                tempFeature.setStyle(styleFunction);
+                tempFeature.setStyle(yearlyStyleFunction);
+        } else {
+                tempFeature.setStyle(expStyleFunction);
         }
         popStorageMap[popId] = tempFeature;
         source.addFeature(tempFeature);
 }
 
-function drawgeoGrid(){
-        let towns = simResults.townData;
-        for(var y = 0; y < simResults.geoGrid.length - 1; y++){
-                for(var x = 0; x < simResults.geoGrid[y].length - 2; x++){
-                        var tempPolygon = new ol.geom.Polygon([[
-                                [simResults.geoGrid[y][x][1], simResults.geoGrid[y][x][0]],
-                                [simResults.geoGrid[y][x][1], simResults.geoGrid[y + 1][x][0]],
-                                [simResults.geoGrid[y + 1][x + 1][1], simResults.geoGrid[y + 1][x + 1][0]],
-                                [simResults.geoGrid[y][x + 1][1], simResults.geoGrid[y][x][0]],
-                                [simResults.geoGrid[y][x][1], simResults.geoGrid[y][x][0]]
-                        ]]);
-
-                        var tempFeature = new ol.Feature({
-                                name: ("pos" + x + "," + y),
-                                geometry: tempPolygon
-                        });
-
-                        let i;
-                        var testStyle;
-                        for(i = 0; i < towns.length; i++){
-                                if(towns[i].y === y && towns[i].x === x){
-                                        testStyle = new ol.style.Style({
-                                                stroke: new ol.style.Stroke({width: 1 }),
-                                                fill: new ol.style.Fill({ color: [244, 66, 203, 255]})
-                                                //stroke: new ol.style.Stroke({color: [255, 0, 0, (1 - (geoGrid[years][y][x] / carryCapacity))], width: 1})
-                                        });
-                                }
-                        }
-                        if(i === towns.length){
-                                testStyle = new ol.style.Style({
-                                        stroke: new ol.style.Stroke({width: 1 }),
-                                        //fill: new ol.style.Fill({ color: [255, 0, 0, (1 - (geoGrid[years][y][x] / carryCapacity))]})
-                                        //stroke: new ol.style.Stroke({color: [255, 0, 0, (1 - (geoGrid[years][y][x] / carryCapacity))], width: 1})
-                                });
-                        }
-
-                        tempFeature.setStyle(testStyle);
-                        geoGridFeatures.addFeature(tempFeature);
-                }
-        }
-}
-
-//https://stackoverflow.com/questions/39006597/openlayers-3-add-text-label-to-feature
-function styleFunction() {
+//based on https://stackoverflow.com/questions/39006597/openlayers-3-add-text-label-to-feature
+function expStyleFunction() {
         return [new ol.style.Style({
                         text: new ol.style.Text({
                                 font: '12px Calibri,sans-serif',
                                 fill: new ol.style.Fill({ color: '#FFFFFF' }),
-                                stroke: new ol.style.Stroke({
-                                        color: '#000000',
-                                        width: 1
-                                }),
+                                stroke: new ol.style.Stroke({color: '#000000', width: 1}),
                                 text: this.get('name'),
                                 offsetY: 13
                         }),
                         image: new ol.style.Circle({
                                 radius: 6,
-                                fill: new ol.style.Fill({ color: "#2196F3"}),//'rgba(255,0,0,1)'}),
-                                stroke: new ol.style.Stroke({
-                                        color: '#000000',
-                                        width: 1
-                                })
+                                fill: new ol.style.Fill({ color: '#2196F3'}),
+                                stroke: new ol.style.Stroke({color: '#000000', width: 1})
                         })
                 })
         ];
 }
 
-function styleYearly() { //e57373
+function yearlyStyleFunction() {
         return [new ol.style.Style({
                         text: new ol.style.Text({
                                 font: '12px Calibri,sans-serif',
                                 fill: new ol.style.Fill({ color: '#FFFFFF' }),
-                                stroke: new ol.style.Stroke({
-                                        color: '#000000',
-                                        width: 1
-                                }),
+                                stroke: new ol.style.Stroke({color: '#000000', width: 1}),
                                 text: this.get('name'),
                                 offsetY: 13
                         }),
                         image: new ol.style.Circle({
                                 radius: 6,
-                                fill: new ol.style.Fill({ color: "#e57373"}),//'rgba(255,0,0,1)'}),
-                                stroke: new ol.style.Stroke({
-                                        color: '#000000',
-                                        width: 1
-                                })
+                                fill: new ol.style.Fill({ color: '#e57373'}),
+                                stroke: new ol.style.Stroke({color: '#000000', width: 1})
                         })
                 })
         ];
@@ -493,9 +438,13 @@ function generateCanvas(data){
                 canvasImage.onload = function(){
                         heatMapImages.pos = data.position;
                         heatMapImages.images[data.year] = canvasImage;
-                        drawCanvasToMap(data.year);
                         canvasImage.classList.add('rawHeatmapImage');
                         document.getElementById('rawHeatmapContainer').appendChild(canvasImage);
+                }
+                break;
+        case 'highRes':
+                canvasImage.onload = function(){
+                        drawCanvasToMap(simRunData.years, canvasImage);
                 }
                 break;
         case 'save':
@@ -508,26 +457,38 @@ function generateCanvas(data){
         canvasImage.src = canvas.toDataURL();
 }
 
-function drawCanvasToMap(year){
-        let canvasImage = heatMapImages.images[year];
+function drawCanvasToMap(year, overrideImage){
+        let canvasImage = overrideImage ? overrideImage : heatMapImages.images[year];
         let location = heatMapImages.pos;
-        if(imageLayer)
-                map.removeLayer(imageLayer);
 
-        imageLayer = new ol.layer.Image({
-                opacity: simData.opacity,
-                source: new ol.source.ImageStatic({
-                    url: canvasImage.src,
-                    imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
-                    projection: 'mollweide',
-                    imageExtent: location
-                })
-        });
-        
-        imageLayer.setZIndex(2);
-        imageLayer.set('name', 'imgLayer');
-        map.addLayer(imageLayer);
-        setupOpacitySlider();
+        if(imageLayer){
+                imageLayer.setSource(
+                        new ol.source.ImageStatic({
+                                url: canvasImage.src,
+                                imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
+                                projection: 'mollweide',
+                                imageExtent: location
+                        })
+                )
+        } else {
+                imageLayer = new ol.layer.Image({
+                        opacity: simData.opacity,
+                        source: new ol.source.ImageStatic({
+                            url: canvasImage.src,
+                            imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
+                            projection: 'mollweide',
+                            imageExtent: location
+                        })
+                });
+                imageLayer.setZIndex(2);
+                imageLayer.set('name', 'imgLayer');
+                map.addLayer(imageLayer);
+        }
+
+        let topLeft = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[0]);
+        let botRight = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[1]);
+        let testExtent = [topLeft[0], botRight[1], botRight[0], topLeft[1]];
+        map.getView().fit(testExtent, map.getSize());
 }
 
 function toggleVillageLabels(element){

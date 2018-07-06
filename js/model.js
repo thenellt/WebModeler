@@ -67,7 +67,8 @@ function runSimulation(parameters){
         generateCDFPictureData(towns[0].id, simData.huntRange);
         generateOfftakeData();
         self.postMessage({type:'finished', paramData:{name: simData.simName, duration:simData.years, 
-                          xSize:xSize, ySize:ySize, geoGrid:geoGrid, townData:towns}});
+                          xSize:xSize, ySize:ySize, geoGrid:geoGrid, townData:towns, bounds: bounds}});
+        generateImageData({'scale': 2, 'year': simData.years, 'dest': 'highRes'});
 }
 
 function unpackParams(data){

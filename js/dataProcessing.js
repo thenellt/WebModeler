@@ -28,6 +28,8 @@ function setupStatsPage(){
         localAreaSelectedID = uiData[Object.keys(uiData)[0]].id;
         localAreaPictures = new Array(simRunData.years + 1);
         document.getElementById("singleCDFRangeLabel").innerHTML = "Radius: " + localAreaRange + " km";
+        document.getElementById("opacitySlider").value = simRunData.opacity * 100;
+        document.getElementById("opacityLabel").innerHTML = "Overlay Opacity: " + simRunData.opacity * 100  + "%";
 }
 
 function populateOtherInfo(){
@@ -38,9 +40,9 @@ function populateOtherInfo(){
         document.getElementById('oStatsHeight').innerHTML = simResults.ySize + ' km';
         let popTotal = 0;
         for(let i = 0, length = simResults.townData.length; i < length; i++){
-                if(simResults.townData[i].type == "yearly")
+                if(simResults.townData[i].type == "yearly"){
                         popTotal += simResults.townData[i].population[simRunData.years];
-                else{
+                } else {
                         let tTown = simResults.townData[i];
                         popTotal += tTown.population*Math.pow(1 + tTown.growthRate, simRunData.years);
                 }
@@ -332,15 +334,15 @@ function createExterpationChart(){
 function downloadGraph(containerID){
         if(containerID === "entireMapChart"){
                 var name = "entireMapCDF_year_" + entireAreaYear + ".png";
-        } else if(containerID === "localAreaCDF"){
+        } else if(containerID === "localAreaCDF") {
                 var name = "localAreaCDF_year_" + localAreaYear + ".png";
-        } else if(containerID === "offtakeChart"){
+        } else if(containerID === "offtakeChart") {
                 for(let i = 0; i < simResults.townData.length; i++)
                         if(simResults.townData[i].id = offtakeSelectedID)
                                 var vName = simResults.townData[i].name;
                 var name = vName + "_offtake.png";
         }
-        $('#' + containerID).get(0).toBlob(function(blob) {
+        $('#' + containerID).get(0).toBlob(function(blob){
                 saveAs(blob, name);
         });
 }
@@ -388,11 +390,6 @@ function populateSelectionsFields(){
         $('#offtakeSetSelection').material_select();
 }
 
-function setupOpacitySlider(){
-        document.getElementById("opacitySlider").value = simRunData.opacity * 100;
-        document.getElementById("opacityLabel").innerHTML = "Overlay Opacity: " + simRunData.opacity * 100  + "%";
-}
-
 function changeHeatmapOverlayYear(isNext){
         if(isNext && heatMapYear != simRunData.years){
                 heatMapYear += 1;
@@ -422,9 +419,9 @@ function heatmapOverlayAnimation(year){
                 changeHeatmapOverlayYear(true);
         }
 
-        if(year < simRunData.years)
+        if(year < simRunData.years){
                 setTimeout(heatmapOverlayAnimation, 250, year + 1);
-        else{
+        } else {
                 $('#overlaySaveButton, #mapFullscreenButton').removeClass('disabled');
                 $('#overlayUpButton, #overlayDownButton, #overlayPlayButton').removeClass('disabled');
         }
@@ -570,7 +567,7 @@ function changeLocalCDFYear(isNext){
                 localAreaChart.data.datasets[0].data = localAreaData[localAreaSelectedID][localAreaYear];
                 localAreaChart.update();
                 document.getElementById("singleCDFYearLabel").innerHTML = "Simulation Year: " + localAreaYear;
-        } else if(!isNext && localAreaYear > 0){
+        } else if(!isNext && localAreaYear > 0) {
                 localAreaYear -= 1;
                 setLocalCDFPicture();
                 localAreaChart.data.datasets[0].data = localAreaData[localAreaSelectedID][localAreaYear];
@@ -603,7 +600,7 @@ function localCDFAnimation(year){
         } else {
                 changeLocalCDFYear(true);
                 if(year < simRunData.years){
-                        setTimeout(localCDFAnimation, 500, year + 1);
+                        setTimeout(localCDFAnimation, 350, year + 1);
                 } else {
                         $('#singleCDFSaveButton, #localCDFdownRange, #localCDFplayButton').removeClass('disabled');
                         $('#localCDFupRange, #localCDFdownYear, #localCDFupYear').removeClass('disabled');
