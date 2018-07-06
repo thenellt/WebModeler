@@ -13,22 +13,49 @@ class TabManager {
         constructor() {
                 this.populationView = 1;
                 this.tabChanges = [];
+                //this.cachedPages = new Array(5);
                 for (let i = 0; i < 5; i++)
                         this.tabChanges.push([]);
                 this.currentPage = pageTabs.MENU;
                 olmapLocation = 0;
-                simulationRun = 0;
                 let tabs = document.getElementsByClassName("tablinks");
                 for (let i = 0; i < tabs.length; i++) {
                         if (!tabs[i].classList.contains("defaultOpen")) {
                                 tabs[i].disabled = true;
                         }
                         else {
-                                this.changeTab(i);
+                                this._switchToTab(i);
                         }
                 }
+                /*
+                setTimeout(function(){
+                        tabManager._cacheTab(pageTabs.PARAMS);
+                        tabManager._cacheTab(pageTabs.POPS);
+                }, 500);
+                */
         }
         changeTab(tab, isDirect) {
+                this._switchToTab(tab, isDirect);
+                /*
+                if(tab == pageTabs.MAPS || tab == pageTabs.STATS){
+                        if(this.currentPage < 3)
+                                setTimeout(function(page){
+                                        tabManager._cacheTab(page);
+                                }, 200, this.currentPage);
+                        this._switchToTab(tab, isDirect);
+                } else {
+                        this._restoreTab(tab);
+                        setTimeout(function(page){
+                                if(page < 3)
+                                        setTimeout(function(page){
+                                                tabManager._cacheTab(page);
+                                        }, 200, page);
+                                tabManager._switchToTab(tab, isDirect);
+                        }, 50, this.currentPage);
+                }
+                */
+        }
+        _switchToTab(tab, isDirect) {
                 $('#' + tabNames[this.currentPage]).css("display", "none");
                 $('#' + tabNames[tab]).css("display", "block");
                 $('#' + tabNames[this.currentPage] + 'Tab').removeClass("active");
@@ -65,6 +92,24 @@ class TabManager {
                 const id = tabNames[tab] + 'Tab';
                 document.getElementById(id).disabled = false;
         }
+        /*
+        _cacheTab(tabNum){
+                let child = document.getElementById(tabNames[tabNum]);
+                let parent = child.parentNode;
+                this.cachedPages[tabNum] = child;
+                parent.removeChild(child);
+        }
+        _restoreTab(tabNum){
+                document.getElementById('contentContainer').appendChild(this.cachedPages[tabNum]);
+                this.cachedPages[tabNum] = [];
+        }
+        get currentPage(){
+                return this._currentPage;
+        }
+        set currentPage(page){
+                this._currentPage = page;
+        }
+        */
 }
 
 class tabChange {
@@ -79,6 +124,7 @@ function setupTabSystem(){
         tabManager.registerChange(pageTabs.ANY, pageTabs.POPS, changeToPopulations);
         tabManager.registerChange(pageTabs.ANY, pageTabs.MAPS, changeToOutput);
         tabManager.registerChange(pageTabs.ANY, pageTabs.MENU, changeToGetStarted);
+        tabManager.registerChange(pageTabs.ANY, pageTabs.STATS, refreshCanvas);
 
         document.getElementById('getStartedTab').onclick = function(){tabManager.changeTab(pageTabs.MENU);};
         document.getElementById('parameterSetupTab').onclick = function(){tabManager.changeTab(pageTabs.PARAMS);};

@@ -1,3 +1,4 @@
+7/5/18 v28 - New stats features for spatial distribution and offtake. \n
 6/28/18 v27 - Additional results, and performance optimization. \n
 6/16/18 v26a - Pop mouseover and legacy save updater. \n
 6/15/18 v26 - First Version of the stats package is included. \n

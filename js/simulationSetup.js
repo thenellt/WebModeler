@@ -171,6 +171,10 @@ function setupSimulation(){
         entireAreaData = [];
         localAreaData = [];
         simRunData = JSON.parse(JSON.stringify(simData));
+        simRunData.townsByID = {};
+        for(const settlement in uiData)
+                if(uiData[settlement].valid)
+                        simRunData.townsByID[uiData[settlement].id] = sanitizeTownData(uiData[settlement]);
         simRunData.towns = JSON.parse(JSON.stringify(townData));
         setupStatsPage();
 
@@ -183,19 +187,17 @@ function handleWorkerMessage(data){
         case 'mapped':
                 workerFunctions[data.fnc](data);
                 break;
-        case 'finished': {
+        case 'finished':
                 simResults = data.paramData;
                 synchPersisObject();
                 tabManager.changeTab(pageTabs.MAPS);
                 rawHWScaleInput(100);
                 populateSelectionsFields();
-                workerThread.postMessage({type:'getCDFData', year:simData.years});
                 simulationTime = getTime() - simulationTime;
                 populateOtherInfo();
                 closeProgressBar();
                 $('#coverScreen').modal('close');
                 break;
-                }
         case 'debug':
                 console.log("Worker::" + data.statusMsg);
                 break;
@@ -207,10 +209,9 @@ function handleWorkerMessage(data){
                 $('#coverScreen').modal('close');
                 modalDialog(title, msg, changeToPopulations);
                 break;
-        case 'imgData': {
+        case 'imgData':
                 generateCanvas(data);
                 break;
-                }
         case 'singleCDFImages':
                 storeLocalCDFPictures(data);
                 break;

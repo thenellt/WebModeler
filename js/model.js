@@ -464,7 +464,6 @@ function generateCDFPictureData(id, range){
                                 }
                         }
                 }
-
                 self.postMessage({type:'singleCDFImages', year:year, x:xSize, y:ySize, 
                                   array:imgData}, [imgData.buffer]);
         }
@@ -487,8 +486,8 @@ function generateSingleCDFData(settlementID, range){
         let y = selectedTown.y;
         var dataValues = [];
         for(let i = 0; i <= simData.years; i++){
-                dataValues.push(new Array(11));
-                for(let j = 0; j < 11; j++)
+                dataValues.push(new Array(10));
+                for(let j = 0; j < 10; j++)
                         dataValues[i][j] = 0;
         }
 
@@ -499,24 +498,18 @@ function generateSingleCDFData(settlementID, range){
                         for (let j = x; Math.pow(j - x, 2) + Math.pow(i - y, 2) <= condition; j--) {
                                 let ele = grid[year][i][j];
                                 numCells++;
-                                let temp = ele / simData.carryCapacity;
-                                if(temp > .99)
-                                        dataValues[year][10]++;
-                                else
-                                        dataValues[year][Math.floor(temp * 10)]++;
+                                let temp = ele == simData.carryCapacity ? 9 : Math.floor((ele / simData.carryCapacity) * 10);
+                                dataValues[year][temp]++;
                         }
                         for (let j = x + 1; (j - x) * (j - x) + (i - y) * (i - y) <= condition; j++) {
                                 let ele = grid[year][i][j];
                                 numCells++;
-                                let temp = ele / simData.carryCapacity;
-                                if(temp > .99)
-                                        dataValues[year][10]++;
-                                else
-                                        dataValues[year][Math.floor(temp * 10)]++;
+                                let temp = ele == simData.carryCapacity ? 9 : Math.floor((ele / simData.carryCapacity) * 10);
+                                dataValues[year][temp]++;
                         }
                 }
 
-                for(let i = 0; i < 11; i++)
+                for(let i = 0; i < 10; i++)
                         dataValues[year][i] = parseFloat(dataValues[year][i] / (1.0 *numCells)) * 100;
         }
 
@@ -525,18 +518,15 @@ function generateSingleCDFData(settlementID, range){
 
 function generateCDFBins(year){
         var numCells = 0;
-        var dataValues = new Array(11);
+        var dataValues = new Array(10);
         for(let i = 0; i < dataValues.length; i++)
                 dataValues[i] = 0;
 
         grid[year].forEach(function(element){
                 element.forEach(function(ele){
                         numCells++;
-                        let temp = ele / simData.carryCapacity;
-                        if(temp > .99)
-                                dataValues[10]++;
-                        else
-                                dataValues[Math.floor(temp * 10)]++;
+                        let temp = ele == simData.carryCapacity ? 9 : Math.floor((ele / simData.carryCapacity) * 10);
+                        dataValues[temp]++;
                 });
         });
 
@@ -548,14 +538,14 @@ function generateCDFBins(year){
 
 function generateOfftakeData(){
         let dataValues = {};
-        for(let i = 0; i < towns.length; i++)
+        for(let i = 0, length = towns.length; i < length; i++)
                 dataValues[towns[i].id] = towns[i].offtake;
         self.postMessage({type:'mapped', fnc:'offtakeData', dataString:JSON.stringify(dataValues)});
 }
 
 function generateCSV(requestYear, callbackType){
         var outputString = "";
-        for(let i = 0; i < grid[requestYear].length; i++){
+        for(let i = 0, length = grid[requestYear].length; i < length; i++){
                 outputString += grid[requestYear][i].join(", ");
                 outputString += "\r\n";
         }
@@ -582,8 +572,7 @@ function checkPositionInformation(pos, year){
 function getTownPop(town, year){
         if(town.type === "exp"){
                 return town.population*Math.pow(1 + town.growthRate, year);
-        }
-        else if(town.type === "yearly"){
+        } else if(town.type === "yearly") {
                 return town.population[year];
         }
 }

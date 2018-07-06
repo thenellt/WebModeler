@@ -56,7 +56,7 @@
                                         <button id="statsPageTab" class="tablinks waves-effect waves-light">Statistical Results</button>
                                 </div>
                         </td>
-                        <td class="content">
+                        <td class="content" id="contentContainer">
                                 <div id="javascriptError" class="center" style="margin-top: 150px;">
                                         <div class="preloader-wrapper active">
                                                 <div class="spinner-layer spinner-red-only">
@@ -283,7 +283,7 @@
                                                                         </div>
                                                                 </div>
                                                                 <div class="col s3">
-                                                                        <a class="waves-effect waves-light btn right" onclick="openFullscreenViewer()">Fullscreen</a>
+                                                                        <a class="waves-effect waves-light btn right" id="mapFullscreenButton" onclick="openFullscreenViewer()">Fullscreen</a>
                                                                 </div>
                                                         </div>
                                                         <div class="row" id="resultsMapContainer">
@@ -315,9 +315,9 @@
                                                                                 Heatmap Year:
                                                                         </div>
                                                                         <div>
-                                                                                <a class="waves-effect waves-light btn" onclick="changeHeatmapOverlayYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
-                                                                                <a class="waves-effect waves-light btn" onclick="changeHeatmapOverlayYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
-                                                                                <a class="waves-effect waves-light btn blue lighten-2 tooltipped" onclick="heatmapOverlayAnimation(0);"style="display: inline-block;"
+                                                                                <a class="waves-effect waves-light btn" id="overlayUpButton" onclick="changeHeatmapOverlayYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
+                                                                                <a class="waves-effect waves-light btn" id="overlayDownButton" onclick="changeHeatmapOverlayYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
+                                                                                <a class="waves-effect waves-light btn blue lighten-2 tooltipped" id="overlayPlayButton" onclick="heatmapOverlayAnimation(0);"style="display: inline-block;"
                                                                                         data-position="bottom" data-delay="100" data-tooltip="Cycle through the images for each year with a quarter-second delay.">Play</a>                
                                                                         </div>
                                                                 </div></div>
@@ -369,7 +369,7 @@
                                         </div>
                                         <ul class="collapsible" data-collapsible="accordion">
                                                 <li>
-                                                        <div class="collapsible-header active">Entire Map CDF</div>
+                                                        <div class="collapsible-header active">Entire Map Spatial Distribution</div>
                                                         <div class="collapsible-body" style="padding: 12px;">
                                                                 <div class="row">
                                                                         <div class="col s12" id="entireAreaChartContainer" style="resize: both;">
@@ -382,9 +382,9 @@
                                                                                         Simulation Year:
                                                                                 </div>
                                                                                 <div>
-                                                                                        <a class="waves-effect waves-light btn" onclick="changeEntireCDFYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
-                                                                                        <a class="waves-effect waves-light btn" onclick="changeEntireCDFYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
-                                                                                        <a class="waves-effect waves-light btn blue lighten-2 tooltipped" onclick="entireCDFAnimation(0);"style="display: inline-block;"
+                                                                                        <a class="waves-effect waves-light btn" id="entireCDFdownYear" onclick="changeEntireCDFYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
+                                                                                        <a class="waves-effect waves-light btn" id="entireCDFupYear" onclick="changeEntireCDFYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
+                                                                                        <a class="waves-effect waves-light btn blue lighten-2 tooltipped" id="entireCDFplayButton" onclick="entireCDFAnimation(0);"style="display: inline-block;"
                                                                                                 data-position="bottom" data-delay="100" data-tooltip="Cycle through the data for each year with a quarter-second delay.">Play</a>                
                                                                                 </div>
                                                                         </div></div>
@@ -395,10 +395,10 @@
                                                         </div>
                                                 </li>
                                                 <li>
-                                                        <div class="collapsible-header">Single Settlement CDF</div>
+                                                        <div class="collapsible-header">Single Settlement Spatial Distribution</div>
                                                         <div class="collapsible-body" style="padding: 12px;">
-                                                                <div class="row"><div class="col 12">Calculates the depletion of terrain within a radius around each population. While the preview is square, the graph only uses data from the cells contained within a circle enscribed in the square piece of terrain shown in the preview.</div></div>
-                                                                <div class="row">
+                                                                <div class="row" style="margin-bottom: 8px;"><div class="col 12">Calculates the depletion of terrain within a radius around each population. While the preview is square, the graph only uses data from the cells contained within a circle inscribed in the square piece of terrain shown in the preview.</div></div>
+                                                                <div class="row" style="margin-bottom: 8px;">
                                                                         <div class="col s12" style="min-width: 800px; min-height: 400px;"><div style="margin: 0 auto; width: 850px;">
                                                                                 <div id="localAreaCDFPictureContainer" style="width: 250px; height: 400px; display: inline-block; vertical-align:top;">
                                                                                         <div id="localAreaCDFPicture" style="width: 250px; height: 250px; border:1px solid #a2a3a3; margin-top: 68px;"></div>
@@ -426,7 +426,7 @@
                                                                                 <div>
                                                                                         <a class="waves-effect waves-light btn" id="localCDFdownYear" onclick="changeLocalCDFYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
                                                                                         <a class="waves-effect waves-light btn" id="localCDFupYear" onclick="changeLocalCDFYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
-                                                                                        <a class="waves-effect waves-light btn blue lighten-2 tooltipped" onclick="localCDFAnimation(0);"style="display: inline-block;"
+                                                                                        <a class="waves-effect waves-light btn blue lighten-2 tooltipped" id="localCDFplayButton" onclick="localCDFAnimation(0);"style="display: inline-block;"
                                                                                                 data-position="bottom" data-delay="100" data-tooltip="Cycle through the data for each year with a quarter-second delay.">Play</a>                
                                                                                 </div>
                                                                         </div></div>
@@ -449,8 +449,39 @@
                                                                                 <select id="offtakeSetSelection"></select>
                                                                                 <label>Select a Settlement</label>
                                                                         </div>
-                                                                        <div class="col s3 offset-s6" style="margin-top: 20px;">
+                                                                        <div class="col s2" style="visibility: hidden;">
+                                                                                Settlement Legends
+                                                                                <div class="switch" style="margin-top: 4px;">
+                                                                                        <label>
+                                                                                                Off
+                                                                                                <input type="checkbox" onchange="toggleOfftakeLegends(this)" checked="true" id="offtakeLegendToggle">
+                                                                                                <span class="lever"></span>
+                                                                                                On
+                                                                                        </label>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div class="col s3 offset-s4" style="margin-top: 20px;">
                                                                                 <a class="waves-effect waves-light btn saveButton right" id="offtakeSaveButton" onclick="downloadGraph('offtakeChart');">Save Chart</a>
+                                                                        </div>
+                                                                </div>
+                                                        </div>
+                                                </li>
+                                                <li>
+                                                        <div class="collapsible-header active">Explotation Index</div>
+                                                        <div class="collapsible-body" style="padding: 12px;">
+                                                                Not yet complete
+                                                                <div class="row">
+                                                                        <div class="col s12" id="exploitationChartContainer" style="resize: both;">
+                                                                                <canvas id="exploitationChart" style="width: 800px; height: 400px; margin: 0 auto;"></canvas>
+                                                                        </div>
+                                                                </div>
+                                                                <div class="row" style="margin-bottom: 0px;">
+                                                                        <div class="col s3 input-field">
+                                                                                <select id="exploitationSetSelection"></select>
+                                                                                <label>Select a Settlement</label>
+                                                                        </div>
+                                                                        <div class="col s3 offset-s6" style="margin-top: 20px;">
+                                                                                <a class="waves-effect waves-light btn saveButton right" id="exploitationSaveButton">Save Chart</a> <!--onclick="downloadGraph('exploitationChart');"-->
                                                                         </div>
                                                                 </div>
                                                         </div>
@@ -461,8 +492,8 @@
                                                                 <table class="highlight striped" id="oStatsTable">
                                                                         <thead>
                                                                                 <tr>
-                                                                                        <th>Statistic</th>
-                                                                                        <th>Value</th>
+                                                                                        <th style="padding: 5px 5px 5px 5px;">Statistic</th>
+                                                                                        <th style="padding: 5px 5px 5px 5px;">Value</th>
                                                                                 </tr>
                                                                         </thead>
                                                                         <tbody>
@@ -490,15 +521,6 @@
                                                                                         <td class="oStatLabel">Total Population:</td>
                                                                                         <td id="oStatsTotalPop"></td>
                                                                                 </tr>
-                                                                                <tr>
-                                                                                        <td class="oStatLabel">Total Offtake:</td>
-                                                                                        <td id="oStatsTotalOfftake"></td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                        <td class="oStatLabel">Average Offtake:</td>
-                                                                                        <td id="oStatsAvgOfftake"></td>
-                                                                                </tr>
-
                                                                                 <tr>
                                                                                         <td class="oStatLabel">Running Time:</td>
                                                                                         <td id="oStatsTime"></td>

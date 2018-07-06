@@ -32,6 +32,11 @@ function checkCompatibility(){
                 persistCompatibility = true;
                 document.body.scrollTop = document.documentElement.scrollTop = 0;
                 document.getElementById('getStarted').classList.add('scale-in');
+                setTimeout(function(){
+                        let errorTab = document.getElementById('javascriptError');
+                        let parent = errorTab.parentNode;
+                        parent.removeChild(errorTab);
+                }, 400);
         } else {
                 let title = "Unsupported Browser";
                 let msg = "Your browser lacks support for critical features used by WebModeler. <br>";
@@ -243,12 +248,9 @@ function generateConfigObject(){
 }
 
 function saveImgToFile(){
-        const year = document.getElementById('overlayYear').value;
         map.once('postcompose', function(event) {
-                let tempCanvas = event.context.canvas;
-
-                tempCanvas.toBlob(function(blob) {
-                        saveAs(blob, simData.simName + '_year' + year + '_map.png');
+                event.context.canvas.toBlob(function(blob) {
+                        saveAs(blob, simData.simName + '_year' + heatMapYear + '_map.png');
                 });
         });
         map.renderSync();

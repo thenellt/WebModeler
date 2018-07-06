@@ -129,8 +129,6 @@ function setupCustomMouseControl(){
                 textDiv.id = 'mouseKText';
                 textDiv.innerHTML = '-';
                 
-                var this_ = this;
-
                 var element = document.createElement('div');
                 element.className = 'ol-unselectable ol-mouse-position';
                 element.setAttribute('style', 'top: 46px;');
@@ -162,7 +160,6 @@ function updateKControl(text){
 
 function placePopulation(e){
         if(isPopMoving){
-                console.log(e.coordinate);
                 endPopMove(e.coordinate);
                 return;
         }
@@ -180,7 +177,7 @@ function placePopulation(e){
                                 placePopulation(e);
                         }, 50);
                 }
-        } else if(!tempFeatures.length && !dropdownActive){
+        } else if(!tempFeatures.length && !dropdownActive) {
                 showPopEditor(e.coordinate);
         } else {
                 isMenuOpen = true;
@@ -240,7 +237,7 @@ function resultsMapClick(e){
                 */
                 displaySettlementStats(tempFeatures[0], e.originalEvent);
 
-        } else if(settlementStatsOpen){
+        } else if(settlementStatsOpen) {
                 settlementStatsOpen = false;
                 debugSource.removeFeature(statsCircleFeature);
                 statsCircleFeature = false;
@@ -250,8 +247,7 @@ function resultsMapClick(e){
 }
 
 function closePopInfoCard(){
-        $('#popInfoCard').addClass('scale-out');
-        $('#popInfoCard').removeClass('scale-in');
+        $('#popInfoCard').addClass('scale-out').removeClass('scale-in');
         debugSource.removeFeature(statsCircleFeature);
         statsCircleFeature = false;
         settlementStatsOpen = false;
@@ -281,7 +277,7 @@ function removePopFromMapById(popId){
 }
 
 function addPopToMap(popId, popName, long, lat, isYearly){
-        var tempPoint = new ol.geom.Point(
+        let tempPoint = new ol.geom.Point(
                 [long, lat]
         );
 
@@ -296,42 +292,6 @@ function addPopToMap(popId, popName, long, lat, isYearly){
         }
         popStorageMap[popId] = tempFeature;
         source.addFeature(tempFeature);
-}
-
-function centerGridTest(points){
-        let distance = Math.sqrt(2)/2;
-        for(let i = 0; i < points.length; i++){
-                console.log("point location: " + points[i].lat);
-                let topLeft  = destEllipse(points[i].lat, points[i].long, 315, distance);
-                let topRight = destEllipse(points[i].lat, points[i].long, 45,  distance);
-                let botLeft  = destEllipse(points[i].lat, points[i].long, 225, distance);
-                let botRight = destEllipse(points[i].lat, points[i].long, 135, distance);
-                
-                console.log("topLeft: " + topLeft[0] + ", " + topLeft[1]);
-                
-                let tempPolygon = new ol.geom.Polygon([[
-                        [topLeft[1], topLeft[0]],
-                        [topRight[1], topRight[0]],
-                        [botRight[1], botRight[0]],
-                        [botLeft[1], botLeft[0]],
-                        [topLeft[1], topLeft[0]]
-                ]]);
-
-                let tempFeature = new ol.Feature({
-                        name: ("test1"),
-                        geometry: tempPolygon
-                });
-                
-                let testStyle = new ol.style.Style({
-                        stroke: new ol.style.Stroke({width: 2, color: [255, 0, 0, 1]}),
-                        fill: new ol.style.Fill({ color: [255, 0, 0, .5],})
-                });
-                
-                tempFeature.setStyle(testStyle);
-                geoGridFeatures.addFeature(tempFeature);
-        }
-        
-        console.log("finished geo test function");
 }
 
 function drawgeoGrid(){
@@ -563,8 +523,8 @@ function drawCanvasToMap(year){
                     imageExtent: location
                 })
         });
+        
         imageLayer.setZIndex(2);
-
         imageLayer.set('name', 'imgLayer');
         map.addLayer(imageLayer);
         setupOpacitySlider();
@@ -576,13 +536,11 @@ function toggleVillageLabels(element){
 
 function toggleDebugLayer(element){
         debugVector.setVisible(element.checked);
-        $('#debugViewToggle').prop('checked', element.checked);
-        $('#debugViewToggleF').prop('checked', element.checked);
+        $('#debugViewToggle, #debugViewToggleF').prop('checked', element.checked);
 }
 
 function updateOutputOpacity(element){
         let val = element.value;
         document.getElementById("opacityLabel").innerHTML = "Overlay Opacity: " + val + "%";
-
         imageLayer.setOpacity(val/100);
 }

@@ -10,30 +10,23 @@ var simResults = {};
 var progBarDet;
 
 $(document).ready(function() {
-        $('#projBackground').modal();
-        $('#changelogPopup').modal();
-        $('#popImportDialog').modal();
-        $('#yearlyPopEditor').modal({dismissible: false});
-        $('#coverScreen').modal({dismissible: false});
-        $('#fullScreenMap').modal({dismissible: false});
-        $('#sysDialog').modal({dismissible: false});
-        $('#advancedSettings').modal({
-                dismissible: false,
-                ready: showAdvancedSettings
-        });
-        $('#dropDownTest').dropdown({
-                inDuration: 75,
-                outDuration: 25,
-        });
-        $("#CDFSetSelection").change(function() {
-                changeCDFSettlement();
-        }); 
-        $("#offtakeSetSelection").change(function() {
-                changeOfftakeSettlement();
-        });
+        $('#projBackground, #changelogPopup, #popImportDialog').modal();
+        $('#yearlyPopEditor, #coverScreen, #fullScreenMap, #sysDialog').modal({dismissible: false});
+        $('#advancedSettings').modal({dismissible: false, ready: showAdvancedSettings});
+        $('#dropDownTest').dropdown({inDuration: 75, outDuration: 25,});
+        $("#CDFSetSelection").change(function() {changeCDFSettlement();}); 
+        $("#offtakeSetSelection").change(function() {changeOfftakeSettlement();});
         $('#floatingPopEditor').modal({dismissible: false});
         $('#debugModeToggle').prop('checked', false);
+        $('#offtakeLegendToggle').prop('checked', false);
         $('#tabFillerButton').addClass('disabled');
+        $(window).focus(function() {
+                if(simulationRun){
+                        refreshCanvas();
+                } else {
+                        map.updateSize();
+                }
+        });
         setupPersistConfigs();
         populatePersistSaves();
         setupMapping();
@@ -55,22 +48,15 @@ function newSimulation(){
 }
 
 function resetSimulationCheck(){
-        var title = "Are you sure want to start over?";
-        var message = "All unsaved work will be lost.";
+        const title = "Are you sure want to start over?";
+        const message = "All unsaved work will be lost.";
         createFloatingDialog(title, message, 0, resetSimulation);
 }
 
 function resetSimulation(){
         simData.simID = -1;
-        document.getElementById("paramYears").value = "";
-        document.getElementById("paramCarry").value = "";
-        document.getElementById("paramDifRate").value = "";
-        document.getElementById("paramGrowthRate").value = "";
-        document.getElementById("paramEncounterRate").value = "";
-        document.getElementById("paramKillProb").value = "";
-        document.getElementById("paramHphy").value = "";
-        document.getElementById("rangeHphy").value = "";
-        document.getElementById("paramName").value = "";
+        $('#paramYears, #paramCarry, #paramDifRate, #paramGrowthRate, #paramEncounterRate, \
+           #paramKillProb, #paramHphy, #rangeHphy, #paramName').val('');
 
         document.getElementById("paramTheta").value = "1";
         document.getElementById("paramLowColor").value = "#ffeda0";
@@ -93,7 +79,7 @@ function resetSimulation(){
                         debugVector.getSource().clear();
                 }
 
-                var cleanup = document.getElementById("rawHeatmapContainer");
+                let cleanup = document.getElementById("rawHeatmapContainer");
                 while (cleanup.firstChild) {
                         cleanup.removeChild(cleanup.firstChild);
                 }
@@ -121,19 +107,15 @@ function resetSimulation(){
 }
 
 function resetColorCode(whichColor){
-        console.log("resetColorCode::value: " + whichColor);
         if(whichColor === 'low'){
                 document.getElementById("paramLowColor").value = "#ffeda0";
-        }
-        else if(whichColor === 'mid'){
+        } else if(whichColor === 'mid') {
                 document.getElementById("enable3ColorMode").checked = false;
                 document.getElementById("paramMidColor").disabled = true;
                 document.getElementById("midColorReset").classList.add("disabled");
-        }
-        else if(whichColor === 'high'){
+        } else if(whichColor === 'high') {
                 document.getElementById("paramHighColor").value = "#f03b20";
         }
-
 }
 
 function changeToPopulations(){
@@ -155,7 +137,6 @@ function changeToPopulations(){
 function changeToGetStarted(){
         let contentDiv = document.getElementById("getStarted");
         if(contentDiv.style.display == "none"){
-                console.log("changeToGetStarted::updating persist display");
                 var saveContainer = document.getElementById("persistSaveContainer");
                 while (saveContainer.firstChild) {
                         saveContainer.removeChild(saveContainer.firstChild);
@@ -183,7 +164,7 @@ function changeToOutput(){
                         $('#debugViewToggle').prop('checked', true);
                         $('#debugViewToggleF').prop('checked', true);        
                 }
-        } else{
+        } else {
                 simulationRun = 1;
                 var parentDiv = document.getElementById("resultMapDiv");
                 map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
@@ -201,7 +182,7 @@ function toggleThirdColorMode(isEnabled){
         if(isEnabled){
                 document.getElementById("paramMidColor").disabled = false;
                 document.getElementById("midColorReset").classList.remove("disabled");
-        } else{
+        } else {
                 document.getElementById("paramMidColor").disabled = true;
                 document.getElementById("midColorReset").classList.add("disabled");
         }
@@ -211,7 +192,7 @@ function changeMapView(isRoadMap){
         if(isRoadMap && !bingLayers[0].getVisible()){
                 bingLayers[1].setVisible(false);
                 bingLayers[0].setVisible(true);
-        } else if(!isRoadMap && !bingLayers[1].getVisible()){
+        } else if(!isRoadMap && !bingLayers[1].getVisible()) {
                 bingLayers[0].setVisible(false);
                 bingLayers[1].setVisible(true);
         }
@@ -236,7 +217,7 @@ function showProgressBar(message, value){
         if(value === 100){
                 progBarDet = false;
                 $('#progressBar').css({'width': ""}).removeClass('determinate').addClass('indeterminate');
-        } else{
+        } else {
                 progBarDet = true;
                 $('#progressBar').removeClass('indeterminate').addClass('determinate').css({'width': value + '%'});
         }
@@ -252,9 +233,9 @@ function updateProgressBar(message, value){
         if(value === 100 && progBarDet){
                 progBarDet = false;
                 $('#progressBar').css({'width': ""}).removeClass('determinate').addClass('indeterminate');
-        } else if(!progBarDet){
+        } else if(!progBarDet) {
                 $('#progressBar').removeClass('indeterminate').addClass('determinate').css({'width': value  + '%'});
-        } else{
+        } else {
                 $('#progressBar').css({'width': value  + '%'});
         }
 }
@@ -318,14 +299,14 @@ function modalConfirmation(title, msg, confCallback, cancelCallback){
 }
 
 function promptForReset(){
-        let title = "Clear Simulation";
-        let msg = "Upon confirmation all settings and population data will be erased from the current simulation. This does not impact any autosaves which may exist for <b>" + simData.simName + "</b>.";
+        const title = "Clear Simulation";
+        const msg = "Upon confirmation all settings and population data will be erased from the current simulation. This does not impact any autosaves which may exist for <b>" + simData.simName + "</b>.";
         modalConfirmation(title, msg, resetSimulation);
 }
 
 function promptForDefaults(){
-        let title = "Confirm Overwriting all Settings";
-        let msg = "Selecting OK will result in all settings and advanced settings being overwritten with default values. This does not impact population data."
+        const title = "Confirm Overwriting all Settings";
+        const msg = "Selecting OK will result in all settings and advanced settings being overwritten with default values. This does not impact population data."
         modalConfirmation(title, msg, populateDefaultValues);
 }
 
@@ -407,9 +388,9 @@ function checkFloat(rawValue, min, max){
 }
 
 function checkAnyFloat(rawValue){
-        if(!(/^-?\d*(\.\d+)?$/.test(rawValue))){
+        if(!(/^-?\d*(\.\d+)?$/.test(rawValue)))
                 return false;
-        }
+
         let value = parseFloat(rawValue, 10);
         if(isNaN(value)){
                 return false;
@@ -419,11 +400,10 @@ function checkAnyFloat(rawValue){
 }
 
 function checkInt(rawValue, min, max){
-        if(!(/^-?\d*(\.\d+)?$/.test(rawValue))){
+        if(!(/^-?\d*(\.\d+)?$/.test(rawValue)))
                 return false;
-        }
+        
         let floatValue = parseFloat(rawValue);
-
         if(!isNaN(floatValue) && floatValue % 1 === 0){
                 let value = parseInt(floatValue);
                 if(value >= min || value <= max){
@@ -436,10 +416,8 @@ function checkInt(rawValue, min, max){
 
 function toggleDebugControl(element){
         if(element.checked){
-                $("#debugVisControlBox").css('visibility', 'visible');
-                $("#debugVisFControlBox").css('visibility', 'visible');
-        } else{
-                $("#debugVisControlBox").css('visibility', 'hidden');
-                $("#debugVisFControlBox").css('visibility', 'hidden');
+                $("#debugVisControlBox, #debugVisFControlBox").css('visibility', 'visible');
+        } else {
+                $("#debugVisControlBox, #debugVisFControlBox").css('visibility', 'hidden');
         }
 }

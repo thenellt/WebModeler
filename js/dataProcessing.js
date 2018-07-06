@@ -62,13 +62,17 @@ Chart.plugins.register({
 });
 
 function createEntireCDFChart(){
+        if(entireAreaChart){
+                entireAreaChart.destroy();
+                document.getElementById('entireMapChart').width = 800;
+                document.getElementById('entireMapChart').height = 400;
+        }
         let ctx = document.getElementById('entireMapChart').getContext('2d');
-        let color = Chart.helpers.color;
         entireAreaChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                         labels: ['0.0 - 0.1', '0.1 - 0.2','0.2 - 0.3','0.3 - 0.4','0.4 - 0.5','0.5 - 0.6',
-                         '0.6 - 0.7','0.7 - 0.8','0.8 - 0.9','0.9 - 0.99','> 0.99'],
+                         '0.6 - 0.7','0.7 - 0.8','0.8 - 0.9','0.9 - 1.0'],
                         datasets: [{ legend: { display: false }, backgroundColor: "#90caf9", data: [0], }]
                 },
                 options: {
@@ -103,7 +107,7 @@ function createEntireCDFChart(){
                                         }
                                 }]
                         },
-                        title: { display: true, fontSize: 16, text: 'Entire Map CDF Graph' },
+                        title: { display: true, fontSize: 16, text: 'Entire Map Spatial Distribution' },
                         responsive: false,
                         tooltips: { callbacks: {
                                         label: function(tooltipItem, data) {
@@ -120,16 +124,19 @@ function createEntireCDFChart(){
 }
 
 function createLocalCDFChart(){
-        for(let i = 0; i < simRunData.towns.length; i++)
-                if(simRunData.towns[i].id === localAreaSelectedID)
-                        var labelText = simRunData.towns[i].name +  ": " + localAreaRange + " km CDF Graph";
+        var labelText = simRunData.townsByID[localAreaSelectedID].name +  ": " + localAreaRange + " km CDF Graph";
+
+        if(localAreaChart){
+                localAreaChart.destroy();
+                document.getElementById('localAreaCDF').width = 800;
+                document.getElementById('localAreaCDF').height = 400;
+        }
         let ctx = document.getElementById('localAreaCDF').getContext('2d');
-        let color = Chart.helpers.color;
         localAreaChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                         labels: ['0.0 - 0.1', '0.1 - 0.2','0.2 - 0.3','0.3 - 0.4','0.4 - 0.5','0.5 - 0.6',
-                         '0.6 - 0.7','0.7 - 0.8','0.8 - 0.9','0.9 - 0.99','> 0.99'],
+                         '0.6 - 0.7','0.7 - 0.8','0.8 - 0.9','0.9 - 1.0'],
                         datasets: [{ legend: { display: false, }, backgroundColor: "#90caf9", data: [0], }]
                 },
                 options: {
@@ -182,7 +189,144 @@ function createLocalCDFChart(){
 }
 
 function createOfftakeChart(){
+        if(simRunData.towns.length > 1){
+                var data = offtakeChartData.total;
+                var tempColor = offtakeChartData.total.color;
+                var titleText = 'Combined Settlement Offtake';
+        } else {
+                var data = offtakeChartData.towns[simRunData.towns[0].id]
+                var tempColor = offtakeChartData.towns[simRunData.towns[0].id].color;
+                var titleText = offtakeChartData.towns[simRunData.towns[0].id].name + ' Offtake';
+        }
+        
+        let ctx = document.getElementById('offtakeChart').getContext('2d');
+        let xAxisLabels = [];
+        for(let i = 1; i <= simRunData.years; i++)
+                xAxisLabels.push(i);
 
+        const minTemp = Math.min.apply(Math, data);
+        const tickMin = Math.floor(minTemp > 0 ? minTemp * 0.9 : 0.0);
+        const maxTemp = Math.max.apply(Math, data);
+        const tickMax = Math.ceil(maxTemp * 1.10);
+        const stepAmount = (tickMax - tickMin) / 10;
+
+        if(offtakeChart){
+                offtakeChart.destroy();
+                document.getElementById('offtakeChart').width = 800;
+                document.getElementById('offtakeChart').height = 400;
+        }
+        offtakeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                        datasets: [{
+                                legend: { display: false },
+                                data: data,
+                                borderColor: tempColor,
+                        }],
+                        labels: xAxisLabels
+                }, options: {
+                        title: { display: true, fontSize: 16, text: titleText },
+                        legend: { display: false },
+                        plugins: {
+                                datalabels: {
+                                        anchor: 'end',
+                                        align: 'top',
+                                        offset: 4,
+                                        color: 'black',
+                                        font: { weight: 'bold' },
+                                        formatter: function() { return ""; }
+                                }
+                        },
+                        scales: { yAxes: [{
+                                        ticks: {min: tickMin, max: tickMax, stepSize: stepAmount},
+                                        scaleLabel: {
+                                                display: true,
+                                                fontSize: 12,
+                                                labelString: 'Hunting Offtake'
+                                        }
+                                }],
+                                xAxes: [{
+                                        scaleLabel: {
+                                                display: true,
+                                                fontSize: 12,
+                                                labelString: 'Year'
+                                        }
+                                }]
+                        },
+                        responsive: false,
+                        tooltips: {
+                                callbacks: {
+                                        title: function(tooltipItem, data){
+                                                switch(offtakeSelectedID){
+                                                case 'avg':
+                                                        return 'Average - Year: ' + tooltipItem[0].xLabel;
+                                                case 'total':
+                                                        return 'Total - Year: ' + tooltipItem[0].xLabel;
+                                                case 'all':
+                                                        return simRunData.towns[tooltipItem[0].datasetIndex].name + ' - Year: ' + tooltipItem[0].xLabel;
+                                                default:
+                                                        return simRunData.townsByID[offtakeSelectedID].name + ' - Year: ' + tooltipItem[0].xLabel;
+                                                };
+                                        },
+                                        label: function(tooltipItem, data) { 
+                                                return  '~' + Math.floor(tooltipItem.yLabel) + ' Animals'; 
+                                        }
+                                }
+                        }
+                }
+        });
+}
+
+function createExterpationChart(){
+        exterpationChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                        datasets: [{
+                                label: 'Overexploited',
+                                data: [0, 20, 40, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50],
+                                borderColor: 'yellow',
+                                backgroundColor: 'rgba(0, 0, 0, 0)'
+                        }, {
+                                label: 'Collapsed',
+                                data: [0, 20, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40],
+                                borderColor: 'orange',
+                                backgroundColor: 'rgba(0, 0, 0, 0)'
+                        }, {
+                                label: 'Exterpated',
+                                data: [0, 20, 20, 20, 50, 50, 20, 50, 50, 20, 50, 20, 50, 20, 50, 20, 20, 20, 50, 20],
+                                borderColor: 'red',
+                                backgroundColor: 'rgba(0, 0, 0, 0)'
+                        }
+                        ],
+                        labels: xAxisLabels
+                }, options: {
+                        scales: { yAxes: [{
+                                        ticks: {min: 0, max: 100},
+                                        scaleLabel: {
+                                                display: true,
+                                                fontSize: 12,
+                                                labelString: 'Percent of Bins'
+                                        }
+                                }],
+                                xAxes: [{
+                                        scaleLabel: {
+                                                display: true,
+                                                fontSize: 12,
+                                                labelString: 'Distance from Settlement'
+                                        }
+                                }]
+                        },
+                        responsive: false,
+                        tooltips: {
+                                callbacks: {
+                                        label: function(tooltipItem, data) {
+                                                let label = data.datasets[tooltipItem.datasetIndex].label;
+                                                return  tooltipItem.yLabel + '% ' + label;
+                                        }
+                                }
+                        }
+                }
+        });
 }
 
 function downloadGraph(containerID){
@@ -214,15 +358,22 @@ function populateSelectionsFields(){
         var CDFselector = document.getElementById('CDFSetSelection');
         var offtakeSelector = document.getElementById('offtakeSetSelection');
 
-        let option1 = document.createElement("option");
-        option1.text = 'All Settlements';
-        option1.value = 'all';
-        offtakeSelector.add(option1);
+        if(simRunData.towns.length > 1){
+                let option3 = document.createElement("option");
+                option3.text = 'Combined Totals';
+                option3.value = 'total';
+                offtakeSelector.add(option3);
 
-        let option2 = document.createElement("option");
-        option2.text = 'Combined Average';
-        option2.value = 'combined';
-        offtakeSelector.add(option2);
+                let option2 = document.createElement("option");
+                option2.text = 'Combined Average';
+                option2.value = 'avg';
+                offtakeSelector.add(option2);
+
+                let option1 = document.createElement("option");
+                option1.text = 'All Settlements';
+                option1.value = 'all';
+                offtakeSelector.add(option1);
+        }
 
         for(let settlementID in uiData){
                 let settlement = uiData[settlementID];
@@ -260,7 +411,8 @@ function changeHeatmapOverlayYear(isNext){
 
 function heatmapOverlayAnimation(year){
         if(year === 0){
-                $('#overlaySaveButton').addClass('disabled');
+                $('#overlaySaveButton, #mapFullscreenButton').addClass('disabled');
+                $('#overlayUpButton, #overlayDownButton, #overlayPlayButton').addClass('disabled');
                 heatMapYear = 0;
                 if(mouseLastPosition)
                         workerThread.postMessage({type:"mouseKCheck", pos:mouseLastPosition, year:heatMapYear});
@@ -272,8 +424,10 @@ function heatmapOverlayAnimation(year){
 
         if(year < simRunData.years)
                 setTimeout(heatmapOverlayAnimation, 250, year + 1);
-        else
-                $('#overlaySaveButton').removeClass('disabled');
+        else{
+                $('#overlaySaveButton, #mapFullscreenButton').removeClass('disabled');
+                $('#overlayUpButton, #overlayDownButton, #overlayPlayButton').removeClass('disabled');
+        }
 }
 
 function storeCDFData(location, year, data, id){
@@ -292,9 +446,7 @@ function storeCDFData(location, year, data, id){
                         if(!localAreaChart)
                                 createLocalCDFChart();
                         localAreaChart.data.datasets[0].data = localAreaData[localAreaSelectedID][localAreaYear];
-                        for(let i = 0; i < simRunData.towns.length; i++)
-                                if(simRunData.towns[i].id === localAreaSelectedID)
-                                        var labelText = simRunData.towns[i].name +  ": " + localAreaRange + " km CDF Graph";
+                        var labelText = simRunData.townsByID[localAreaSelectedID].name +  ": " + localAreaRange + " km Spatial Distribution";
                         localAreaChart.options.title.text = labelText;
                         localAreaChart.update();
                 }
@@ -328,17 +480,33 @@ function storeLocalCDFPictures(data){
 }
 
 function storeOfftakeData(data){
-        offtakeChartData = JSON.parse(data);
-        let allPopData = new Array(simRunData.years);
-        for(let i = 0; i < simRunData.years; i++)
-                allPopData[i] = 0;
-        for(key in offtakeChartData)
-                for(let y = 0; y < simRunData.years; y++)
-                        allPopData[y] += offtakeChartData[key][y];
+        offtakeChartData = {towns: JSON.parse(data)};
+        if(simRunData.towns.length > 1){
+                let totalPopData = new Array(simRunData.years);
+                for(let i = 0; i < simRunData.years; i++)
+                        totalPopData[i] = 0;
+                for(key in offtakeChartData.towns)
+                        for(let y = 0; y < simRunData.years; y++)
+                                totalPopData[y] += offtakeChartData.towns[key][y];
 
-        offtakeChartData['all'] = allPopData;
+                let avgPopData = new Array(simRunData.years);
+                for(let i = 0; i < simRunData.years; i++)
+                        avgPopData[i] = totalPopData[i] / simRunData.towns.length;
 
-        changeOfftakeSettlement();
+                offtakeChartData.total = totalPopData;
+                offtakeChartData.total.color = getRandomColor();
+                offtakeChartData.avg = avgPopData;
+                offtakeChartData.avg.color = getRandomColor();
+                offtakeSelectedID = 'total';
+        } else {
+                offtakeSelectedID = simRunData.towns[0].id;
+        }
+
+        for(key in offtakeChartData.towns){
+                offtakeChartData.towns[key].color = getRandomColor();
+        }
+
+        createOfftakeChart();
 }
 
 function changeEntireCDFYear(isNext){
@@ -358,6 +526,9 @@ function changeEntireCDFYear(isNext){
 function entireCDFAnimation(year){
         if(year === 0){
                 $('#entireCDFSaveButton').addClass('disabled');
+                $('#entireCDFdownYear').addClass('disabled');
+                $('#entireCDFupYear').addClass('disabled');
+                $('#entireCDFplayButton').addClass('disabled');
                 entireAreaYear = 0;
                 entireAreaChart.data.datasets[0].data = entireAreaData[entireAreaYear];
                 entireAreaChart.update();
@@ -370,8 +541,12 @@ function entireCDFAnimation(year){
                 setTimeout(entireCDFAnimation, 1000, year + 1);
         else if(year < simRunData.years)
                 setTimeout(entireCDFAnimation, 250, year + 1);
-        else
+        else{
                 $('#entireCDFSaveButton').removeClass('disabled');
+                $('#entireCDFdownYear').removeClass('disabled');
+                $('#entireCDFupYear').removeClass('disabled');
+                $('#entireCDFplayButton').removeClass('disabled');
+        }
 }
 
 function changeLocalCDFRange(isNext){
@@ -415,33 +590,26 @@ function setLocalCDFPicture(){
 
 function localCDFAnimation(year){
         if(year === 0){
-                $('#singleCDFSaveButton').addClass('disabled');
-                $('#localCDFdownRange').addClass('disabled');
-                $('#localCDFupRange').addClass('disabled');
-                $('#localCDFdownYear').addClass('disabled');
-                $('#localCDFupYear').addClass('disabled');
+                $('#singleCDFSaveButton, #localCDFdownRange, #localCDFplayButton').addClass('disabled');
+                $('#localCDFupRange, #localCDFdownYear, #localCDFupYear').addClass('disabled');
                 $('#CDFSetSelection').attr("disabled", "");
+                $('#CDFSetSelection').material_select();
                 localAreaYear = 0;
                 setLocalCDFPicture();
                 localAreaChart.data.datasets[0].data = localAreaData[localAreaSelectedID][localAreaYear];
                 localAreaChart.update();
                 document.getElementById("singleCDFYearLabel").innerHTML = "Simulation Year: " + localAreaYear;
+                setTimeout(localCDFAnimation, 1000, year + 1);
         } else {
                 changeLocalCDFYear(true);
-        }
-
-        if(year === 0){
-                setTimeout(localCDFAnimation, 1000, year + 1);
-        } else if(year < simRunData.years) {
-                setTimeout(localCDFAnimation, 500, year + 1);
-        } else {
-                $('#singleCDFSaveButton').removeClass('disabled');
-                $('#localCDFdownRange').removeClass('disabled');
-                $('#localCDFupRange').removeClass('disabled');
-                $('#localCDFdownYear').removeClass('disabled');
-                $('#localCDFupYear').removeClass('disabled');
-                $('#CDFSetSelection').removeAttr("disabled");
-                $('#CDFSetSelection').material_select();
+                if(year < simRunData.years){
+                        setTimeout(localCDFAnimation, 500, year + 1);
+                } else {
+                        $('#singleCDFSaveButton, #localCDFdownRange, #localCDFplayButton').removeClass('disabled');
+                        $('#localCDFupRange, #localCDFdownYear, #localCDFupYear').removeClass('disabled');
+                        $('#CDFSetSelection').removeAttr('disabled');
+                        $('#CDFSetSelection').material_select();
+                }
         }
 }
 
@@ -453,15 +621,55 @@ function changeCDFSettlement(){
 }
 
 function changeOfftakeSettlement(){
-        let value = $("#CDFSetSelection").val();
-        if(value == 'all'){
-                offtakeSelectedID = 'all';
+        offtakeSelectedID = $("#offtakeSetSelection").val();
+        if(offtakeSelectedID == 'all'){
+                offtakeChart.data.datasets = [];
+                for(key in offtakeChartData.towns){
+                        let newDataset = {
+                                label: simRunData.townsByID[key].name,
+                                backgroundColor: 'rgba(0,0,0,0)',
+                                borderColor: offtakeChartData.towns[key].color,
+                                data: offtakeChartData.towns[key],
+                        }
+                        offtakeChart.data.datasets.push(newDataset);
+                }
+
+                var titleText = 'All Settlement Offtake';
+                var minTemp = Number.MAX_SAFE_INTEGER;
+                var maxTemp = 0;
+                for(key in offtakeChartData.towns){
+                        let minVal = Math.min.apply(Math, offtakeChartData.towns[key]);
+                        let maxVal = Math.max.apply(Math, offtakeChartData.towns[key]);
+                        minTemp = minVal < minTemp ? minVal : minTemp;
+                        maxTemp = maxVal > maxTemp ? maxVal : maxTemp;
+                }
         } else {
-                offtakeSelectedID = parseInt(value, 10);
+                if(offtakeSelectedID == 'total' || offtakeSelectedID == 'avg'){
+                        var data = offtakeChartData[offtakeSelectedID];
+                        var tempColor = offtakeChartData[offtakeSelectedID].color;
+                        var titleText = offtakeSelectedID == 'total' ? 'Combined Offtake' : 'Average Offtake';
+                } else {
+                        var data = offtakeChartData.towns[offtakeSelectedID];
+                        var tempColor = offtakeChartData.towns[offtakeSelectedID].color;
+                        var titleText = simRunData.townsByID[offtakeSelectedID].name + ' Offtake';
+                }
+
+                while(offtakeChart.data.datasets.length > 1)
+                        offtakeChart.data.datasets.pop();
+                offtakeChart.data.datasets[0].data = data;
+                offtakeChart.data.datasets[0].borderColor = tempColor;
+                var minTemp = Math.min.apply(Math, data);
+                var maxTemp = Math.max.apply(Math, data);
         }
 
-        //offtakeChart.data.datasets[0].data = offtakeChartData[offtakeSelectedID];
-        //offtakeChart.update();
+        const tickMin = Math.floor(minTemp * 0.9);
+        const tickMax = Math.ceil(maxTemp * 1.10);
+        const stepAmount = Math.floor((tickMax - tickMin) / 10);
+        offtakeChart.options.scales.yAxes[0].ticks.min = tickMin;
+        offtakeChart.options.scales.yAxes[0].ticks.max = tickMax;
+        offtakeChart.options.scales.yAxes[0].ticks.stepSize = stepAmount;
+        offtakeChart.options.title.text = titleText;
+        offtakeChart.update();
 }
 
 function csvSingleYear(){
@@ -510,4 +718,23 @@ function calculateMemoryUsage(){
                 return (numBytes/1000).toFixed(2) + ' KB';
         else
                 return (numBytes/1000000).toFixed(2) + ' MB';
+}
+
+//based on https://stackoverflow.com/questions/1152024/best-way-to-generate-a-random-color-in-javascript/14187677#14187677
+function getRandomColor(){
+        let brightness = 50;
+        function randomChannel(brightness){
+                let r = 255-brightness;
+                let n = 0|((Math.random() * r) + brightness);
+                let s = n.toString(16);
+                return (s.length==1) ? '0' + s : s;
+        }
+        return '#' + randomChannel(brightness) + randomChannel(brightness) + randomChannel(brightness);
+}
+
+function refreshCanvas(){
+        localAreaChart.update();
+        entireAreaChart.update();
+        offtakeChart.update();
+        map.updateSize();
 }
