@@ -151,7 +151,7 @@ function createLocalCDFChart(){
                                         color: 'grey',
                                         font: { weight: 'bold' },
                                         formatter: function(value, context) {
-                                                return value.toFixed(2) + ' %';
+                                                return !isNaN(value) ? value.toFixed(2) + ' %' : '- %';
                                         }
                                 }
                         },
@@ -730,8 +730,15 @@ function getRandomColor(){
 }
 
 function refreshCanvas(){
-        localAreaChart.update();
-        entireAreaChart.update();
-        offtakeChart.update();
+        if(simulationRun){
+                localAreaChart.update();
+                entireAreaChart.update();
+                offtakeChart.update();
+        }
+        bingLayers[0].getSource().refresh();
+        bingLayers[1].getSource().refresh();
+        if(imageLayer)
+                imageLayer.getSource().refresh();
+        
         map.updateSize();
 }

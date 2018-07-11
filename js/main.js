@@ -20,13 +20,7 @@ $(document).ready(function() {
         $('#debugModeToggle').prop('checked', false);
         $('#offtakeLegendToggle').prop('checked', false);
         $('#tabFillerButton').addClass('disabled');
-        $(window).focus(function() {
-                if(simulationRun){
-                        refreshCanvas();
-                } else {
-                        map.updateSize();
-                }
-        });
+        $(window).focus(function() {refreshCanvas();});
         setupPersistConfigs();
         populatePersistSaves();
         setupMapping();

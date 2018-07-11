@@ -416,7 +416,7 @@ function generateCircleCoords(origCenter, radius){
 
 function generateCanvas(data){
         let canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
+        let ctx = canvas.getContext('2d');
 
         canvas.width = data.x * data.scale;
         canvas.height = data.y * data.scale;
@@ -445,6 +445,10 @@ function generateCanvas(data){
         case 'highRes':
                 canvasImage.onload = function(){
                         drawCanvasToMap(simRunData.years, canvasImage);
+                        let topLeft = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[0]);
+                        let botRight = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[1]);
+                        let testExtent = [topLeft[0], botRight[1], botRight[0], topLeft[1]];
+                        map.getView().fit(testExtent, map.getSize());
                 }
                 break;
         case 'save':
@@ -484,11 +488,6 @@ function drawCanvasToMap(year, overrideImage){
                 imageLayer.set('name', 'imgLayer');
                 map.addLayer(imageLayer);
         }
-
-        let topLeft = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[0]);
-        let botRight = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[1]);
-        let testExtent = [topLeft[0], botRight[1], botRight[0], topLeft[1]];
-        map.getView().fit(testExtent, map.getSize());
 }
 
 function toggleVillageLabels(element){
