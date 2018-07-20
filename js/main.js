@@ -216,7 +216,7 @@ function showProgressBar(message, value){
                 $('#progressBar').removeClass('indeterminate').addClass('determinate').css({'width': value + '%'});
         }
 
-        let element = document.getElementById("prgressContainer");
+        let element = document.getElementById("progressContainer");
         element.classList.add("scale-in")
         element.classList.remove("scale-out");
 }
@@ -235,7 +235,7 @@ function updateProgressBar(message, value){
 }
 
 function closeProgressBar(){
-        $('#prgressContainer').addClass("scale-out").removeClass("scale-in");
+        $('#progressContainer').addClass("scale-out").removeClass("scale-in");
 }
 
 function modalDialog(title, msg, callback){
