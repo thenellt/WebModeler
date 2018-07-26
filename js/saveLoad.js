@@ -1,11 +1,4 @@
-/* global simData*/
-
-var appCache = window.applicationCache;
 var persistCompatibility = false;
-
-appCache.addEventListener('updateready', updateApp, false);
-appCache.addEventListener('noupdate', checkCompatibility, false);
-appCache.addEventListener('cached', checkCompatibility, false);
 
 function updateApp(){
         console.log("update app triggered");
@@ -16,6 +9,7 @@ function updateApp(){
 
 function checkCompatibility(){
         let compatible = true;
+        let serviceWorkerSupport = setupServiceWorker();
         if(typeof(Worker) == "undefined") //web workers
                 compatible = false;
         let testVar = 'test';
@@ -31,19 +25,53 @@ function checkCompatibility(){
                 document.getElementById('getStarted').classList.remove("hide");
                 persistCompatibility = true;
                 document.body.scrollTop = document.documentElement.scrollTop = 0;
+                setupPersistConfigs();
+                populatePersistSaves();
                 document.getElementById('getStarted').classList.add('scale-in');
                 setTimeout(function(){
                         let errorTab = document.getElementById('javascriptError');
                         let parent = errorTab.parentNode;
                         parent.removeChild(errorTab);
-                }, 400);
+                }, 400);      
+                if(!serviceWorkerSupport){
+                        let title = "Partially Supported Browser";
+                        let msg = "Your browser lacks supports for offline caching. <br>";
+                        msg += "The application will function normally but will not avaliable without an internet connection."
+                        modalDialog(title, msg);
+                } 
         } else {
                 let title = "Unsupported Browser";
-                let msg = "Your browser lacks support for critical features used by WebModeler. <br>";
-                mst += "Please update your browser or download the latest version of Chrome/Chromium for best support."
+                let msg = "Your browser lacks support for critical javascript features used by WebModeler. <br>";
+                msg += "Please update your browser to the lastest version of Firefox, Edge, Chrome/Chromium, or Safari for best support."
                 $('#coverScreen').modal('close');
                 modalDialog(title, msg);
         }
+}
+
+function setupServiceWorker(){
+        if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('../serviceWorker.js').then(function (registration) {
+                                registration.addEventListener('updatefound', function () {
+                                        // If updatefound is fired, it means that there's
+                                        // a new service worker being installed.
+                                        var installingWorker = registration.installing;
+                                        installingWorker.addEventListener('statechange', function(e) {
+                                                //if(e.target.state == )
+                                        });
+                                        console.log('A new service worker is being installed:', installingWorker);
+                                        /*installingWorker.addEventListener('statechange', function(e){
+                                                console.log("test: ");
+                                                console.log(JSON.stringify(e));
+                                        });*/
+                                });
+                        }).catch(function (error) {
+                                console.log('Service worker registration failed:', error);
+                        });
+        } else {
+                return false;
+        }
+
+        return true;
 }
 
 function loadFromFile(fileName){
@@ -175,20 +203,16 @@ function loadPopulationData(popData){
                 if(!temp.HPHY)
                         temp.HPHY = "";
 
+                let tempRow = new uiRow(temp.long, temp.lat, temp.population, temp.killRate,
+                        temp.name, temp.growthRate, temp.HPHY, temp.id, temp.type, temp.valid);
                 if(temp.type === "exp"){
-                        let tempRow = new uiRow(temp.long, temp.lat, temp.population, temp.killRate,
-                                temp.name, temp.growthRate, temp.HPHY, temp.id, temp.valid);
-                        addEntry(tempRow);
-                }
-                else if(temp.type === "yearly"){
-                        let tempRow = new uiYearlyRow(temp.name, temp.long, temp.lat, temp.population, temp.killRate,
-                                temp.HPHY, temp.id, temp.valid);
+                        addRow(tempRow);
+                } else {
                         addYearlyRow(tempRow);
                 }
 
-                if(temp.valid){
+                if(temp.valid)
                         addPopToMap(temp.id, temp.name, parseFloat(temp.long), parseFloat(temp.lat), temp.type === "yearly");
-                }
         }
 }
 
@@ -599,8 +623,8 @@ function parseCSVExpEntry(data){
         }
         
         if(tName && tLat && tLong && tPop && tGrowth && tKill){
-                let tRow = new uiRow(tLong, tLat, tPop, tKill, tName, tGrowth, 0, true);
-                addEntry(tRow);
+                let tRow = new uiRow(tLong, tLat, tPop, tKill, tName, tGrowth, "", 0, 'exp', true);
+                addRow(tRow);
                 addPopToMap(tRow.id, tName, tLong, tLat, false);
                 return true;
         }
@@ -615,8 +639,7 @@ function parseCSVYearlyEntry(data){
         let tKill = checkFloat(data[3], -1.0, 1.0) ? parseFloat(data[3]) : false;
         if(tKill === -1){
                 tKill = "";
-        }
-        else if(tKill < 0){
+        } else if(tKill < 0) {
                 tKill = false;
         }
 
@@ -624,8 +647,7 @@ function parseCSVYearlyEntry(data){
         for(let i = 4; i < data.length; i++){
                 if(checkInt(data[i], 1, Number.MAX_SAFE_INTEGER)){
                         tPop.push(parseInt(data[i]));
-                }
-                else{
+                } else {
                         tPop = false;
                         break;
                 }
@@ -636,7 +658,7 @@ function parseCSVYearlyEntry(data){
         }
 
         if(tName && tLat && tLong && tPop && tKill){
-                let tRow = new uiYearlyRow(tName, tLong, tLat, tPop, tKill, 0, true);
+                let tRow = new uiRow(tLong, tLat, tPop, tKill, tName, "", "", 0, true);
                 addYearlyRow(tRow);
                 addPopToMap(tRow.id, tName, tLong, tLat, false);
                 return true;

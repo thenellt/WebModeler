@@ -1,8 +1,6 @@
 var popupEvntFunction;
-var currentId;
 var olmapLocation;
 var simulationRun;
-var advSettingsFnc;
 var modalEventFnc;
 var simData = {};
 var simRunData;
@@ -21,10 +19,9 @@ $(document).ready(function() {
         $('#offtakeLegendToggle').prop('checked', false);
         $('#tabFillerButton').addClass('disabled');
         $(window).focus(function() {refreshCanvas();});
-        setupPersistConfigs();
-        populatePersistSaves();
         setupMapping();
         setupTabSystem();
+        checkCompatibility();
 });
 
 function newSimulation(){

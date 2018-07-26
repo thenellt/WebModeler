@@ -572,7 +572,8 @@ function checkPositionInformation(pos, year){
 
 function getTownPop(town, year){
         if(town.type === "exp"){
-                return town.population*Math.pow(1 + town.growthRate, year);
+                const tmpValue = town.population*Math.pow(1 + town.growthRate, year);
+                return tmpValue >= 0.0 ? tmpValue : 0.0;
         } else if(town.type === "yearly") {
                 return town.population[year];
         }

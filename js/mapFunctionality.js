@@ -115,7 +115,6 @@ function setupMapping(){
         bingLayers[1].setVisible(false);
         isPopMoving = false;
         settlementStatsOpen = false;
-        makeDraggable(document.getElementById('popInfoCard'));
 }
 
 function setupCustomMouseControl(){
@@ -168,7 +167,7 @@ function placePopulation(e){
         map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
                 tempFeatures.push(feature);
         }, {hitTolerance: 3});
-        let dropdownActive = document.getElementById('dropdown1').classList.contains('active');
+        let dropdownActive = document.getElementById('mapDropdown').classList.contains('active');
 
         if(isMenuOpen && dropdownActive){
                 isMenuOpen = false;
@@ -188,7 +187,7 @@ function placePopulation(e){
                 });
                 setTimeout(function(){
                         $('#dropEditOption').off('click').click(function(){
-                                showPopUpdater(tempId);   
+                                showPopEditor(false, tempId);   
                         });
                         $('#dropMoveOption').off('click').click(function(){
                                 startPopMove(tempId);

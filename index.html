@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" manifest="manifest.appcache">
+<html lang="en">
 <head>
         <meta charset="UTF-8">
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <!--<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">-->
         <link rel="stylesheet" type="text/css" href="css/ol.css">
         <link rel="stylesheet" type="text/css" href="css/materialize.min.css">
         <link rel="stylesheet" type="text/css" href="css/otherStyle.css">
@@ -190,7 +190,7 @@
                                         </div>
                                         <div id="popMapContent" class="hide" style="height: 80%; width: 100%;">
                                                 <div class="row">
-                                                        <div class="col s9"><i>Click on the map to add a population to that location. Click on an existing population to edit it.</i></div>
+                                                        <div class="col s9"><i>Click on the map to add a population at that location. Click on an existing population to edit it.</i></div>
                                                         <div class="switch">
                                                                 <label>
                                                                         Arial Map
@@ -205,8 +205,8 @@
                                                         <div id="popMapDiv" class="map" style="height: 500px; min-width: 600px;"></div>
                                                 </div>
                                                 <div class="divider" style="margin-top: 4px; margin-bottom: 8px;"></div>
-                                                <a class='dropdown-button btn' style="visibility: hidden; position: absolute; margin-left: 0; margin-top: 0;" data-activates='dropdown1' id="dropDownTest"></a>
-                                                <ul id='dropdown1' class='dropdown-content' style="position: absolute;">
+                                                <a class='dropdown-button btn' style="visibility: hidden; position: absolute; margin-left: 0; margin-top: 0;" data-activates='mapDropdown' id="dropDownTest"></a>
+                                                <ul id='mapDropdown' class='dropdown-content' style="position: absolute;">
                                                         <li><a id="dropEditOption">Edit</a></li>
                                                         <li><a id="dropMoveOption" style="color: #424242;">Move</a></li>
                                                         <li class="divider"></li>
@@ -252,7 +252,7 @@
                                                                 </a>
                                                         </div>
                                                         <div class="col s4" style="margin-top: 8px;">
-                                                                <a class="waves-effect waves-light btn" id="addRowButton" onclick='addRow("popTable", -1)'>
+                                                                <a class="waves-effect waves-light btn" id="addRowButton" onclick='addRow()'>
                                                                         Exponential Settlement
                                                                 </a>
                                                         </div>
@@ -654,7 +654,7 @@
                         <h4>Population Properties</h4>
                         <div class="row"><div class="col s12">
                                 <i>
-                                        Kill Rate (percentage chance to kill an animal during an encounter) can be left blank in order to use the one from the parameters page.
+                                        Kill Rate and HPHY are optional can be left blank in order to use the values from the parameters page.
                                 </i>
                         </div></div>
                         <ul class="collection">
@@ -675,15 +675,39 @@
                                 </li>
                                 <li class="collection-item hide" style="padding: 5px 5px 5px 5px;" id="mapEditorYearlyPop">
                                         <div class="row" style="margin-bottom: 0px;">
-                                                <div class="col s8"><h5>Population:</h5></div>
                                                 <div class="col s4">
-                                                        <a class="waves-effect waves-light btn" onclick="openYearlyEditor(currentId);" style="margin-top: 8px;"> Edit Population</a>
+                                                        <h5>Population:</h5>
+                                                </div>
+                                                <div class="col s4" style="margin-top: 12px;">
+                                                        <div class="switch">
+                                                                <label>
+                                                                        <i>Discrete</i>
+                                                                        <input type="checkbox" onchange="togglePopEditorMode(this.checked)" checked="true" id="editorToggleYearly">
+                                                                        <span class="lever"></span>
+                                                                        <i>Exponential</i>
+                                                                </label>
+                                                        </div>
+                                                </div>
+                                                <div class="col s4">
+                                                        <a class="waves-effect waves-light btn" onclick="openYearlyEditor('popEditor');" style="margin-top: 8px;"> Edit Population</a>
                                                 </div>
                                         </div>
                                 </li>
                                 <li class="collection-item" style="padding: 5px 5px 5px 5px;" id="mapEditorExpPop">
                                         <div class="row" style="margin-bottom: 0px;">
-                                                <div class="col s8"><h5>Population:</h5></div>
+                                                <div class="col s4">
+                                                        <h5>Population:</h5>
+                                                </div>
+                                                <div class="col s4" style="margin-top: 12px;">
+                                                        <div class="switch">
+                                                                <label>
+                                                                        <i>Discrete</i>
+                                                                        <input type="checkbox" onchange="togglePopEditorMode(this.checked)" checked="true" id="editorToggleExp">
+                                                                        <span class="lever"></span>
+                                                                        <i>Exponential</i>
+                                                                </label>
+                                                        </div>
+                                                </div>
                                                 <div class="col s4"><input type="text" id="floatPop" style="margin-bottom: 5px;"></div>
                                         </div>
                                 </li>
@@ -701,19 +725,23 @@
                                 </li>
                                 <li class="collection-item" style="padding: 5px 5px 5px 5px;">
                                         <div class="row" style="margin-bottom: 0px;">
-                                                <div class="col s8"><h5>Override Global HPHY:</h5></div>
+                                                <div class="col s8">
+                                                        <h5>HPHY:</h5>
+                                                </div>
                                                 <div class="col s4"><input type="text" id="floatHPHY" style="margin-bottom: 5px;"></div>
                                         </div>
-                                        <div class="row" style="margin-bottom: 0px;">
-                                                <div class="col s8"><h6><i>Leave blank to use the value from the Parameters Page</i></h6></div>
+                                        <div class="row" style="margin: 0px;">
+                                                <div class="col s12">
+                                                        <i>(Hunts per hunter per year)</i>
+                                                </div>
                                         </div>
                                 </li>
                         </ul>
                 </div>
                 <div class="modal-footer">
-                        <a href="#!" class="waves-effect waves-red btn red darken-2 left" onclick="popEditorPassthrough(2)" style="margin-left: 8px; display: none;" id="editorDeleteButton">Delete</a>
-                        <a href="#!" class="waves-effect waves-green btn" onclick="popEditorPassthrough(0);" style="margin-right: 8px;">Done</a>
-                        <a href="#!" class="waves-effect waves-red btn red lighten-2" onclick="popEditorPassthrough(1);"
+                        <a href="#!" class="waves-effect waves-red btn red darken-2 left" onclick="closePopEditor(2)" style="margin-left: 8px;" id="editorDeleteButton">Delete</a>
+                        <a href="#!" class="waves-effect waves-green btn" onclick="closePopEditor(0);" style="margin-right: 8px;">Done</a>
+                        <a href="#!" class="waves-effect waves-red btn red lighten-2" onclick="closePopEditor(1);"
                                 style="margin-right: 24px;">Cancel</a>
                 </div>
         </div>
