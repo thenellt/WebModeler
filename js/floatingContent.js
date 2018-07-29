@@ -264,11 +264,21 @@ function closeYearlyEditor(mode){
                                 popEditorTempPopulation = results;
                         } else {
                                 uiData[yearlyEditorId].population = results;
+                                if(checkYearlyRowData(uiData[yearlyEditorId])){
+                                        $('#' + yearlyEditorId).addClass("validRow");
+                                } else {
+                                        $('#' + yearlyEditorId).removeClass("validRow");
+                                }
                         }
 
                         notifyMessage("Found " + results.length + " years of data", 3);
-                } else if(yearlyEditorId){
-                        uiData[yearlyEditorId].population = [];
+                } else {
+                        if(yearlyEditorId){
+                                uiData[yearlyEditorId].population = [];
+                                $('#' + yearlyEditorId).removeClass("validRow");
+                        }
+                        
+                        notifyMessage("No valid data found", 3);
                 }
         }
 

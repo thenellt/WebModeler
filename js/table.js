@@ -224,6 +224,8 @@ function checkRowData(rowData, rowPos){
 }
 
 function checkYearlyRowData(rowData){
+        const tmpYear = parseInt(document.getElementById("paramYears").value, 10);
+        const years = tmpYear ? tmpYear : 10;
         if(isNaN(parseFloat(rowData.lat))){
                 console.log("checkYearlyRowData::failed at lat: " + rowData.lat);
                 return false;
@@ -238,6 +240,9 @@ function checkYearlyRowData(rowData){
                 return false;
         } else if(rowData.HPHY && isNaN(parseFloat(rowData.HPHY, 10)) && rowData.HPHY.length > 0){
                 console.log("checkYearlyRowData::failed at killrate");
+                return false;
+        } else if(!rowData.population || (rowData.population.length < years)){
+                console.log("checkYearlyRowData::failed at population");
                 return false;
         }
 
