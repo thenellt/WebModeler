@@ -241,8 +241,8 @@ function checkPopEditor(){
         let killString = document.getElementById("floatKill").value;
         if(killString.length){
                 let killValue = parseFloat(document.getElementById("floatKill").value, 10);
-                if(isNaN(killValue) || killValue < 0 || killValue > 1){
-                        notifyMessage("Kill rate must be between 0.0 and 1.0", 3);
+                if(isNaN(killValue) || killValue < 0){
+                        notifyMessage("Kill rate must be at least 0.0", 3);
                         $('#floatKill').focus();
                         return false;
                 }

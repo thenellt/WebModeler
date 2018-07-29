@@ -17,7 +17,7 @@ var ySize;
 var grid;
 var diffusionGrid;
 var growth;
-var effort;
+var offtake;
 var towns;
 var eaPointSet = [];
 var points = [];
@@ -66,7 +66,7 @@ function runSimulation(parameters){
         generateSingleCDFData(towns[0].id, simData.huntRange);
         generateCDFPictureData(towns[0].id, simData.huntRange);
         generateOfftakeData();
-        self.postMessage({type:'finished', paramData:{name: simData.simName, duration:simData.years, 
+        self.postMessage({type:'finished', paramData:{name: simData.simName, duration:simData.years,
                           xSize:xSize, ySize:ySize, geoGrid:geoGrid, townData:towns, bounds: bounds}});
         generateImageData({'scale': 2, 'year': simData.years, 'dest': 'highRes'});
 }
@@ -85,7 +85,7 @@ function unpackParams(data){
         
         if(data.debug){
                 logMessage("unpackParams: debugMode set");
-                DEBUG = true;  
+                DEBUG = true;
         } else
                 DEBUG = false;
 }
@@ -98,7 +98,7 @@ function allocateMemory(){
 
         diffusionGrid = new Array(ySize);
         growth = new Array(ySize);
-        effort = new Array(ySize);
+        offtake = new Array(ySize);
 
         for(let i = 0; i < simData.years + 1; i++){
                 grid[i] = new Array(ySize);
@@ -110,13 +110,16 @@ function allocateMemory(){
         for(let k = 0; k < ySize; k++){
                 diffusionGrid[k] = new Array(xSize).fill(0.0);
                 growth[k] = new Array(xSize).fill(0.0);
-                effort[k] = new Array(xSize).fill(0.0);
+                offtake[k] = new Array(xSize).fill(0.0);
         }
 
         for(let i = 0; i < towns.length; i++){
                 towns[i].offtake = [];
-                for(let j = 0; j < simData.years; j++)
+                towns[i].effort = [];
+                for(let j = 0; j < simData.years; j++){
                         towns[i].offtake.push(0.0);
+                        towns[i].effort.push(0.0);
+                }
         }
 }
 
@@ -269,14 +272,16 @@ function calculateModel(){
                                         locationValue = Math.pow(towns[settleNum].x - x, 2) + Math.pow(towns[settleNum].y - y, 2);
                                         top = Math.exp((-1)/(2*Math.pow(simData.huntRange, 2)) * locationValue);
                                         bot = 2*Math.PI*Math.sqrt(locationValue + 1);
-                                        let effortValue = (towns[settleNum].HPHY*getTownPop(towns[settleNum], curYear)*top)/bot;
-                                        effort[y][x] = settleNum ? effort[y][x] + effortValue : effortValue;            
-                                        towns[settleNum].offtake[curYear] += simData.killProb * simData.encounterRate * effortValue * grid[curYear][y][x];
+                                        const effortValue = (towns[settleNum].HPHY*getTownPop(towns[settleNum], curYear)*top)/bot;
+                                        const offtakeValue = towns[settleNum].killRate * simData.encounterRate * effortValue * grid[curYear][y][x];
+                                        offtake[y][x] = settleNum ? offtake[y][x] + offtakeValue : offtakeValue;
+                                        towns[settleNum].offtake[curYear] += offtakeValue;
+                                        towns[settleNum].effort[curYear] += effortValue;
                                 }
                                 //n[year,:,:]*lambdas-lambdas*n[year,:,:]*(n[year,:,:]/density)**theta
                                 //growth[y][x] = animalGrowthRate*grid[curYear][y][x] - animalGrowthRate*grid[curYear][y][x]*Math.pow((grid[curYear][y][x]/carryCapacity), theta);
                                 growth[y][x] = simData.animalGrowthRate * grid[curYear][y][x] * (1 - Math.pow((grid[curYear][y][x]/simData.carryCapacity), simData.theta));
-                                let gridValue = grid[curYear][y][x] + diffusionGrid[y][x] + growth[y][x] - simData.killProb * simData.encounterRate*effort[y][x]*grid[curYear][y][x];
+                                let gridValue = grid[curYear][y][x] + diffusionGrid[y][x] + growth[y][x] - offtake[y][x];
                                 grid[curYear + 1][y][x] = gridValue > 0.0 ? gridValue : 0.0;
                         }
                 }
@@ -334,7 +339,7 @@ function generateImageData(params, gradient){
         }
 
         const posArray = [geoGrid[ySize - 1][0][0], geoGrid[ySize - 1][0][1], geoGrid[0][xSize - 1][0], geoGrid[0][xSize - 1][1]];
-        self.postMessage({type:'imgData', year:params.year, scale:params.scale, dest:params.dest, position:posArray, 
+        self.postMessage({type:'imgData', year:params.year, scale:params.scale, dest:params.dest, position:posArray,
                           x:xSize, y:ySize, array:imgData}, [imgData.buffer]);
 }
 
@@ -371,7 +376,7 @@ function setupGradient(){
                         tempColor[3] = 255;
                         gradient.push(tempColor.slice());
                 }
-        }     
+        }
         else{
                 var redRange = midColor[0] - coolColor[0];
                 var greenRange = midColor[1] - coolColor[1];
@@ -385,7 +390,7 @@ function setupGradient(){
                         tempColor[2] = Math.round(blueRange * colorOffset) + coolColor[2];
                         tempColor[3] = 255;
                         gradient.push(tempColor.slice());
-                }  
+                }
 
                 redRange = hotColor[0] - midColor[0];
                 greenRange = hotColor[1] - midColor[1];
@@ -399,7 +404,7 @@ function setupGradient(){
                         tempColor[3] = 255;
                         gradient.push(tempColor.slice());
                 }
-        }  
+        }
 
         //should really look into replacing this with a formula
         gradient[0][3] = 0;
@@ -465,7 +470,7 @@ function generateCDFPictureData(id, range){
                                 }
                         }
                 }
-                self.postMessage({type:'singleCDFImages', year:year, x:xSize, y:ySize, 
+                self.postMessage({type:'singleCDFImages', year:year, x:xSize, y:ySize,
                                   array:imgData}, [imgData.buffer]);
         }
 }
@@ -584,7 +589,7 @@ function logMessage(msgString){
 }
 
 function generateCircleCoords(center, radius){
-        var coordinates = [];   
+        var coordinates = [];
         var angle = 0;
         for(let i = 0; i < 36; i++, angle += (Math.PI * 2)/36){
                 const xMod = Math.cos(angle) * (radius * 1000);
