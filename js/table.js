@@ -177,7 +177,7 @@ function updateUIData(rowPos, cellPos, cellType, newValue){
                         break;
         }
 
-        let status = (settlement.type === "exp") ? checkRowData(settlement, rowPos) : checkYearlyRowData(settlement, rowPos);
+        let status = (settlement.type === "exp") ? checkRowData(settlement) : checkYearlyRowData(settlement);
         if(status && !settlement.valid){ //data point has become complete -> add it to map and towns
                 addPopToMap(settlement.id, settlement.name, parseFloat(settlement.long),
                             parseFloat(settlement.lat), settlement.type === "yearly");
@@ -196,7 +196,7 @@ function updateUIData(rowPos, cellPos, cellType, newValue){
         }
 }
 
-function checkRowData(rowData, rowPos){
+function checkRowData(rowData){
         if(isNaN(parseFloat(rowData.lat))){
                 console.log("checkRowData::failed at lat: " + rowData.lat);
                 return false;
@@ -255,8 +255,7 @@ function checkKey(e){
         case  9: e.preventDefault();
                 if(e.shiftKey){
                         return 2
-                }
-                else{
+                } else {
                         return 1;
                 }
         default: return 0;

@@ -1,5 +1,8 @@
 var appCache = 'app-cache';
-var extCache = 'ext-cache';
+var earthCache = 'earth-cache';
+var tileCache = 'tile-cache';
+const ONE_DAY = 24 * 60 * 60 * 1000;
+var earthCacheAge;
 var fileNames = [
         './',
         './index.html',
@@ -45,82 +48,98 @@ self.onmessage = function(msg){
 
 self.addEventListener('install', function (evt) {
         console.log('The service worker is being installed.');
+        earthCacheAge = false;
+        self.skipWaiting();
         evt.waitUntil(precache());
 });
 
+self.addEventListener('activate', function(event){
+        console.log("activate");
+        event.waitUntil(self.clients.claim())
+});
+
 self.addEventListener('fetch', function (evt) {
-        evt.respondWith(caches.open('app-cache').then(function (appCache) {
-                return appCache.match(evt.request).then(function (response) {
-                        if(response) 
-                                console.log('app-cache: ' + evt.request.url);
-                        return response || fetch(evt.request).then(function (response) {
-                                console.log('fetch: ' + evt.request.url);
+        const url = new URL(evt.request.url);
+        if(url.origin === 'https://dev.virtualearth.net'){
+                evt.respondWith(accessEarthCache(evt.request));
+        } else if(url.search.endsWith('shading=hill')) {
+                evt.respondWith(caches.open('tile-cache').then(function (tileCache) {
+                        return tileCache.match(evt.request).then(function (response) {
+                                return response || fetch(evt.request).then(function (response) {
+                                        console.log('fetching new tile: ' + evt.request.url);
+                                        if(response.status === 200 || response.type == "opaque"){
+                                                tileCache.put(evt.request, response.clone());
+                                                return response;
+                                        } else {
+                                                return Promise.reject('no-match');
+                                        }
+                                });
+                        });
+                }));
+        } else {
+                evt.respondWith(caches.open('app-cache').then(function (appCache) {
+                        return appCache.match(evt.request).then(function (response) {
+                                if(response) 
+                                        console.log('app-cache: ' + evt.request.url);
+                                return response || fetch(evt.request).then(function (response) {
+                                        console.log('fetch: ' + evt.request.url);
+                                        if(response.status === 200 || response.type == "opaque"){
+                                                //extCache.put(evt.request, response.clone());
+                                                return response;
+                                        } else {
+                                                return Promise.reject('no-match');
+                                        }
+                                });
+                        });
+                }));
+        }
+});
+
+function accessEarthCache(request){
+        console.log(request.url);
+        if(!earthCacheAge || ((new Date) - earthCacheAge > ONE_DAY) && navigator.onLine){
+                earthCacheAge = new Date();
+                return caches.open('earth-cache').then(function (earthCache) {
+                        earthCache.keys().then(function(keyList) {
+                                return Promise.all(keyList.map(function(key) {
+                                        return earthCache.delete(key);
+                                }));
+                        });
+                }).then(function(){
+                        return fetch(request).then(function(response){
                                 if(response.status === 200 || response.type == "opaque"){
-                                        //extCache.put(evt.request, response.clone());
-                                        return response;
+                                        return caches.open('earth-cache').then(function (earthCache) {
+                                                earthCache.put(request, response.clone());
+                                                console.log('returning response');
+                                                return response;
+                                        });
                                 } else {
                                         return Promise.reject('no-match');
                                 }
                         });
-                        /*
-                        caches.open('ext-cache').then(function (extCache) {
-                                return extCache.match(evt.request).then(function (response) {
-                                        if(response) 
-                                                console.log('ext-cache: ' + evt.request.url);
-                                        return response || fetch(evt.request).then(function (response) {
-                                                console.log('fetch: ' + evt.request.url);
+                });
+                
+        } else if(earthCacheAge){
+                return caches.open('earth-cache').then(function (earthCache) {
+                        return earthCache.match(request).then(function (response) {
+                                if(response){
+                                        console.log('earthCache: ' + request.url);
+                                        return response;
+                                } else {
+                                        console.log('earth cache miss: ' + request.url);
+                                        return fetch(request).then(function(response){
                                                 if(response.status === 200 || response.type == "opaque"){
-                                                        extCache.put(evt.request, response.clone());
-                                                        return response;
+                                                        return caches.open('earth-cache').then(function (earthCache) {
+                                                                earthCache.put(request, response.clone());
+                                                                console.log('returning response');
+                                                                return response;
+                                                        });
                                                 } else {
                                                         return Promise.reject('no-match');
                                                 }
                                         });
-                                });
+                                }
                         });
-                        */
                 });
-        }));
-});
-
-function precache() {
-        return caches.open(appCache).then(function (cache) {
-                return cache.addAll(fileNames);
-        });
-}
-
-// Time limited network request. If the network fails or the response is not
-// served before timeout, the promise is rejected.
-function fromNetwork(request, timeout) {
-        return new Promise(function (fulfill, reject) {
-                // Reject in case of timeout.
-                var timeoutId = setTimeout(reject, timeout);
-                // Fulfill in case of success.
-                fetch(request).then(function (response) {
-                        clearTimeout(timeoutId);
-                        fulfill(response);
-                        // Reject also if network fetch rejects.
-                }, reject);
-        });
-}
-
-// Open the cache where the assets were stored and search for the requested
-// resource. Notice that in case of no matching, the promise still resolves
-// but it does with `undefined` as value.
-function fromCache(request) {
-        return caches.open(CACHE).then(function (cache) {
-                return cache.match(request).then(function (matching) {
-                        return matching || Promise.reject('no-match');
-                });
-        });
-}
-
-// Update consists in opening the cache, performing a network request and
-// storing the new response data.
-function update(request) {
-        return caches.open(CACHE).then(function (cache) {
-                return fetch(request).then(function (response) {
-                        return cache.put(request, response);
-                });
-        });
+        }
 }

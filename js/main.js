@@ -19,7 +19,6 @@ $(document).ready(function() {
         $('#offtakeLegendToggle').prop('checked', false);
         $('#tabFillerButton').addClass('disabled');
         $(window).focus(function() {refreshCanvas();});
-        setupMapping();
         setupTabSystem();
         checkCompatibility();
 });
@@ -183,7 +182,7 @@ function changeMapView(isRoadMap){
         if(isRoadMap && !bingLayers[0].getVisible()){
                 bingLayers[1].setVisible(false);
                 bingLayers[0].setVisible(true);
-        } else if(!isRoadMap && !bingLayers[1].getVisible()) {
+        } else if(!isRoadMap && !bingLayers[1].getVisible() && navigator.onLine) {
                 bingLayers[0].setVisible(false);
                 bingLayers[1].setVisible(true);
         }

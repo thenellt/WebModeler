@@ -9,7 +9,7 @@ function updateApp(){
 
 function checkCompatibility(){
         let compatible = true;
-        let serviceWorkerSupport = setupServiceWorker();
+        //let serviceWorkerSupport = setupServiceWorker();
         if(typeof(Worker) == "undefined") //web workers
                 compatible = false;
         let testVar = 'test';
@@ -20,7 +20,9 @@ function checkCompatibility(){
                 compatible = false;
         }
 
-        if(compatible){
+        if(compatible && setupServiceWorker()){
+                console.log('waiting for worker');
+        } else if(compatible) {
                 document.getElementById("javascriptError").style.display = "none";
                 document.getElementById('getStarted').classList.remove("hide");
                 persistCompatibility = true;
@@ -32,13 +34,14 @@ function checkCompatibility(){
                         let errorTab = document.getElementById('javascriptError');
                         let parent = errorTab.parentNode;
                         parent.removeChild(errorTab);
-                }, 400);      
+                }, 1000);      
                 if(!serviceWorkerSupport){
                         let title = "Partially Supported Browser";
                         let msg = "Your browser lacks supports for offline caching. <br>";
                         msg += "The application will function normally but will not avaliable without an internet connection."
                         modalDialog(title, msg);
-                } 
+                        setupMapping();
+                }
         } else {
                 let title = "Unsupported Browser";
                 let msg = "Your browser lacks support for critical javascript features used by WebModeler. <br>";
@@ -50,28 +53,46 @@ function checkCompatibility(){
 
 function setupServiceWorker(){
         if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('../serviceWorker.js').then(function (registration) {
+                if(navigator.serviceWorker.controller){
+                        checkForUpdates();
+                        setupMapping();
+                        document.getElementById("javascriptError").style.display = "none";
+                        document.getElementById('getStarted').classList.remove("hide");
+                        persistCompatibility = true;
+                        document.body.scrollTop = document.documentElement.scrollTop = 0;
+                        setupPersistConfigs();
+                        populatePersistSaves();
+                        document.getElementById('getStarted').classList.add('scale-in');
+                        setTimeout(function(){
+                                let errorTab = document.getElementById('javascriptError');
+                                let parent = errorTab.parentNode;
+                                parent.removeChild(errorTab);
+                        }, 1000);
+                } else {
+                        navigator.serviceWorker.register('../serviceWorker.js').then(function (registration) {
+                                console.log('ServiceWorker registration successful with scope: ', registration.scope);
                                 registration.addEventListener('updatefound', function () {
-                                        // If updatefound is fired, it means that there's
-                                        // a new service worker being installed.
-                                        var installingWorker = registration.installing;
-                                        installingWorker.addEventListener('statechange', function(e) {
-                                                //if(e.target.state == )
+                                        var activeWorker = registration.installing;
+                                        activeWorker.addEventListener('statechange', function(e) {
+                                                if(e.currentTarget.state === "activated"){
+                                                        console.log("active event");
+                                                        window.location.reload()
+                                                }
                                         });
-                                        console.log('A new service worker is being installed:', installingWorker);
-                                        /*installingWorker.addEventListener('statechange', function(e){
-                                                console.log("test: ");
-                                                console.log(JSON.stringify(e));
-                                        });*/
+                                        //console.log('A new service worker is being installed:', installingWorker);
                                 });
                         }).catch(function (error) {
                                 console.log('Service worker registration failed:', error);
                         });
+                }
+                return true;
         } else {
                 return false;
         }
+}
 
-        return true;
+function checkForUpdates(){
+        console.log("found service worker, requesting update check");
 }
 
 function loadFromFile(fileName){
