@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
         <meta charset="UTF-8">
-        <!--<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">-->
+        <link rel="shortcut icon" type="image/png" href="images/baseline_layers_black_48.png"/>
+        <link rel="manifest" href="manifest.json" />
         <link rel="stylesheet" type="text/css" href="css/ol.css">
         <link rel="stylesheet" type="text/css" href="css/materialize.min.css">
         <link rel="stylesheet" type="text/css" href="css/otherStyle.css">
@@ -29,7 +30,7 @@
                         <p>A bunch of text...</p>
                 </div>
                 <div class="modal-footer">
-                        <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Close</a>
+                        <a class="modal-action modal-close waves-effect waves-green btn-flat ">Close</a>
                 </div>
         </div>
         
@@ -39,7 +40,7 @@
                         <div id="changeLogEntries" style="height: 90%; overflow: scroll; overflow-x: hidden;"></div>
                 </div>
                 <div class="modal-footer">
-                        <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Close</a>
+                        <a class="modal-action modal-close waves-effect waves-green btn-flat ">Close</a>
                 </div>
         </div>
         <table id="mainContentContainer">
@@ -182,8 +183,8 @@
                                                 <div class="col s3" style="padding: 16px 0px 0px 0px;">
                                                         <a class='dropdown-button btn' href='#' data-activates='viewDropdown'>Change View</a>
                                                         <ul id='viewDropdown' class='dropdown-content'>
-                                                                <li><a href="#!" id="dropdownMapView">Map View</a></li>
-                                                                <li><a href="#!" id="dropdownTableView">Table View</a></li>
+                                                                <li><a id="dropdownMapView">Map View</a></li>
+                                                                <li><a id="dropdownTableView">Table View</a></li>
                                                         </ul>
                                                 </div>
 
@@ -643,8 +644,8 @@
 
                 </div>
                 <div class="modal-footer">
-                        <a href="#!" class="waves-effect waves-green btn" onclick="closeAdvancedSettings(0);" style="margin-right: 8px;">Done</a>
-                        <a href="#!" class="waves-effect waves-red btn red darken-2" onclick="closeAdvancedSettings(1);"
+                        <a class="waves-effect waves-green btn" onclick="closeAdvancedSettings(0);" style="margin-right: 8px;">Done</a>
+                        <a class="waves-effect waves-red btn red darken-2" onclick="closeAdvancedSettings(1);"
                                 style="margin-right: 24px;">Cancel</a>
                 </div>
         </div>
@@ -739,9 +740,9 @@
                         </ul>
                 </div>
                 <div class="modal-footer">
-                        <a href="#!" class="waves-effect waves-red btn red darken-2 left" onclick="closePopEditor(2)" style="margin-left: 8px;" id="editorDeleteButton">Delete</a>
-                        <a href="#!" class="waves-effect waves-green btn" onclick="closePopEditor(0);" style="margin-right: 8px;">Done</a>
-                        <a href="#!" class="waves-effect waves-red btn red lighten-2" onclick="closePopEditor(1);"
+                        <a class="waves-effect waves-red btn red darken-2 left" onclick="closePopEditor(2)" style="margin-left: 8px;" id="editorDeleteButton">Delete</a>
+                        <a class="waves-effect waves-green btn" onclick="closePopEditor(0);" style="margin-right: 8px;">Done</a>
+                        <a class="waves-effect waves-red btn red lighten-2" onclick="closePopEditor(1);"
                                 style="margin-right: 24px;">Cancel</a>
                 </div>
         </div>
@@ -751,8 +752,8 @@
                         <p id="sysContent"></p>
                 </div>
                 <div class="modal-footer">
-                        <a href="#!" class="waves-effect waves-green btn" style="margin-right: 8px;" id="sysConfirm">Ok</a>
-                        <a href="#!" class="waves-effect waves-red btn red darken-2" style="margin-right: 24px;" id="sysCancel">Cancel</a>
+                        <a class="waves-effect waves-green btn" style="margin-right: 8px;" id="sysConfirm">Ok</a>
+                        <a class="waves-effect waves-red btn red darken-2" style="margin-right: 24px;" id="sysCancel">Cancel</a>
                 </div>
         </div>
         <div id="fullScreenMap" class="modal modal-fixed-footer modal-fullscreen">
@@ -778,7 +779,7 @@
                         </div>
                 </div>
                 <div class="modal-footer">
-                        <a href="#!" class="waves-effect waves-green btn" style="margin-right: 8px;" onclick="closeFullscreenViewer()">Done</a>
+                        <a class="waves-effect waves-green btn" style="margin-right: 8px;" onclick="closeFullscreenViewer()">Done</a>
                 </div>
         </div>
         <div id="popImportDialog" class="modal modal-fixed-footer" style="max-width: 80%; width: 80%; max-height: 90%; height: 90% !important;">
@@ -855,8 +856,8 @@
                         <form style="display: none;" id="loadPopFileForm"><input id="loadPopFileButton" type="file" onchange='loadPopsFromFile(this)' style="display: none;"></form>
                 </div>
                 <div class="modal-footer">
-                        <a href="#!" class="waves-effect waves-red btn blue left" style="margin-left: 18px; margin-right: 16px;" id="importDiagSelectFile" onclick="document.getElementById('loadPopFileButton').click();">Import</a>
-                        <a href="#!" class="modal-action modal-close waves-effect waves-green btn" style="margin-right: 18px;" id="importDiagConfirm">Done</a>
+                        <a class="waves-effect waves-red btn blue left" style="margin-left: 18px; margin-right: 16px;" id="importDiagSelectFile" onclick="document.getElementById('loadPopFileButton').click();">Import</a>
+                        <a class="modal-action modal-close waves-effect waves-green btn" style="margin-right: 18px;" id="importDiagConfirm">Done</a>
                 </div>
         </div>
         <div id="yearlyPopEditor" class="modal modal-fixed-footer" style="max-width: 65%; width: 65%; max-height: 450px; height: 50% !important; ">
@@ -875,8 +876,8 @@
                         </div></div>
                 </div>
                 <div class="modal-footer">
-                        <a href="#!" class="waves-effect waves-green btn" onclick="closeYearlyEditor('save')" style="margin-right: 8px;">Done</a>
-                        <a href="#!" class="waves-effect waves-red btn red lighten-2" onclick="closeYearlyEditor('clear')"
+                        <a class="waves-effect waves-green btn" onclick="closeYearlyEditor('save')" style="margin-right: 8px;">Done</a>
+                        <a class="waves-effect waves-red btn red lighten-2" onclick="closeYearlyEditor('clear')"
                                 style="margin-right: 24px;">Cancel</a>
                 </div>
         </div>

@@ -23,6 +23,26 @@ $(document).ready(function() {
         checkCompatibility();
 });
 
+function initApp(fullSupport){
+        document.getElementById("javascriptError").style.display = "none";
+        document.getElementById('getStarted').classList.remove("hide");
+        document.body.scrollTop = document.documentElement.scrollTop = 0;
+        setupPersistConfigs();
+        populatePersistSaves();
+        document.getElementById('getStarted').classList.add('scale-in');
+        setTimeout(function(){
+                let errorTab = document.getElementById('javascriptError');
+                let parent = errorTab.parentNode;
+                parent.removeChild(errorTab);
+        }, 1000);
+        if(!fullSupport){
+                let title = "Partially Supported Browser";
+                let msg = "Your browser lacks supports for offline caching. <br>";
+                msg += "The application will function normally but will not avaliable without an internet connection."
+                modalDialog(title, msg);
+        }
+}
+
 function newSimulation(){
         var tempDate = new Date();
         simData.simID = tempDate.valueOf();
@@ -410,4 +430,10 @@ function toggleDebugControl(element){
         } else {
                 $("#debugVisControlBox, #debugVisFControlBox").css('visibility', 'hidden');
         }
+}
+
+function verifyUpdate(){
+        modalConfirmation("Update Avaliable", "Refresh the page to activate the update?.", function(){
+                window.location.reload();
+        });
 }

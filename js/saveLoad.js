@@ -1,15 +1,8 @@
-var persistCompatibility = false;
-
-function updateApp(){
-        console.log("update app triggered");
-        modalDialog('Application Update', 'An update to the app is avaliable, the page will now reload to finish the update.', function(){
-                window.location.reload();
-        });
-}
-
 function checkCompatibility(){
         let compatible = true;
-        //let serviceWorkerSupport = setupServiceWorker();
+        let serviceWorkerSupport = false;
+        if ('serviceWorker' in navigator)
+                serviceWorkerSupport = true;
         if(typeof(Worker) == "undefined") //web workers
                 compatible = false;
         let testVar = 'test';
@@ -20,28 +13,11 @@ function checkCompatibility(){
                 compatible = false;
         }
 
-        if(compatible && setupServiceWorker()){
-                console.log('waiting for worker');
+        if(compatible && serviceWorkerSupport){
+                setupServiceWorker();
         } else if(compatible) {
-                document.getElementById("javascriptError").style.display = "none";
-                document.getElementById('getStarted').classList.remove("hide");
-                persistCompatibility = true;
-                document.body.scrollTop = document.documentElement.scrollTop = 0;
-                setupPersistConfigs();
-                populatePersistSaves();
-                document.getElementById('getStarted').classList.add('scale-in');
-                setTimeout(function(){
-                        let errorTab = document.getElementById('javascriptError');
-                        let parent = errorTab.parentNode;
-                        parent.removeChild(errorTab);
-                }, 1000);      
-                if(!serviceWorkerSupport){
-                        let title = "Partially Supported Browser";
-                        let msg = "Your browser lacks supports for offline caching. <br>";
-                        msg += "The application will function normally but will not avaliable without an internet connection."
-                        modalDialog(title, msg);
-                        setupMapping();
-                }
+                initApp(false);
+                setupMapping();
         } else {
                 let title = "Unsupported Browser";
                 let msg = "Your browser lacks support for critical javascript features used by WebModeler. <br>";
@@ -52,47 +28,42 @@ function checkCompatibility(){
 }
 
 function setupServiceWorker(){
-        if ('serviceWorker' in navigator) {
-                if(navigator.serviceWorker.controller){
-                        checkForUpdates();
-                        setupMapping();
-                        document.getElementById("javascriptError").style.display = "none";
-                        document.getElementById('getStarted').classList.remove("hide");
-                        persistCompatibility = true;
-                        document.body.scrollTop = document.documentElement.scrollTop = 0;
-                        setupPersistConfigs();
-                        populatePersistSaves();
-                        document.getElementById('getStarted').classList.add('scale-in');
-                        setTimeout(function(){
-                                let errorTab = document.getElementById('javascriptError');
-                                let parent = errorTab.parentNode;
-                                parent.removeChild(errorTab);
-                        }, 1000);
-                } else {
-                        navigator.serviceWorker.register('../serviceWorker.js').then(function (registration) {
-                                console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                                registration.addEventListener('updatefound', function () {
-                                        var activeWorker = registration.installing;
-                                        activeWorker.addEventListener('statechange', function(e) {
-                                                if(e.currentTarget.state === "activated"){
-                                                        console.log("active event");
-                                                        window.location.reload()
-                                                }
-                                        });
-                                        //console.log('A new service worker is being installed:', installingWorker);
-                                });
-                        }).catch(function (error) {
-                                console.log('Service worker registration failed:', error);
-                        });
-                }
-                return true;
+        if(navigator.serviceWorker.controller){
+                checkForUpdates();
+                setupMapping();
         } else {
-                return false;
+                navigator.serviceWorker.register('../serviceWorker.js').then(function (registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        registration.addEventListener('updatefound', function () {
+                                var activeWorker = registration.installing;
+                                activeWorker.addEventListener('statechange', function(e) {
+                                        if(e.currentTarget.state === "activated"){
+                                                console.log("active event");
+                                                window.location.reload();
+                                        }
+                                });
+                        });
+                }).catch(function (error) {
+                        console.log('Service worker registration failed:', error);
+                });
         }
 }
 
 function checkForUpdates(){
-        console.log("found service worker, requesting update check");
+        console.log("Service worker detected: requesting update check");
+        readLocalFile("./manifest.json", 'GET', function(responseText) {
+                let object = JSON.parse(responseText);
+                var responseChannel = new MessageChannel();
+                responseChannel.port1.onmessage = function(event){
+                        if(event.data === "noUpdate"){
+                                initApp(true);
+                        } else if(event.data === "update"){
+                                console.log("updateFound");
+                                window.location.reload();
+                        }
+                };
+                navigator.serviceWorker.controller.postMessage({request:"checkUpdate",version:object.version}, [responseChannel.port2]);
+        });
 }
 
 function loadFromFile(fileName){

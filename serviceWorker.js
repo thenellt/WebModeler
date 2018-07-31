@@ -8,6 +8,7 @@ var fileNames = [
         './index.html',
         './changelog.txt',
         './keys.js',
+        './manifest.json',
         './js/model.js',
         './js/simulationSetup.js',
         './js/mapFunctionality.js',
@@ -39,11 +40,24 @@ var fileNames = [
         './fonts/roboto/Roboto-Regular.woff',
         './fonts/roboto/Roboto-Regular.woff2',
         './fonts/roboto/Roboto-Thin.woff',
-        './fonts/roboto/Roboto-Thin.woff2'
+        './fonts/roboto/Roboto-Thin.woff2',
+        './images/baseline_layers_black_192.png',
+        './images/baseline_layers_black_48.png'
 ];
 
 self.onmessage = function(msg){
-        console.log("service worker::" + msg.data);
+        console.log("service worker::" + msg.data.request);
+        switch(msg.data.request){
+        case 'checkUpdate':
+                queryUpdates(msg.data.version, msg.ports[0]);
+                break;
+        case 'clearAppCache':
+                break;
+        case 'clearEarthCache':
+                break;
+        case 'clearTileCache':
+                break;
+        }
 }
 
 self.addEventListener('install', function (evt) {
@@ -54,8 +68,8 @@ self.addEventListener('install', function (evt) {
 });
 
 self.addEventListener('activate', function(event){
-        console.log("activate");
-        event.waitUntil(self.clients.claim())
+        console.log("The service worker is activating.");
+        event.waitUntil(self.clients.claim());
 });
 
 self.addEventListener('fetch', function (evt) {
@@ -66,7 +80,6 @@ self.addEventListener('fetch', function (evt) {
                 evt.respondWith(caches.open('tile-cache').then(function (tileCache) {
                         return tileCache.match(evt.request).then(function (response) {
                                 return response || fetch(evt.request).then(function (response) {
-                                        console.log('fetching new tile: ' + evt.request.url);
                                         if(response.status === 200 || response.type == "opaque"){
                                                 tileCache.put(evt.request, response.clone());
                                                 return response;
@@ -79,24 +92,25 @@ self.addEventListener('fetch', function (evt) {
         } else {
                 evt.respondWith(caches.open('app-cache').then(function (appCache) {
                         return appCache.match(evt.request).then(function (response) {
-                                if(response) 
+                                if(response) {
                                         console.log('app-cache: ' + evt.request.url);
-                                return response || fetch(evt.request).then(function (response) {
-                                        console.log('fetch: ' + evt.request.url);
-                                        if(response.status === 200 || response.type == "opaque"){
-                                                //extCache.put(evt.request, response.clone());
-                                                return response;
-                                        } else {
-                                                return Promise.reject('no-match');
-                                        }
-                                });
+                                        return response;
+                                } else {
+                                        return fetch(evt.request).then(function (response) {
+                                                console.log('fetch: ' + evt.request.url);
+                                                if(response.status === 200 || response.type == "opaque"){
+                                                        return response;
+                                                } else {
+                                                        return Promise.reject('no-match');
+                                                }
+                                        });
+                                }
                         });
                 }));
         }
 });
 
 function accessEarthCache(request){
-        console.log(request.url);
         if(!earthCacheAge || ((new Date) - earthCacheAge > ONE_DAY) && navigator.onLine){
                 earthCacheAge = new Date();
                 return caches.open('earth-cache').then(function (earthCache) {
@@ -110,7 +124,6 @@ function accessEarthCache(request){
                                 if(response.status === 200 || response.type == "opaque"){
                                         return caches.open('earth-cache').then(function (earthCache) {
                                                 earthCache.put(request, response.clone());
-                                                console.log('returning response');
                                                 return response;
                                         });
                                 } else {
@@ -131,13 +144,39 @@ function accessEarthCache(request){
                                                 if(response.status === 200 || response.type == "opaque"){
                                                         return caches.open('earth-cache').then(function (earthCache) {
                                                                 earthCache.put(request, response.clone());
-                                                                console.log('returning response');
                                                                 return response;
                                                         });
                                                 } else {
                                                         return Promise.reject('no-match');
                                                 }
                                         });
+                                }
+                        });
+                });
+        }
+}
+
+function precache() {
+        return caches.open(appCache).then(function (cache) {
+                return cache.addAll(fileNames);
+        });
+}
+
+function queryUpdates(loadedVersion, responsePort){
+        if(!navigator.onLine){
+                responsePort.postMessage("noUpdate");
+        } else {
+                fetch(location.origin + "/manifest.json").then(function(response){
+                        response.json().then(function(data){
+                                console.log("Service worker found version: " + data.version);
+                                if(data.version > loadedVersion){
+                                        caches.open(appCache).then(function (cache) {
+                                                cache.addAll(fileNames).then(function() {
+                                                        responsePort.postMessage("update");
+                                                });
+                                        });
+                                } else {
+                                        responsePort.postMessage("noUpdate");
                                 }
                         });
                 });

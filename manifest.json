@@ -1,0 +1,17 @@
+{
+  "name": "WebModeler",
+  "description": "Animal Population simulation in the web.",
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "theme_color": "#f7454c",
+  "display": "standalone",
+  "version": "29b",
+  "icons": [{
+    "src": "images/baseline_layers_black_48.png",
+    "sizes": "48x48",
+    "type": "image/png"
+  },{
+    "src": "images/baseline_layers_black_192.png",
+    "sizes": "192x192"
+  }]
+}
