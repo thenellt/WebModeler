@@ -60,6 +60,9 @@ function checkForUpdates(){
                         } else if(event.data === "update"){
                                 console.log("updateFound");
                                 window.location.reload();
+                        } else if(event.data === "error"){
+                                console.log("there was a problem fetching updates");
+                                initApp(true);
                         }
                 };
                 navigator.serviceWorker.controller.postMessage({request:"checkUpdate",version:object.version}, [responseChannel.port2]);

@@ -1,6 +1,5 @@
-var appCache = 'app-cache';
-var earthCache = 'earth-cache';
-var tileCache = 'tile-cache';
+const myCaches = ['app-cache', 'earth-cache','tile-cache'];
+var tileCount;
 const ONE_DAY = 24 * 60 * 60 * 1000;
 var earthCacheAge;
 var fileNames = [
@@ -63,8 +62,16 @@ self.onmessage = function(msg){
 self.addEventListener('install', function (evt) {
         console.log('The service worker is being installed.');
         earthCacheAge = false;
+        tileCount = 0;
         self.skipWaiting();
-        evt.waitUntil(precache());
+        evt.waitUntil(precache().then(function(){
+                caches.open('tile-cache').then(function(tileCache){
+                        tileCache.keys().then(function(keyList) {
+                                if(keyList.length)
+                                        tileCount = keyList.length;
+                        });
+                });
+        }));
 });
 
 self.addEventListener('activate', function(event){
@@ -80,9 +87,22 @@ self.addEventListener('fetch', function (evt) {
                 evt.respondWith(caches.open('tile-cache').then(function (tileCache) {
                         return tileCache.match(evt.request).then(function (response) {
                                 return response || fetch(evt.request).then(function (response) {
-                                        if(response.status === 200 || response.type == "opaque"){
-                                                tileCache.put(evt.request, response.clone());
-                                                return response;
+                                        if(response.status === 200){
+                                                if(tileCount > 400){
+                                                        return tileCache.keys().then(function(keyList) {
+                                                                return Promise.all(keyList.map(function(key) {
+                                                                        return tileCache.delete(key);
+                                                                }));
+                                                        }).then(function(){
+                                                                tileCache.put(evt.request, response.clone());
+                                                                tileCount = 1;
+                                                                return response;
+                                                        });
+                                                } else {
+                                                        tileCache.put(evt.request, response.clone());
+                                                        tileCount++;
+                                                        return response;
+                                                }
                                         } else {
                                                 return Promise.reject('no-match');
                                         }
@@ -157,7 +177,7 @@ function accessEarthCache(request){
 }
 
 function precache() {
-        return caches.open(appCache).then(function (cache) {
+        return caches.open('app-cache').then(function (cache) {
                 return cache.addAll(fileNames);
         });
 }
@@ -170,7 +190,7 @@ function queryUpdates(loadedVersion, responsePort){
                         response.json().then(function(data){
                                 console.log("Service worker found version: " + data.version);
                                 if(data.version > loadedVersion){
-                                        caches.open(appCache).then(function (cache) {
+                                        caches.open('app-cache').then(function (cache) {
                                                 cache.addAll(fileNames).then(function() {
                                                         responsePort.postMessage("update");
                                                 });
@@ -179,6 +199,8 @@ function queryUpdates(loadedVersion, responsePort){
                                         responsePort.postMessage("noUpdate");
                                 }
                         });
+                }).catch(function(){
+
                 });
         }
 }
