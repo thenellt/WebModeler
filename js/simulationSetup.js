@@ -36,14 +36,14 @@ function setupSimDefaults(){
 }
 
 function readUserParameters(){
-        simData.years = parseInt(document.getElementById("paramYears").value, 10) || simData.years;
-        simData.carryCapacity = parseFloat(document.getElementById("paramCarry").value) || simData.carryCapacity;
-        simData.animalDiffRate = parseFloat(document.getElementById("paramDifRate").value) || simData.animalDiffRate;
-        simData.animalGrowthRate = parseFloat(document.getElementById("paramGrowthRate").value) || simData.animalGrowthRate;
-        simData.encounterRate = parseFloat(document.getElementById("paramEncounterRate").value) || simData.encounterRate;
-        simData.killProb = parseFloat(document.getElementById("paramKillProb").value) || simData.killProb;
-        simData.HpHy = parseInt(document.getElementById("paramHphy").value, 10) || simData.HpHy;
-        simData.huntRange = parseInt(document.getElementById("rangeHphy").value, 10) || 10;
+        simData.years = checkParam('paramYears', simData.years, false);
+        simData.carryCapacity = checkParam('paramCarry', simData.carryCapacity, true);
+        simData.animalDiffRate = checkParam('paramDifRate', simData.animalDiffRate, true);
+        simData.animalGrowthRate = checkParam('paramGrowthRate', simData.animalGrowthRate, true);
+        simData.encounterRate = checkParam('paramEncounterRate', simData.encounterRate, true);
+        simData.killProb = checkParam('paramKillProb', simData.killProb, true);
+        simData.HpHy = checkParam('paramHphy', simData.HpHy, false);
+        simData.huntRange = checkParam('rangeHphy', simData.huntRange, false);
 
         var tempLow = document.getElementById("paramLowColor").value;
         if(tempLow.length > 0){
@@ -69,10 +69,21 @@ function readUserParameters(){
                 simData.simName = tempName;
         }
 
-        simData.theta = parseFloat(document.getElementById("paramTheta").value) || simData.theta;
-        simData.diffusionSamples = parseInt(document.getElementById("diffSamples").value, 10) || simData.diffusionSamples;
-        simData.opacity = parseFloat(document.getElementById("imgOpacity").value) || simData.opacity;
-        simData.boundryWidth = parseInt(document.getElementById("boundryWidth").value, 10) || simData.boundryWidth;
+        simData.theta = checkParam('paramTheta', simData.theta, true);
+        simData.diffusionSamples = checkParam('diffSamples', simData.diffusionSamples, false);
+        simData.opacity = checkParam('imgOpacity', simData.opacity, true);
+        simData.boundryWidth = checkParam('boundryWidth', simData.boundryWidth, false);
+}
+
+function checkParam(id, backup, isFloat){
+        var parse;
+        if(isFloat){
+                parse = parseFloat(document.getElementById(id).value);
+        } else {
+                parse = parseInt(document.getElementById(id).value, 10);
+        }
+
+        return isNaN(parse) ? backup : parse;
 }
 
 function setupTowns(){

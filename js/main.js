@@ -10,6 +10,18 @@ var progBarDet;
 $(document).ready(function() {
         $('#projBackground, #changelogPopup, #popImportDialog').modal();
         $('#yearlyPopEditor, #coverScreen, #fullScreenMap, #sysDialog').modal({dismissible: false});
+        $('#visualCollapsable').collapsible({
+                onOpen: function(el) { 
+                        if(el[0].childNodes[1].childNodes[0].data === "Heatmap with Sattelite Overlay"
+                           && simulationRun){
+                                bingLayers[0].getSource().refresh();
+                                bingLayers[1].getSource().refresh();
+                                if(imageLayer)
+                                        imageLayer.getSource().refresh();
+                                map.updateSize();
+                        }
+                }
+        });
         $('#advancedSettings').modal({dismissible: false, ready: showAdvancedSettings});
         $('#dropDownTest').dropdown({inDuration: 75, outDuration: 25,});
         $("#CDFSetSelection").change(function() {changeCDFSettlement();}); 

@@ -448,6 +448,7 @@ function generateCanvas(data){
                         let botRight = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[1]);
                         let testExtent = [topLeft[0], botRight[1], botRight[0], topLeft[1]];
                         map.getView().fit(testExtent, map.getSize());
+                        document.getElementById('contentContainer').appendChild(canvasImage);
                 }
                 break;
         case 'save':
@@ -468,7 +469,7 @@ function drawCanvasToMap(year, overrideImage){
                 imageLayer.setSource(
                         new ol.source.ImageStatic({
                                 url: canvasImage.src,
-                                imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
+                                //imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
                                 projection: 'mollweide',
                                 imageExtent: location
                         })
@@ -478,7 +479,7 @@ function drawCanvasToMap(year, overrideImage){
                         opacity: simData.opacity,
                         source: new ol.source.ImageStatic({
                             url: canvasImage.src,
-                            imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
+                            //imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
                             projection: 'mollweide',
                             imageExtent: location
                         })

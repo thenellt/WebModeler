@@ -55,6 +55,19 @@ function populateOtherInfo(){
         document.getElementById('oStatsRightCorner').innerHTML = rightCorner[0].toFixed(3) + ', ' + rightCorner[1].toFixed(3);
 }
 
+function showPerformanceDetails(){
+        const title = "Performance Details";
+        let body = "<table>";
+        for(let i = 0; i < simResults.perfData.length; i++){
+                body += "<tr><td style='padding: 0;'>Year " + (i + 1) + "</td>";
+                body += "<td style='padding: 0;'>" + simResults.perfData[i].toFixed(2) + " ms </td></tr>";
+        }
+        body += "<tr><td style='padding: 0;'>Visualization Time</td>";
+        body += "<td style='padding: 0;'>" + simResults.visTime.toFixed(2) + " ms </td></tr>";
+        body += "</table>";
+        modalDialog(title, body);
+}
+
 Chart.plugins.register({
         beforeDraw: function(c) {
                 var ctx = c.chart.ctx;
