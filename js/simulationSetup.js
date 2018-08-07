@@ -159,15 +159,9 @@ function sanitizeTownData(uiTown){
 function setupSimulation(){
         if(!checkSettings())
                 return;
-
-        var cleanup = document.getElementById("rawHeatmapContainer");
-        while (cleanup.firstChild) {
-                cleanup.removeChild(cleanup.firstChild);
-        }
         
         setupSimDefaults();
         readUserParameters();
-        const debugMode = document.getElementById("debugModeToggle").checked;
 
         let townData = setupTowns();
         if(!townData)
@@ -190,7 +184,7 @@ function setupSimulation(){
         setupStatsPage();
 
         showProgressBar("Setting up simulation", 0);
-        workerThread.postMessage({type:"newSim", params:simData, towns:townData, debug:debugMode});
+        workerThread.postMessage({type:"newSim", params:simData, towns:townData});
 }
 
 function handleWorkerMessage(data){
@@ -202,7 +196,6 @@ function handleWorkerMessage(data){
                 simResults = data.paramData;
                 synchPersisObject();
                 tabManager.changeTab(pageTabs.MAPS);
-                rawHWScaleInput(100);
                 populateSelectionsFields();
                 simulationTime = getTime() - simulationTime;
                 populateOtherInfo();

@@ -19,8 +19,6 @@ function setupStatsPage(){
         document.getElementById("heatmapYearLabel").innerHTML = "Heatmap Year: " + heatMapYear;
         document.getElementById("entireCDFYearLabel").innerHTML = "Simulation Year: " + heatMapYear;
         document.getElementById("singleCDFYearLabel").innerHTML = "Simulation Year: " + heatMapYear;
-        document.getElementById("rawHeatmapYear").max = simRunData.years;
-        document.getElementById("rawHeatmapYear").value = simRunData.years;
         document.getElementById("csvNumberInput").max = simRunData.years;
         entireAreaYear = localAreaYear = simRunData.years;
         offtakeSelectedID = 'all';
@@ -28,8 +26,7 @@ function setupStatsPage(){
         localAreaSelectedID = uiData[Object.keys(uiData)[0]].id;
         localAreaPictures = new Array(simRunData.years + 1);
         document.getElementById("singleCDFRangeLabel").innerHTML = "Radius: " + localAreaRange + " km";
-        document.getElementById("opacitySlider").value = simRunData.opacity * 100;
-        document.getElementById("opacityLabel").innerHTML = "Overlay Opacity: " + simRunData.opacity * 100  + "%";
+        document.getElementById("heatmapOpacitySlider").value = simRunData.opacity * 100;
 }
 
 function populateOtherInfo(){
@@ -358,13 +355,6 @@ function downloadGraph(containerID){
         $('#' + containerID).get(0).toBlob(function(blob){
                 saveAs(blob, name);
         });
-}
-
-function rawHWScaleInput(value){
-        const newWidth = simResults.xSize * (value / 100);
-        const newHeight = simResults.ySize * (value / 100);
-
-        document.getElementById('heatmapScaleText').innerHTML = "Image Resolution: " + newWidth + "px by " + newHeight + "px";
 }
 
 function populateSelectionsFields(){

@@ -276,7 +276,7 @@ function saveImgToFile(){
 }
 
 function saveHeatmapToFile(){
-        const requestYear = document.getElementById('rawHeatmapYear').value;
+        const requestYear = heatMapYear;
         const requestScale = document.getElementById('heatmapScale').value / 100;
         if(requestScale === 1){ 
                 heatMapImages.images[requestYear].toBlob(function(blob) {

@@ -5,7 +5,6 @@ const viewProjection = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs ";
 proj4.defs('espg4326', viewProjection);
 proj4.defs('mollweide', eaProjection);
 
-var DEBUG;
 var simData;
 var xSize;
 var ySize;
@@ -64,12 +63,12 @@ function runSimulation(parameters){
         generateSingleCDFData(towns[0].id, simData.huntRange);
         generateCDFPictureData(towns[0].id, simData.huntRange);
         generateOfftakeData();
-        //generateImageData({'scale': 2, 'year': simData.years, 'dest': 'highRes'});
-        genExploitationImgData();
+        //genExploitationImgData();
         let visTime = performance.now() - visStartTime;
         self.postMessage({type:'finished', paramData:{name: simData.simName, duration:simData.years,
                           xSize:xSize, ySize:ySize, geoGrid:geoGrid, townData:towns, bounds: bounds,
                           perfData:calcTimes, visTime:visTime}});
+        generateImageData({'scale': 5, 'year': simData.years, 'dest': 'highRes'});
 }
 
 function unpackParams(data){
@@ -83,12 +82,6 @@ function unpackParams(data){
         eaPointSet = [];
         for(let i = 0; i < points.length; i++)
                 eaPointSet.push(proj4(proj4('espg4326'), proj4('mollweide'), points[i]));
-        
-        if(data.debug){
-                logMessage("unpackParams: debugMode set");
-                DEBUG = true;
-        } else
-                DEBUG = false;
 }
 
 function allocateMemory(){
@@ -146,14 +139,12 @@ function generateBounds(){
         topOffset[1] = topLeft[1] + (1000 * range);
         var botOffset = [botRight[0] + 1000 * range, botRight[1] - 1000 * range];
 
-        if(DEBUG){
-                self.postMessage({type:'mapped', fnc:'pointDebug', data: {
-                        point:proj4(proj4('mollweide'), proj4('espg4326'), topOffset), color: "#6bf442"
-                }});
-                self.postMessage({type:'mapped', fnc:'pointDebug', data: {
-                        point:proj4(proj4('mollweide'), proj4('espg4326'), botOffset), color: "#e8f441"
-                }});
-        }
+        self.postMessage({type:'mapped', fnc:'pointDebug', data: {
+                point:proj4(proj4('mollweide'), proj4('espg4326'), topOffset), color: "#6bf442"
+        }});
+        self.postMessage({type:'mapped', fnc:'pointDebug', data: {
+                point:proj4(proj4('mollweide'), proj4('espg4326'), botOffset), color: "#e8f441"
+        }});
 
         return [topOffset, botOffset];
 }
@@ -175,38 +166,24 @@ function generategeoGrid(extremePoints){
         const xSize = geoGrid[0].length - 1;
         const ySize = geoGrid.length - 1;
 
-        if(DEBUG){
-                self.postMessage({type:'mapped', fnc:'extentDebug', data:{
-                        points:[geoGrid[0][0], geoGrid[0][xSize], geoGrid[ySize][xSize], geoGrid[ySize][0]], color:[255, 0, 0, .2]
-                }});
-                self.postMessage({type:'mapped', fnc:'extentDebug', data:{
-                        points:[geoGrid[ySize - 2][xSize - 2], geoGrid[ySize - 2][xSize - 1], geoGrid[ySize - 1][xSize - 1], geoGrid[ySize - 1][xSize - 2]], color:[255, 0, 0, .5]
-                }});
-                self.postMessage({type:'mapped', fnc:'extentDebug', data:{
-                        points:[geoGrid[ySize - 1][xSize - 1], geoGrid[ySize - 1][xSize], geoGrid[ySize][xSize], geoGrid[ySize][xSize - 1]], color:[255, 0, 0, .5]
-                }});
-                self.postMessage({type:'mapped', fnc:'extentDebug', data:{
-                        points:[geoGrid[0][0], geoGrid[0][1], geoGrid[1][1], geoGrid[1][0]], color:[255, 0, 0, .5]
-                }});
-                self.postMessage({type:'mapped', fnc:'extentDebug', data:{
-                        points:[geoGrid[0][xSize - 1], geoGrid[0][xSize], geoGrid[1][xSize], geoGrid[1][xSize - 1]], color:[255, 0, 0, .5]
-                }});
-                self.postMessage({type:'mapped', fnc:'extentDebug', data:{
-                        points:[geoGrid[ySize - 1][0], geoGrid[ySize - 1][1], geoGrid[ySize][1], geoGrid[ySize][0]], color:[255, 0, 0, .5]
-                }});
-
-                const column = Math.floor(xSize / 3 * 2);
-                for(let y = 0; y < ySize; y++){
-                        self.postMessage({type:'mapped', fnc:'extentDebug', data:{
-                                points:[geoGrid[y][column], geoGrid[y][column + 1], geoGrid[y + 1][column + 1], geoGrid[y + 1][column]], color:[255, 0, 0, .5]
-                        }});
-                }
-                for(let x = 0; x < xSize; x++){
-                        self.postMessage({type:'mapped', fnc:'extentDebug', data:{
-                                points:[geoGrid[0][x], geoGrid[0][x + 1], geoGrid[1][x + 1], geoGrid[1][x]], color:[255, 0, 0, .5]
-                        }});
-                }
-        }
+        self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                points:[geoGrid[0][0], geoGrid[0][xSize], geoGrid[ySize][xSize], geoGrid[ySize][0]], color:[255, 0, 0, .5]
+        }});
+        self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                points:[geoGrid[ySize - 2][xSize - 2], geoGrid[ySize - 2][xSize - 1], geoGrid[ySize - 1][xSize - 1], geoGrid[ySize - 1][xSize - 2]], color:[255, 0, 0, 1]
+        }});
+        self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                points:[geoGrid[ySize - 1][xSize - 1], geoGrid[ySize - 1][xSize], geoGrid[ySize][xSize], geoGrid[ySize][xSize - 1]], color:[255, 0, 0, 1]
+        }});
+        self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                points:[geoGrid[0][0], geoGrid[0][1], geoGrid[1][1], geoGrid[1][0]], color:[255, 0, 0, .5]
+        }});
+        self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                points:[geoGrid[0][xSize - 1], geoGrid[0][xSize], geoGrid[1][xSize], geoGrid[1][xSize - 1]], color:[255, 0, 0, 1]
+        }});
+        self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                points:[geoGrid[ySize - 1][0], geoGrid[ySize - 1][1], geoGrid[ySize][1], geoGrid[ySize][0]], color:[255, 0, 0, 1]
+        }});
 }
 
 
@@ -224,16 +201,14 @@ function placeLocations(){
                 y -= 1;
                 x -= 1;
 
-                if(DEBUG){
-                        logMessage("placeLocations: place pop: " + eaPointSet[i] + " at: " + x + ", " + y);
-                        self.postMessage({type:'mapped', fnc:'extentDebug', data:{
-                                points:[geoGrid[y][x], geoGrid[y][x+1], geoGrid[y+1][x+1], geoGrid[y+1][x]], color:[66, 134, 244, .7]
-                        }});
 
-                        const loc = [geoGrid[y][x][0] + 500, geoGrid[y][x][1] - 500];
-                        const coordinates = generateCircleCoords(loc, simData.huntRange);
-                        self.postMessage({type:'mapped', fnc:'circleDebug', data: {points:coordinates, color: [0, 0, 255, .3]}});
-                }
+                const loc = [geoGrid[y][x][0] + 500, geoGrid[y][x][1] - 500];
+                const coordinates = generateCircleCoords(loc, simData.huntRange);
+                self.postMessage({type:'mapped', fnc:'circleDebug', data: {points:coordinates, color: [0, 0, 255, 1]}});
+
+                self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                        points:[geoGrid[y][x], geoGrid[y][x+1], geoGrid[y+1][x+1], geoGrid[y+1][x]], color:[66, 134, 244, 1]
+                }});
 
                 towns[i].y = y;
                 towns[i].x = x;
@@ -309,11 +284,11 @@ function generateAnimationData(){
         self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Visualizing Data", statusValue: 100});
         let gradient = setupGradient();
         for(let curYear = 0; curYear <= simData.years - 1; curYear++){
-                let params = {'scale': 4, 'year': curYear, 'dest': 'animationFrame'};
+                let params = {'scale': 2, 'year': curYear, 'dest': 'animationFrame'};
                 generateImageData(params, gradient);
         }
 
-        let params = {'scale': 4, 'year': simData.years, 'dest': 'finalFrame'};
+        let params = {'scale': 2, 'year': simData.years, 'dest': 'finalFrame'};
         generateImageData(params, gradient);
 }
 
@@ -434,9 +409,7 @@ function setupGradient(){
         for(let i = 0; i < gradient.length; i++){
                 gradientOutput += gradient[i].toString() + " ";
         }
-        if(DEBUG){
-                logMessage("setupGradient::Result: " + gradientOutput);
-        }
+
         return gradient;
 }
 

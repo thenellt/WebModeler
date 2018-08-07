@@ -437,8 +437,6 @@ function generateCanvas(data){
                 canvasImage.onload = function(){
                         heatMapImages.pos = data.position;
                         heatMapImages.images[data.year] = canvasImage;
-                        canvasImage.classList.add('rawHeatmapImage');
-                        document.getElementById('rawHeatmapContainer').appendChild(canvasImage);
                 }
                 break;
         case 'highRes':
@@ -448,7 +446,6 @@ function generateCanvas(data){
                         let botRight = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[1]);
                         let testExtent = [topLeft[0], botRight[1], botRight[0], topLeft[1]];
                         map.getView().fit(testExtent, map.getSize());
-                        document.getElementById('contentContainer').appendChild(canvasImage);
                 }
                 break;
         case 'save':
@@ -490,17 +487,14 @@ function drawCanvasToMap(year, overrideImage){
         }
 }
 
-function toggleVillageLabels(element){
-        pointVector.setVisible(element.checked);
+function toggleLayerVisibility(layer, value){
+        layer.setVisible(value);
 }
 
-function toggleDebugLayer(element){
-        debugVector.setVisible(element.checked);
-        $('#debugViewToggle, #debugViewToggleF').prop('checked', element.checked);
+function toggleHeatmapLayer(toggle){
+        imageLayer.setVisible(toggle.checked);
 }
 
-function updateOutputOpacity(element){
-        let val = element.value;
-        document.getElementById("opacityLabel").innerHTML = "Overlay Opacity: " + val + "%";
-        imageLayer.setOpacity(val/100);
+function updateLayerOpacity(layer, value){
+        layer.setOpacity(value/100);
 }

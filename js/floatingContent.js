@@ -412,3 +412,14 @@ readLocalFile("./changelog.txt", 'GET', function(responseText) {
 
         document.getElementById('changeLogEntries').appendChild(list);
 });
+
+function toggleOverlaySelect(btn, isClose){
+        if(!isClose && btn.parentNode.querySelector('#layorSelector').classList.contains('scale-out')){
+                $('#layorSelector').addClass("scale-in").removeClass('scale-out');
+                $('#overlaySelectionBtn').css('background-color', '#9e9e9e');
+
+        } else {
+                $('#layorSelector').addClass("scale-out").removeClass('scale-in');
+                $('#overlaySelectionBtn').css('background-color', '#26a69a');
+        }
+}

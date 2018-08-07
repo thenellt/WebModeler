@@ -264,109 +264,156 @@
                                         <div class="row" style="margin-bottom: 8px;">
                                                 <div class="col s6"><h4>Simulation Results</h4></div>
                                         </div>
-                                        <ul class="collapsible" data-collapsible="accordion" id="visualCollapsable">
-                                                <li>
-                                                <div class="collapsible-header active">Heatmap with Sattelite Overlay</div>
-                                                <div class="collapsible-body" style="padding: 12px;">
-                                                        <div class="row" style="margin-bottom: 4px;">
-                                                                <div class="col s7">
-                                                                        The saved image will look as you see it below. Zoom or pan the map preview to select the area to save.
-                                                                </div>
-                                                                <div class="col s2" id="debugVisControlBox" style="visibility: hidden">
-                                                                        Debug View
-                                                                        <div class="switch" style="margin-top: 4px;">
-                                                                                <label>
-                                                                                        Off
-                                                                                        <input type="checkbox" onchange="toggleDebugLayer(this)" checked="true" id="debugViewToggle">
-                                                                                        <span class="lever"></span>
-                                                                                        On
-                                                                                </label>
-                                                                        </div>
-                                                                </div>
-                                                                <div class="col s3">
-                                                                        <a class="waves-effect waves-light btn right" id="mapFullscreenButton" onclick="openFullscreenViewer()">Fullscreen</a>
-                                                                </div>
-                                                        </div>
-                                                        <div class="row" id="resultsMapContainer">
-                                                                <div id="resultMapDiv" onmouseleave="requestUpdateKControl(false)"></div>
-                                                        </div>
-                                                        <div id="viewControlsContainer">
-                                                        <div class="row" style="margin-bottom: 0px;" id="viewerControls">
-                                                                <div class="col s4">
-                                                                        <div id="opacityLabel">
-                                                                                Overlay Opacity:
-                                                                        </div>
-                                                                        <p class="range-field" style="margin: 0px;">
-                                                                                <input type="range" id="opacitySlider" min="0" max="100" scale="1" oninput="updateOutputOpacity(this)" style="border: 0px;"/>
-                                                                        </p>
-                                                                </div>
-                                                                <div class="col s2">
-                                                                        Village Names:
-                                                                        <div class="switch" style="margin-top: 4px;">
-                                                                                <label>
-                                                                                        Off
-                                                                                        <input type="checkbox" onchange="toggleVillageLabels(this)" checked="true" id="popLabelToggle">
-                                                                                        <span class="lever"></span>
-                                                                                        On
-                                                                                </label>
-                                                                        </div>
-                                                                </div>
-                                                                <div class="col s3"><div class="right">
-                                                                        <div id="heatmapYearLabel">
-                                                                                Heatmap Year:
-                                                                        </div>
-                                                                        <div>
-                                                                                <a class="waves-effect waves-light btn" id="overlayUpButton" onclick="changeHeatmapOverlayYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
-                                                                                <a class="waves-effect waves-light btn" id="overlayDownButton" onclick="changeHeatmapOverlayYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
-                                                                                <a class="waves-effect waves-light btn blue lighten-2 tooltipped" id="overlayPlayButton" onclick="heatmapOverlayAnimation(0);"style="display: inline-block;"
-                                                                                        data-position="bottom" data-delay="100" data-tooltip="Cycle through the images for each year with a quarter-second delay.">Play</a>                
-                                                                        </div>
-                                                                </div></div>
-                                                                <div class="col s3" style="margin-top: 8px;">
-                                                                        <a class="waves-effect waves-light btn saveButton right" id="overlaySaveButton" onclick="saveImgToFile();">Save Image</a>
-                                                                </div>
-                                                        </div></div>
+                                        <div class="row" style="margin-bottom: 4px;">
+                                                <div class="col s9">
+                                                        The saved image will look as you see it below. Zoom or pan the map preview to select the area to save.
                                                 </div>
-                                                </li>
-                                                <li>
-                                                <div class="collapsible-header">Plain Heatmap</div>
-                                                <div class="collapsible-body" style="padding: 12px;">
-                                                        <div class="row">
-                                                                <div class="col s12">
-                                                                        Heatmap images are generated with a resolution of 1 pixel per square kilometer. For small simulations this can lead to a very small resulting picture which is why a scaler is provided. A preview of the the final year is shown below.
-                                                                </div>
+                                                <div class="col s3">
+                                                        <a class="waves-effect waves-light btn right" id="mapFullscreenButton" onclick="openFullscreenViewer()">Fullscreen</a>
+                                                </div>
+                                        </div>
+                                        <div class="row" id="resultsMapContainer">
+                                                <div id="resultMapDiv" onmouseleave="requestUpdateKControl(false)"></div>
+                                        </div>
+                                        <div id="viewControlsContainer">
+                                        <div class="row" style="margin-bottom: 0px;" id="viewerControls">
+                                                <div class="col s3" style="margin-top: 8px;">
+                                                        <a class="waves-effect waves-light btn" id="overlaySaveButton" onclick="saveImgToFile();">Save Image</a>
+                                                </div>
+                                                <div class="col s3"><div>
+                                                        <div id="heatmapYearLabel">
+                                                                Heatmap Year:
                                                         </div>
-                                                        <div class="row" id="rawHeatmapContainer" style="max-height: 500px; max-width: 1300px; min-width: 300px; overflow: auto;">
+                                                        <div>
+                                                                <a class="waves-effect waves-light btn" id="overlayUpButton" onclick="changeHeatmapOverlayYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
+                                                                <a class="waves-effect waves-light btn" id="overlayDownButton" onclick="changeHeatmapOverlayYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
+                                                                <a class="waves-effect waves-light btn blue lighten-2 tooltipped" id="overlayPlayButton" onclick="heatmapOverlayAnimation(0);"style="display: inline-block;"
+                                                                        data-position="bottom" data-delay="100" data-tooltip="Cycle through the images for each year with a quarter-second delay.">Play</a>                
+                                                        </div>
+                                                </div></div>
+                                                <div class="col s3 offset-s3" style="margin-top: 8px;">
+                                                        <div style="width: 116px; height: 36px; position: relative; overflow: visible;">
+                                                                <a class="btn" id="overlaySelectionBtn" style="width:116px;"onclick="toggleOverlaySelect(this);">Layers</a>
+                                                                <div id="layorSelector" class="arrow_box scale-transition scale-out">
+                                                                        <div class="row parameterRow">
+                                                                                <div class="col s10"><h5>Layers</h5></div>
+                                                                                <div class="col s2">
+                                                                                        <a class="waves-effect waves-light btn red" style="padding: 0px 6px 0px 6px; height: 32px; margin-top: 8px;" onclick="toggleOverlaySelect(this, true)">
+                                                                                                <h5 style="margin: 2px 0px 0px 0px;">X</h5>
+                                                                                        </a>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div class="divider" style="margin: 6px 0 8px 0;"></div>
 
-                                                        </div>
-                                                        <div class="row" id="rawHMControlsContainer">
-                                                                <div class="col s4" style="margin-top: 10px;" id="heatmapScaleText"></div>
-                                                                <div class="col s1" style="margin-top: 10px;">
-                                                                        Scale:
-                                                                </div>
-                                                                <div class="col s1">
-                                                                        <input type="number" min="100" max="1000" step="100" value="100" id="heatmapScale" style="margin-bottom: 0px;" onchange="rawHWScaleInput(this.value)">
-                                                                </div>
+                                                                        <div class="row parameterRow">
+                                                                                <div class="col s8">Village Names:</div>
+                                                                                <div class="col s4"><div class="switch" style="margin-top: 0px;">
+                                                                                        <label>
+                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(pointVector, this.checked)" checked="true" id="popLabelToggle">
+                                                                                                <span class="lever"></span>
+                                                                                        </label>
+                                                                                </div></div>
+                                                                        </div>
+                                                                        <div class="divider" style="margin: 8px 0 8px 0;"></div>
 
-                                                                <div class="col s2" style="margin-top: 10px;">
-                                                                        Year:
-                                                                </div>
-                                                                <div class="col s1">
-                                                                        <input type="number" min="0" step="1" id="rawHeatmapYear" style="margin-bottom: 0px;">
-                                                                </div>
-                                                                <div class="col s3" >
-                                                                        <a class="waves-effect waves-light btn" onclick="saveHeatmapToFile(0);" style="margin-top: 4px;">Save Year</a>
+                                                                        <div class="row parameterRow">
+                                                                                <div class="col s8">Heatmap:</div>
+                                                                                <div class="col s4"><div class="switch" style="margin-top: 0px;">
+                                                                                        <label>
+                                                                                                <input type="checkbox" onchange="toggleHeatmapLayer(this)" checked="true" id="heatmapToggle">
+                                                                                                <span class="lever"></span>
+                                                                                        </label>
+                                                                                </div></div>
+                                                                        </div>
+                                                                        <div class="row parameterRow" style="margin-top: 4px;">
+                                                                                <div class="col s5"><div style="margin-top: 4px;">Opacity:</div></div>
+                                                                                <div class="col s7">
+                                                                                        <p class="range-field" style="margin: 0px;">
+                                                                                                <input type="range" id="heatmapOpacitySlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(imageLayer, this.value)" style="border: 0px;"/>
+                                                                                        </p>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div class="divider" style="margin: 8px 0 8px 0;"></div>
+
+                                                                        <div class="row parameterRow">
+                                                                                <div class="col s8">Explotation Index:</div>
+                                                                                <div class="col s4"><div class="switch" style="margin-top: 0px;">
+                                                                                        <label>
+                                                                                                <input type="checkbox" onchange="(this)" checked="true" id="exploitationToggle">
+                                                                                                <span class="lever"></span>
+                                                                                        </label>
+                                                                                </div></div>
+                                                                        </div>
+                                                                        <div class="row parameterRow" style="margin-top: 4px;">
+                                                                                <div class="col s5"><div id="" style="margin-top: 4px;">Opacity:</div></div>
+                                                                                <div class="col s7">
+                                                                                        <p class="range-field" style="margin: 0px;">
+                                                                                                <input type="range" id="" min="0" max="100" scale="1" oninput="" style="border: 0px;"/>
+                                                                                        </p>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div class="divider" style="margin: 8px 0 8px 0;"></div>
+
+                                                                        <div class="row parameterRow">
+                                                                                <div class="col s8">Debug View:</div>
+                                                                                <div class="col s4"><div class="switch" style="margin-top: 0px;">
+                                                                                        <label>
+                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(debugVector, this.checked)" checked="true" id="debugViewToggle">
+                                                                                                <span class="lever"></span>
+                                                                                        </label>
+                                                                                </div></div>
+                                                                        </div>
+                                                                        <div class="row parameterRow" style="margin-top: 4px;">
+                                                                                <div class="col s5"><div style="margin-top: 4px;">Opacity:</div></div>
+                                                                                <div class="col s7">
+                                                                                        <p class="range-field" style="margin: 0px;">
+                                                                                                <input type="range" id="debugOpacitySlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(debugVector, this.value)" style="border: 0px;"/>
+                                                                                        </p>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div class="divider" style="margin: 8px 0 8px 0;"></div>
+
+                                                                        <div class="row parameterRow">
+                                                                                <div class="col s8">Street Map:</div>
+                                                                                <div class="col s4"><div class="switch" style="margin-top: 0px;">
+                                                                                        <label>
+                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(bingLayers[0], this.checked)" checked="false" id="streetmapToggle">
+                                                                                                <span class="lever"></span>
+                                                                                        </label>
+                                                                                </div></div>
+                                                                        </div>
+                                                                        <div class="row parameterRow" style="margin-top: 4px;">
+                                                                                <div class="col s5"><div id="" style="margin-top: 4px;">Opacity:</div></div>
+                                                                                <div class="col s7">
+                                                                                        <p class="range-field" style="margin: 0px;">
+                                                                                                <input type="range" id="streetmapOpacitySlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(bingLayers[0], this.value)" style="border: 0px;"/>
+                                                                                        </p>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div class="divider" style="margin: 8px 0 8px 0;"></div>
+
+                                                                        <div class="row parameterRow">
+                                                                                <div class="col s8">Satellite Map:</div>
+                                                                                <div class="col s4"><div class="switch" style="margin-top: 0px;">
+                                                                                        <label>
+                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(bingLayers[1], this.checked)" checked="false" id="roadmapToggle">
+                                                                                                <span class="lever"></span>
+                                                                                        </label>
+                                                                                </div></div>
+                                                                        </div>
+                                                                        <div class="row parameterRow" style="margin-top: 4px;">
+                                                                                <div class="col s5"><div id="" style="margin-top: 4px;">Opacity:</div></div>
+                                                                                <div class="col s7">
+                                                                                        <p class="range-field" style="margin: 0px;">
+                                                                                                <input type="range" id="satelliteOpacitySlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(bingLayers[1], this.value)" style="border: 0px;"/>
+                                                                                        </p>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div class="divider" style="margin: 8px 0 8px 0;"></div>
                                                                 </div>
                                                         </div>
                                                 </div>
-                                                </li>
-                                                <li>
-                                                <div class="collapsible-header">Exploitation Profile</div>
-                                                <div class="collapsible-body" style="padding: 12px;">
-                                                        
-                                                </div>
-                                                </li>
-                                        </ul>
+                                        </div></div>
                                 </div>
                                 <div class="tabcontent" id="statsPage" style="display: none;">
                                         <div class="row" style="margin-bottom: 8px;">
@@ -396,7 +443,7 @@
                                                                                 </div>
                                                                         </div></div>
                                                                         <div class="col s3" style="margin-top: 20px;">
-                                                                                <a class="waves-effect waves-light btn saveButton right" id="entireCDFSaveButton" onclick="downloadGraph('entireMapChart');">Save Image</a>
+                                                                                <a class="waves-effect waves-light btn right" id="entireCDFSaveButton" onclick="downloadGraph('entireMapChart');">Save Image</a>
                                                                         </div>
                                                                 </div>
                                                         </div>
@@ -438,7 +485,7 @@
                                                                                 </div>
                                                                         </div></div>
                                                                         <div class="col s3" style="margin-top: 20px;">
-                                                                                <a class="waves-effect waves-light btn saveButton right" id="singleCDFSaveButton" onclick="downloadGraph('localAreaCDF');">Save Chart</a>
+                                                                                <a class="waves-effect waves-light btn right" id="singleCDFSaveButton" onclick="downloadGraph('localAreaCDF');">Save Chart</a>
                                                                         </div>
                                                                 </div>
                                                         </div>
@@ -468,7 +515,7 @@
                                                                                 </div>
                                                                         </div>
                                                                         <div class="col s3 offset-s4" style="margin-top: 20px;">
-                                                                                <a class="waves-effect waves-light btn saveButton right" id="offtakeSaveButton" onclick="downloadGraph('offtakeChart');">Save Chart</a>
+                                                                                <a class="waves-effect waves-light btn right" id="offtakeSaveButton" onclick="downloadGraph('offtakeChart');">Save Chart</a>
                                                                         </div>
                                                                 </div>
                                                         </div>
@@ -488,7 +535,7 @@
                                                                                 <label>Select a Settlement</label>
                                                                         </div>
                                                                         <div class="col s3 offset-s6" style="margin-top: 20px;">
-                                                                                <a class="waves-effect waves-light btn saveButton right" id="exploitationSaveButton">Save Chart</a> <!--onclick="downloadGraph('exploitationChart');"-->
+                                                                                <a class="waves-effect waves-light btn right" id="exploitationSaveButton">Save Chart</a> <!--onclick="downloadGraph('exploitationChart');"-->
                                                                         </div>
                                                                 </div>
                                                         </div>
@@ -546,16 +593,16 @@
                                                                                 <input type="number" min="0" step="1" value="0" id="csvNumberInput" style="margin-bottom: 8px;">
                                                                         </div>
                                                                         <div class="col s2" style="margin-top: 4px;">
-                                                                                <a class="waves-effect waves-light btn saveButton" onclick="csvSingleYear()">Single Year</a>
+                                                                                <a class="waves-effect waves-light btn" onclick="csvSingleYear()">Single Year</a>
                                                                         </div>
                                                                         <div class="col s2" style="margin-top: 4px;">
-                                                                                <a class="waves-effect waves-light btn saveButton" onclick="csvAllYears()">All Years</a>
+                                                                                <a class="waves-effect waves-light btn" onclick="csvAllYears()">All Years</a>
                                                                         </div>
                                                                 </div>
                                                                 <div class="row parameterRow">
                                                                         <div class="col s9"><h5>Save configuration:</h5></div>
                                                                         <div class="col s3" style="margin-top: 8px;">
-                                                                                <a class="waves-effect waves-light btn saveButton" onclick="saveSimToFile();">Save Configuration</a>
+                                                                                <a class="waves-effect waves-light btn" onclick="saveSimToFile();">Save Configuration</a>
                                                                         </div>
                                                                 </div>
                                                         </div>
@@ -628,22 +675,6 @@
                                                 <div class="col s8"><h5>Heatmap Overlay Opacity (0.0 - 1.0):</h5></div>
                                                 <div class="col s3"><input type="text" id="imgOpacity" style="margin-bottom: 0;"></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Sets how transparent the heatmap overlay is over the background map."><i>?</i></a></div>
-                                        </div>
-                                </li>
-                                <li class="collection-item advancedColItem">
-                                        <div class="row" style="margin-bottom: 0;">
-                                                <div class="col s8"><h5>Project Debug Mode:</h5></div>
-                                                <div class="col s3" style="margin-top: 12px;">
-                                                        <div class="switch">
-                                                                <label>
-                                                                        Off
-                                                                        <input type="checkbox" checked="false" onchange="toggleDebugControl(this)" id="debugModeToggle">
-                                                                        <span class="lever"></span>
-                                                                        On
-                                                                </label>
-                                                        </div>
-                                                </div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Draw extra heatmap allignment information. Used for debugging accuracy."><i>?</i></a></div>
                                         </div>
                                 </li>
                         </ul>
@@ -765,18 +796,7 @@
         <div id="fullScreenMap" class="modal modal-fixed-footer modal-fullscreen">
                 <div class="modal-content">
                         <div class="row">
-                                <div class="col s10"><h4 id="mapViewerTitle">Fullscreen Map Viewer</h4></div>
-                                <div class="col s2" id="debugVisFControlBox" style="visibility: hidden">
-                                        Debug View
-                                        <div class="switch" style="margin-top: 4px;">
-                                                <label>
-                                                        Off
-                                                        <input type="checkbox" onchange="toggleDebugLayer(this)" checked="true" id="debugViewToggleF">
-                                                        <span class="lever"></span>
-                                                        On
-                                                </label>
-                                        </div>
-                                </div>
+                                <div class="col s12"><h4 id="mapViewerTitle">Fullscreen Map Viewer</h4></div>
                         </div>
                         <div id="mapViewerContent">
                                 <div id="viewerMapContainer"></div>

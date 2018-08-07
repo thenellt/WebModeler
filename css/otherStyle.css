@@ -13,14 +13,13 @@ nav .brand-logo { white-space: nowrap; }
 }
 
 .sideBar {
-        width: 20%;
+        width: 230px;
         vertical-align: top;
         margin: auto;
 }
 
 .content {
         padding: 0 8px 0 0;
-        width: 80%;
         margin: auto;
         border-collapse: collapse;
         top: 0;
@@ -76,13 +75,13 @@ nav .brand-logo { white-space: nowrap; }
 }
 
 .tabcontent {
-        float: top;
-        /*padding: 0px 12px;*/
-        width: 100%;
+        width: 95%;
+        max-width: 1200px;
+        min-width: 800px;
         border-left: none;
         height: 100%;
         padding:0;
-        margin:0;
+        margin: 0 auto;
         border-collapse: collapse;
 }
 
@@ -172,4 +171,40 @@ input[type=text].parameterInputText {
         width: 250px;
         max-height: 250px;
         object-fit: contain;
+}
+
+/* generated with: http://www.cssarrowplease.com/ */
+.arrow_box {
+	position: absolute;
+	background: #ffffff;
+        border: 1px solid #d9d9d9;
+        width: 300px;
+        height: 500px;
+        left: -94px;
+        top: -516px;
+        z-index: 50;
+        border-radius: 2px;
+}
+.arrow_box:after, .arrow_box:before {
+	top: 100%;
+	left: 50%;
+	border: solid transparent;
+	content: " ";
+	height: 0;
+	width: 0;
+	position: absolute;
+	pointer-events: none;
+}
+
+.arrow_box:after {
+	border-color: rgba(255, 255, 255, 0);
+	border-top-color: #ffffff;
+	border-width: 12px;
+	margin-left: -12px;
+}
+.arrow_box:before {
+	border-color: rgba(217, 217, 217, 0);
+	border-top-color: #d9d9d9;
+	border-width: 13px;
+	margin-left: -13px;
 }

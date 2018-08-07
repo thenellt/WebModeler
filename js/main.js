@@ -27,8 +27,7 @@ $(document).ready(function() {
         $("#CDFSetSelection").change(function() {changeCDFSettlement();}); 
         $("#offtakeSetSelection").change(function() {changeOfftakeSettlement();});
         $('#floatingPopEditor').modal({dismissible: false});
-        $('#debugModeToggle').prop('checked', false);
-        $('#offtakeLegendToggle').prop('checked', false);
+        $('#offtakeLegendToggle, #exploitationToggle, #streetmapToggle, #debugViewToggle').prop('checked', false);
         $('#tabFillerButton').addClass('disabled');
         $(window).focus(function() {refreshCanvas();});
         setupTabSystem();
@@ -86,7 +85,6 @@ function resetSimulation(){
         document.getElementById("diffSamples").value = "1";
         document.getElementById("imgOpacity").value = "0.8";
         document.getElementById("boundryWidth").value = "10";
-        document.getElementById("debugModeToggle").checked = false;
 
         if(simulationRun){
                 simulationRun = 0;
@@ -99,11 +97,6 @@ function resetSimulation(){
                         map.removeControl(mouseKControl);
                         imageLayer.setVisible(false);
                         debugVector.getSource().clear();
-                }
-
-                let cleanup = document.getElementById("rawHeatmapContainer");
-                while (cleanup.firstChild) {
-                        cleanup.removeChild(cleanup.firstChild);
                 }
         }
 
@@ -178,22 +171,23 @@ function changeToOutput(){
         addPopFunction = map.on('click', resultsMapClick);
         map.addControl(mouseKControl);
         mouseKListner = map.on('pointermove', requestUpdateKControl);
+        updateLayerOpacity(debugVector, document.getElementById('debugOpacitySlider').value);
+        document.getElementById('streetmapOpacitySlider').value = 100;
+        document.getElementById('satelliteOpacitySlider').value = 100;
+        updateLayerOpacity(bingLayers[1], 100);
+        updateLayerOpacity(bingLayers[0], 100);
         
         if(simulationRun){
                 imageLayer.setVisible(true);
-                if(document.getElementById("debugModeToggle").checked){
-                        debugVector.setVisible(true);
-                        $('#debugViewToggle').prop('checked', true);
-                        $('#debugViewToggleF').prop('checked', true);        
-                }
+                debugVector.setVisible(document.getElementById("debugViewToggle").checked);
         } else {
                 simulationRun = 1;
                 var parentDiv = document.getElementById("resultMapDiv");
                 map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
+                debugVector.setVisible(document.getElementById("debugViewToggle").checked);
         }
 
-        let labelCheckBox = document.getElementById('popLabelToggle');
-        pointVector.setVisible(labelCheckBox.checked);
+        pointVector.setVisible(document.getElementById('popLabelToggle').checked);
         changeMapView(false);
         setTimeout(function(){
                 map.updateSize();
@@ -434,14 +428,6 @@ function checkInt(rawValue, min, max){
         }
         
         return false;
-}
-
-function toggleDebugControl(element){
-        if(element.checked){
-                $("#debugVisControlBox, #debugVisFControlBox").css('visibility', 'visible');
-        } else {
-                $("#debugVisControlBox, #debugVisFControlBox").css('visibility', 'hidden');
-        }
 }
 
 function verifyUpdate(){
