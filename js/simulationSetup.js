@@ -167,6 +167,7 @@ function setupSimulation(){
         if(!townData)
                 return;
         
+        toggleLayerVisibility(debugVector, document.getElementById('debugViewToggle'));
         simulationTime = getTime();
         $('#coverScreen').modal('open');
         geoGridFeatures.clear(true);

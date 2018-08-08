@@ -96,6 +96,11 @@ function setupMapping(){
                 }),
         });
 
+        imageLayer = new ol.layer.Image();
+        imageLayer.setZIndex(2);
+        imageLayer.set('name', 'imgLayer');
+        map.addLayer(imageLayer);
+
         map.addControl(new ol.control.ScaleLine());
         mousePosControl = new ol.control.MousePosition({
                 undefinedHTML: '-',
@@ -462,37 +467,32 @@ function drawCanvasToMap(year, overrideImage){
         let canvasImage = overrideImage ? overrideImage : heatMapImages.images[year];
         let location = heatMapImages.pos;
 
-        if(imageLayer){
-                imageLayer.setSource(
-                        new ol.source.ImageStatic({
-                                url: canvasImage.src,
-                                //imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
-                                projection: 'mollweide',
-                                imageExtent: location
-                        })
-                )
+        imageLayer.setSource(
+                new ol.source.ImageStatic({
+                        url: canvasImage.src,
+                        //imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
+                        projection: 'mollweide',
+                        imageExtent: location
+                })
+        );
+        toggleHeatmapLayer(true);
+        updateLayerOpacity(imageLayer, document.getElementById('heatmapOpacitySlider').value);
+}
+
+function toggleLayerVisibility(layer, toggle){
+        const isChecked = toggle.checked;
+        layer.setVisible(isChecked);
+        const id = toggle.id.slice(0, toggle.id.length - 6) + 'Container';
+        console.log('toggleLayerVisibility:: id: ' + id);
+        if(isChecked){
+                $('#' + id).removeClass('hide');
         } else {
-                imageLayer = new ol.layer.Image({
-                        opacity: simData.opacity,
-                        source: new ol.source.ImageStatic({
-                            url: canvasImage.src,
-                            //imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
-                            projection: 'mollweide',
-                            imageExtent: location
-                        })
-                });
-                imageLayer.setZIndex(2);
-                imageLayer.set('name', 'imgLayer');
-                map.addLayer(imageLayer);
+                $('#' + id).addClass('hide');
         }
 }
 
-function toggleLayerVisibility(layer, value){
-        layer.setVisible(value);
-}
-
-function toggleHeatmapLayer(toggle){
-        imageLayer.setVisible(toggle.checked);
+function toggleHeatmapLayer(value){
+        imageLayer.setVisible(value);
 }
 
 function updateLayerOpacity(layer, value){

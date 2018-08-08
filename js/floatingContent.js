@@ -406,7 +406,6 @@ readLocalFile("./changelog.txt", 'GET', function(responseText) {
 
                 item.appendChild(title);
                 item.appendChild(innerText);
-
                 list.appendChild(item);
         }
 

@@ -208,3 +208,11 @@ input[type=text].parameterInputText {
 	border-width: 13px;
 	margin-left: -13px;
 }
+
+p.range-short input {
+        margin: 7px 0px;
+}       
+
+.range-inline {
+        margin-top: 3px;
+}

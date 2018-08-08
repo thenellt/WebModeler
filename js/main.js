@@ -30,6 +30,8 @@ $(document).ready(function() {
         $('#offtakeLegendToggle, #exploitationToggle, #streetmapToggle, #debugViewToggle').prop('checked', false);
         $('#tabFillerButton').addClass('disabled');
         $(window).focus(function() {refreshCanvas();});
+        window.addEventListener('online',  function(){updateOnlineStatus(true);});
+        window.addEventListener('offline', function(){updateOnlineStatus(false);});
         setupTabSystem();
         checkCompatibility();
 });
@@ -88,6 +90,7 @@ function resetSimulation(){
 
         if(simulationRun){
                 simulationRun = 0;
+                changeMapView(true);
                 if(olmapLocation){ //move the map from output page back to pop page
                         document.getElementById("popMapRow").appendChild(document.getElementById("popMapDiv"));
                         olmapLocation = 0;
@@ -176,6 +179,9 @@ function changeToOutput(){
         document.getElementById('satelliteOpacitySlider').value = 100;
         updateLayerOpacity(bingLayers[1], 100);
         updateLayerOpacity(bingLayers[0], 100);
+        bingLayers[0].setVisible(true);
+        if(navigator.onLine)
+                bingLayers[1].setVisible(true);
         
         if(simulationRun){
                 imageLayer.setVisible(true);
@@ -188,7 +194,6 @@ function changeToOutput(){
         }
 
         pointVector.setVisible(document.getElementById('popLabelToggle').checked);
-        changeMapView(false);
         setTimeout(function(){
                 map.updateSize();
         }, 50);
@@ -205,12 +210,14 @@ function toggleThirdColorMode(isEnabled){
 }
 
 function changeMapView(isRoadMap){
-        if(isRoadMap && !bingLayers[0].getVisible()){
+        if(isRoadMap){
                 bingLayers[1].setVisible(false);
                 bingLayers[0].setVisible(true);
-        } else if(!isRoadMap && !bingLayers[1].getVisible() && navigator.onLine) {
+        } else if(!isRoadMap && navigator.onLine) {
                 bingLayers[0].setVisible(false);
                 bingLayers[1].setVisible(true);
+        } else {
+                $('#mapTypeToggle').prop('checked', true);
         }
 }
 
@@ -434,4 +441,15 @@ function verifyUpdate(){
         modalConfirmation("Update Avaliable", "Refresh the page to activate the update?.", function(){
                 window.location.reload();
         });
+}
+
+function updateOnlineStatus(isOnline){
+        if(isOnline){
+                $("#satMapContainer").removeClass("hide");
+        } else {
+                $("#satMapContainer").addClass("hide");
+                $('#mapTypeToggle').prop('checked', true);
+                bingLayers[1].setVisible(false);
+                bingLayers[0].setVisible(true);
+        }
 }

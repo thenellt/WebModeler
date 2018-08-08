@@ -309,7 +309,7 @@
                                                                                 <div class="col s8">Village Names:</div>
                                                                                 <div class="col s4"><div class="switch" style="margin-top: 0px;">
                                                                                         <label>
-                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(pointVector, this.checked)" checked="true" id="popLabelToggle">
+                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(pointVector, this)" checked="true" id="popLabelToggle">
                                                                                                 <span class="lever"></span>
                                                                                         </label>
                                                                                 </div></div>
@@ -320,15 +320,15 @@
                                                                                 <div class="col s8">Heatmap:</div>
                                                                                 <div class="col s4"><div class="switch" style="margin-top: 0px;">
                                                                                         <label>
-                                                                                                <input type="checkbox" onchange="toggleHeatmapLayer(this)" checked="true" id="heatmapToggle">
+                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(imageLayer, this)" checked="true" id="heatmapToggle">
                                                                                                 <span class="lever"></span>
                                                                                         </label>
                                                                                 </div></div>
                                                                         </div>
-                                                                        <div class="row parameterRow" style="margin-top: 4px;">
+                                                                        <div class="row parameterRow" id="heatmapContainer" style="margin-top: 4px;">
                                                                                 <div class="col s5"><div style="margin-top: 4px;">Opacity:</div></div>
                                                                                 <div class="col s7">
-                                                                                        <p class="range-field" style="margin: 0px;">
+                                                                                        <p class="range-field range-short" style="margin: 0px;">
                                                                                                 <input type="range" id="heatmapOpacitySlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(imageLayer, this.value)" style="border: 0px;"/>
                                                                                         </p>
                                                                                 </div>
@@ -345,10 +345,10 @@
                                                                                 </div></div>
                                                                         </div>
                                                                         <div class="row parameterRow" style="margin-top: 4px;">
-                                                                                <div class="col s5"><div id="" style="margin-top: 4px;">Opacity:</div></div>
+                                                                                <div class="col s5"><div style="margin-top: 4px;">Opacity:</div></div>
                                                                                 <div class="col s7">
-                                                                                        <p class="range-field" style="margin: 0px;">
-                                                                                                <input type="range" id="" min="0" max="100" scale="1" oninput="" style="border: 0px;"/>
+                                                                                        <p class="range-field range-short" style="margin: 0px;">
+                                                                                                <input type="range" id="exploitationSlider" min="0" max="100" scale="1" oninput="" style="border: 0px;"/>
                                                                                         </p>
                                                                                 </div>
                                                                         </div>
@@ -358,54 +358,34 @@
                                                                                 <div class="col s8">Debug View:</div>
                                                                                 <div class="col s4"><div class="switch" style="margin-top: 0px;">
                                                                                         <label>
-                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(debugVector, this.checked)" checked="true" id="debugViewToggle">
+                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(debugVector, this)" checked="true" id="debugViewToggle">
                                                                                                 <span class="lever"></span>
                                                                                         </label>
                                                                                 </div></div>
                                                                         </div>
-                                                                        <div class="row parameterRow" style="margin-top: 4px;">
+                                                                        <div class="row parameterRow" id="debugViewContainer" style="margin-top: 4px;">
                                                                                 <div class="col s5"><div style="margin-top: 4px;">Opacity:</div></div>
                                                                                 <div class="col s7">
-                                                                                        <p class="range-field" style="margin: 0px;">
+                                                                                        <p class="range-field range-short" style="margin: 0px;">
                                                                                                 <input type="range" id="debugOpacitySlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(debugVector, this.value)" style="border: 0px;"/>
                                                                                         </p>
                                                                                 </div>
                                                                         </div>
                                                                         <div class="divider" style="margin: 8px 0 8px 0;"></div>
 
-                                                                        <div class="row parameterRow">
-                                                                                <div class="col s8">Street Map:</div>
-                                                                                <div class="col s4"><div class="switch" style="margin-top: 0px;">
-                                                                                        <label>
-                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(bingLayers[0], this.checked)" checked="false" id="streetmapToggle">
-                                                                                                <span class="lever"></span>
-                                                                                        </label>
-                                                                                </div></div>
+                                                                        <div class="row parameterRow" id="satMapContainer">
+                                                                                <div class="col s5 range-inline">Satellite Map:</div>
+                                                                                <div class="col s7">
+                                                                                                <p class="range-field range-short" style="margin: 0px;">
+                                                                                                        <input type="range" id="satelliteOpacitySlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(bingLayers[1], this.value)" style="border: 0px;"/>
+                                                                                                </p>
+                                                                                        </div>
                                                                         </div>
                                                                         <div class="row parameterRow" style="margin-top: 4px;">
-                                                                                <div class="col s5"><div id="" style="margin-top: 4px;">Opacity:</div></div>
+                                                                                <div class="col s5 range-inline">Street Map:</div>
                                                                                 <div class="col s7">
-                                                                                        <p class="range-field" style="margin: 0px;">
+                                                                                        <p class="range-field range-short" style="margin: 0px;">
                                                                                                 <input type="range" id="streetmapOpacitySlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(bingLayers[0], this.value)" style="border: 0px;"/>
-                                                                                        </p>
-                                                                                </div>
-                                                                        </div>
-                                                                        <div class="divider" style="margin: 8px 0 8px 0;"></div>
-
-                                                                        <div class="row parameterRow">
-                                                                                <div class="col s8">Satellite Map:</div>
-                                                                                <div class="col s4"><div class="switch" style="margin-top: 0px;">
-                                                                                        <label>
-                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(bingLayers[1], this.checked)" checked="false" id="roadmapToggle">
-                                                                                                <span class="lever"></span>
-                                                                                        </label>
-                                                                                </div></div>
-                                                                        </div>
-                                                                        <div class="row parameterRow" style="margin-top: 4px;">
-                                                                                <div class="col s5"><div id="" style="margin-top: 4px;">Opacity:</div></div>
-                                                                                <div class="col s7">
-                                                                                        <p class="range-field" style="margin: 0px;">
-                                                                                                <input type="range" id="satelliteOpacitySlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(bingLayers[1], this.value)" style="border: 0px;"/>
                                                                                         </p>
                                                                                 </div>
                                                                         </div>

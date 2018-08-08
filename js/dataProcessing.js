@@ -740,7 +740,7 @@ function refreshCanvas(){
         }
         bingLayers[0].getSource().refresh();
         bingLayers[1].getSource().refresh();
-        if(imageLayer)
+        if(imageLayer.getSource())
                 imageLayer.getSource().refresh();
         
         map.updateSize();
