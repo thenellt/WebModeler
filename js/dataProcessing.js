@@ -13,6 +13,8 @@ var offtakeChartData;
 var offtakeSelectedID;
 var heatMapYear;
 var heatMapImages;
+var simPosition;
+var exploitImages;
 
 function setupStatsPage(){
         heatMapYear = simRunData.years;
@@ -396,13 +398,13 @@ function populateSelectionsFields(){
 function changeHeatmapOverlayYear(isNext){
         if(isNext && heatMapYear != simRunData.years){
                 heatMapYear += 1;
-                drawCanvasToMap(heatMapYear);
+                drawCanvasToMap(heatMapImages[heatMapYear], heatmapLayer);
                 document.getElementById("heatmapYearLabel").innerHTML = "Heatmap Year: " + heatMapYear;
                 if(mouseLastPosition)
                         workerThread.postMessage({type:"mouseKCheck", pos:mouseLastPosition, year:heatMapYear});
         } else if(!isNext && heatMapYear > 0){
                 heatMapYear -= 1;
-                drawCanvasToMap(heatMapYear);
+                drawCanvasToMap(heatMapImages[heatMapYear], heatmapLayer);
                 document.getElementById("heatmapYearLabel").innerHTML = "Heatmap Year: " + heatMapYear;
                 if(mouseLastPosition)
                         workerThread.postMessage({type:"mouseKCheck", pos:mouseLastPosition, year:heatMapYear});
@@ -416,7 +418,7 @@ function heatmapOverlayAnimation(year){
                 heatMapYear = 0;
                 if(mouseLastPosition)
                         workerThread.postMessage({type:"mouseKCheck", pos:mouseLastPosition, year:heatMapYear});
-                drawCanvasToMap(heatMapYear);
+                drawCanvasToMap(heatMapImages[heatMapYear], heatmapLayer);
                 document.getElementById("heatmapYearLabel").innerHTML = "Heatmap Year: " + heatMapYear;
         } else {
                 changeHeatmapOverlayYear(true);
@@ -462,21 +464,13 @@ function storeLocalCDFPictures(data){
         canvas.height = data.y * scale;
         let picData = new ImageData(data.array, data.x * scale, data.y * scale);
         ctx.putImageData(picData, 0, 0);
-        let canvasImage = new Image();
-        canvasImage.id = 'image' + data.year;
 
         if(data.year === localAreaYear){
-                canvasImage.onload = function(){
-                        localAreaPictures[data.year] = canvasImage;
-                        setLocalCDFPicture();
-                }
+                localAreaPictures[data.year] = canvas.toDataURL();;
+                setLocalCDFPicture();
         } else {
-                canvasImage.onload = function(){
-                        localAreaPictures[data.year] = canvasImage;
-                } 
+                localAreaPictures[data.year] = canvas.toDataURL();;
         }
-
-        canvasImage.src = canvas.toDataURL();
 }
 
 function storeOfftakeData(data){
@@ -580,12 +574,18 @@ function changeLocalCDFYear(isNext){
 }
 
 function setLocalCDFPicture(){
-        let canvasImage = localAreaPictures[localAreaYear]; 
-        canvasImage.classList.add('localCDFImage');
-        let container = document.getElementById('localAreaCDFPicture');
-        if(container.firstChild)
-                container.removeChild(container.firstChild);
-        container.appendChild(canvasImage);
+        //let picData = new ImageData(data.array, data.x * scale, data.y * scale);
+        //ctx.putImageData(picData, 0, 0);
+        let canvasImage = new Image();
+        canvasImage.onload = function(){
+                canvasImage.classList.add('localCDFImage');
+                let container = document.getElementById('localAreaCDFPicture');
+                if(container.firstChild)
+                        container.removeChild(container.firstChild);
+                container.appendChild(canvasImage);
+        };
+
+        canvasImage.src = localAreaPictures[localAreaYear];
 }
 
 function localCDFAnimation(year){
@@ -740,8 +740,8 @@ function refreshCanvas(){
         }
         bingLayers[0].getSource().refresh();
         bingLayers[1].getSource().refresh();
-        if(imageLayer.getSource())
-                imageLayer.getSource().refresh();
+        if(heatmapLayer.getSource())
+                heatmapLayer.getSource().refresh();
         
         map.updateSize();
 }

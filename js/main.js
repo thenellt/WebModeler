@@ -16,8 +16,8 @@ $(document).ready(function() {
                            && simulationRun){
                                 bingLayers[0].getSource().refresh();
                                 bingLayers[1].getSource().refresh();
-                                if(imageLayer)
-                                        imageLayer.getSource().refresh();
+                                if(heatmapLayer)
+                                        heatmapLayer.getSource().refresh();
                                 map.updateSize();
                         }
                 }
@@ -90,7 +90,7 @@ function resetSimulation(){
 
         if(simulationRun){
                 simulationRun = 0;
-                changeMapView(true);
+                setMapSetupMode();
                 if(olmapLocation){ //move the map from output page back to pop page
                         document.getElementById("popMapRow").appendChild(document.getElementById("popMapDiv"));
                         olmapLocation = 0;
@@ -98,7 +98,6 @@ function resetSimulation(){
                         ol.Observable.unByKey(mouseKListner);
                         addPopFunction = map.on('click', placePopulation);
                         map.removeControl(mouseKControl);
-                        imageLayer.setVisible(false);
                         debugVector.getSource().clear();
                 }
         }
@@ -144,10 +143,7 @@ function changeToPopulations(){
                 ol.Observable.unByKey(mouseKListner);
                 addPopFunction = map.on('click', placePopulation);
                 map.removeControl(mouseKControl);
-                imageLayer.setVisible(false);
-                debugVector.setVisible(false);
-                pointVector.setVisible(true);
-                changeMapView(document.getElementById("mapTypeToggle").checked);
+                setMapSetupMode();
                 map.updateSize();
         }
 }
@@ -174,26 +170,14 @@ function changeToOutput(){
         addPopFunction = map.on('click', resultsMapClick);
         map.addControl(mouseKControl);
         mouseKListner = map.on('pointermove', requestUpdateKControl);
-        updateLayerOpacity(debugVector, document.getElementById('debugOpacitySlider').value);
-        document.getElementById('streetmapOpacitySlider').value = 100;
-        document.getElementById('satelliteOpacitySlider').value = 100;
-        updateLayerOpacity(bingLayers[1], 100);
-        updateLayerOpacity(bingLayers[0], 100);
-        bingLayers[0].setVisible(true);
-        if(navigator.onLine)
-                bingLayers[1].setVisible(true);
-        
-        if(simulationRun){
-                imageLayer.setVisible(true);
-                debugVector.setVisible(document.getElementById("debugViewToggle").checked);
-        } else {
+
+        setMapResultsMode(!simulationRun);
+        if(!simulationRun){
                 simulationRun = 1;
                 var parentDiv = document.getElementById("resultMapDiv");
                 map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
-                debugVector.setVisible(document.getElementById("debugViewToggle").checked);
         }
 
-        pointVector.setVisible(document.getElementById('popLabelToggle').checked);
         setTimeout(function(){
                 map.updateSize();
         }, 50);
@@ -342,7 +326,6 @@ function populateDefaultValues(){
         document.getElementById("paramKillProb").value = "0.1";
         document.getElementById("paramHphy").value = "40";
         document.getElementById("rangeHphy").value = "5";
-
         document.getElementById("paramTheta").value = "1";
         document.getElementById("paramLowColor").value = "#ffeda0";
         document.getElementById("paramHighColor").value = "#f03b20";

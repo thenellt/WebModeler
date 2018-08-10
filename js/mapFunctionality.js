@@ -4,21 +4,18 @@ const viewProjection = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs ";
 var map;
 var bingLayers;
 var features;
-var geoGridFeatures;
 var source;
 var debugSource;
 var debugVector;
 var pointVector;
 var canvas;
 var canvasImage;
-var imageLayer;
+var heatmapLayer;
+var exploitLayer;
 var addPopFunction;
 var isMenuOpen;
 var isPopMoving;
 var popStorageMap = {};
-var settlementStatsOpen;
-var statsCircleFeature;
-var mousePosControl;
 var mouseKControl;
 var mouseKListner;
 var mouseLastPosition;
@@ -33,7 +30,6 @@ function setupMapping(){
                 fill: new ol.style.Fill({ color: [0, 255, 0, 0.3]})
         });
         features = new ol.source.Vector();
-        geoGridFeatures = new ol.source.Vector();
 
         var projection = new ol.proj.Projection({
                 code: 'EPSG:4326',
@@ -96,13 +92,18 @@ function setupMapping(){
                 }),
         });
 
-        imageLayer = new ol.layer.Image();
-        imageLayer.setZIndex(2);
-        imageLayer.set('name', 'imgLayer');
-        map.addLayer(imageLayer);
+        heatmapLayer = new ol.layer.Image();
+        heatmapLayer.setZIndex(2);
+        heatmapLayer.set('name', 'imgLayer');
+        map.addLayer(heatmapLayer);
+
+        exploitLayer = new ol.layer.Image();
+        exploitLayer.setZIndex(3);
+        exploitLayer.set('name', 'exploitLayer');
+        map.addLayer(exploitLayer);
 
         map.addControl(new ol.control.ScaleLine());
-        mousePosControl = new ol.control.MousePosition({
+        let mousePosControl = new ol.control.MousePosition({
                 undefinedHTML: '-',
                 className: 'ol-mouse-position',
                 projection: 'EPSG:4326',
@@ -119,7 +120,6 @@ function setupMapping(){
         bingLayers[0].setVisible(true);
         bingLayers[1].setVisible(false);
         isPopMoving = false;
-        settlementStatsOpen = false;
 }
 
 function setupCustomMouseControl(){
@@ -151,15 +151,10 @@ function requestUpdateKControl(e){
         if(e){
                 mouseLastPosition = e.coordinate;
                 workerThread.postMessage({type:"mouseKCheck", pos:e.coordinate, year:heatMapYear});
-        }
-        else{
+        } else {
                 mouseLastPosition = false;
-                updateKControl('-');
+                document.getElementById('mouseKText').innerHTML = '-';
         }
-}
-
-function updateKControl(text){
-        document.getElementById('mouseKText').innerHTML = text;
 }
 
 function placePopulation(e){
@@ -191,24 +186,18 @@ function placePopulation(e){
                         left: (e.originalEvent.clientX - 27)
                 });
                 setTimeout(function(){
-                        $('#dropEditOption').off('click').click(function(){
-                                showPopEditor(false, tempId);   
-                        });
+                        $('#dropEditOption').off('click')
+                                .click(function(){showPopEditor(false, tempId);});
                         $('#dropMoveOption').off('click').click(function(){
-                                startPopMove(tempId);
+                                document.body.style.cursor = "crosshair";
+                                isPopMoving = tempId;
+                                removePopFromMapById(tempId);
                         });
-                        $('#dropDeleteOption').off('click').click(function(){
-                                removeRow('popTable', tempId);
-                        });
+                        $('#dropDeleteOption').off('click')
+                                .click(function(){removeRow('popTable', tempId);});
                         $('#dropDownTest').dropdown('open');
                 }, 200);
         }
-}
-
-function startPopMove(id){
-        document.body.style.cursor = "crosshair";
-        isPopMoving = id;
-        removePopFromMapById(id);
 }
 
 function endPopMove(location, isCanceled){
@@ -233,44 +222,9 @@ function resultsMapClick(e){
         }, {hitTolerance: 3});
 
         if(tempFeatures.length){
-                /*
-                if(statsCircleFeature){
-                        debugSource.removeFeature(statsCircleFeature);
-                        statsCircleFeature = false;
-                }
-                */
-                displaySettlementStats(tempFeatures[0], e.originalEvent);
-
-        } else if(settlementStatsOpen) {
-                settlementStatsOpen = false;
-                debugSource.removeFeature(statsCircleFeature);
-                statsCircleFeature = false;
-                $('#popInfoCard').addClass('scale-out');
-                $('#popInfoCard').removeClass('scale-in');
+                map.getView().setCenter(tempFeatures[0].getGeometry().getCoordinates());
+                map.getView().setZoom(11);
         }
-}
-
-function closePopInfoCard(){
-        $('#popInfoCard').addClass('scale-out').removeClass('scale-in');
-        debugSource.removeFeature(statsCircleFeature);
-        statsCircleFeature = false;
-        settlementStatsOpen = false;
-}
-
-function displaySettlementStats(feature, event){
-        map.getView().setCenter(feature.getGeometry().getCoordinates());
-        map.getView().setZoom(11);
-        /*
-        let settlementID = feature.get('description');
-        console.log("settlementID: " + settlementID);
-        console.log("position: " + feature.getGeometry().getCoordinates());
-        let circleCoords = generateCircleCoords(feature.getGeometry().getCoordinates(), simData.huntRange);
-        statsCircleFeature = drawDebugCircle(circleCoords, [255, 255, 255, .1]);
-        document.getElementById('infoCardName').innerHTML = '<i>' + uiData[settlementID].name + '</i>';
-        $('#popInfoCard').addClass('scale-in');
-        $('#popInfoCard').removeClass('scale-out');
-        settlementStatsOpen = true;
-        */
 }
 
 function removePopFromMapById(popId){
@@ -370,17 +324,17 @@ function drawDebugBounds(bounds, colorCode){
                 newBounds[0]
         ]]);
 
-        var tempFeature1 = new ol.Feature({
+        var debugFeature = new ol.Feature({
                 name: ("debugSquare"),
                 geometry: tempPolygon1
         });
 
-        var teststyle1 = new ol.style.Style({
+        var debugStyle = new ol.style.Style({
                 stroke: new ol.style.Stroke({width: 1 }),
                 fill: new ol.style.Fill({ color: colorCode})
         });
-        tempFeature1.setStyle(teststyle1);
-        debugSource.addFeature(tempFeature1);
+        debugFeature.setStyle(debugStyle);
+        debugSource.addFeature(debugFeature);
 }
 
 function drawDebugCircle(points, colorCode){
@@ -426,32 +380,18 @@ function generateCanvas(data){
         canvas.height = data.y * data.scale;
 
         let picData = new ImageData(data.array, data.x * data.scale, data.y * data.scale);
-
         ctx.putImageData(picData, 0, 0);
-        let canvasImage = new Image();
-        canvasImage.id = 'image' + data.year;
 
         switch(data.dest){
         case 'animationFrame':
-                canvasImage.onload = function(){
-                        heatMapImages.pos = data.position;
-                        heatMapImages.images[data.year] = canvasImage;
-                }
+                heatMapImages[data.year] = canvas.toDataURL();
+                if(data.year === simRunData.years)
+                        drawCanvasToMap(heatMapImages[data.year], heatmapLayer);
                 break;
-        case 'finalFrame':
-                canvasImage.onload = function(){
-                        heatMapImages.pos = data.position;
-                        heatMapImages.images[data.year] = canvasImage;
-                }
-                break;
-        case 'highRes':
-                canvasImage.onload = function(){
-                        drawCanvasToMap(simRunData.years, canvasImage);
-                        let topLeft = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[0]);
-                        let botRight = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[1]);
-                        let testExtent = [topLeft[0], botRight[1], botRight[0], topLeft[1]];
-                        map.getView().fit(testExtent, map.getSize());
-                }
+        case 'expImages':
+                exploitImages[data.year] = canvas.toDataURL();
+                if(data.year === simRunData.years)
+                        drawCanvasToMap(exploitImages[data.year], exploitLayer);
                 break;
         case 'save':
                 canvas.toBlob(function(blob) {
@@ -459,31 +399,23 @@ function generateCanvas(data){
                 });
                 break;
         }
-
-        canvasImage.src = canvas.toDataURL();
 }
 
-function drawCanvasToMap(year, overrideImage){
-        let canvasImage = overrideImage ? overrideImage : heatMapImages.images[year];
-        let location = heatMapImages.pos;
-
-        imageLayer.setSource(
+function drawCanvasToMap(imageURL, target){
+        target.setSource(
                 new ol.source.ImageStatic({
-                        url: canvasImage.src,
+                        url: imageURL,
                         //imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
                         projection: 'mollweide',
-                        imageExtent: location
+                        imageExtent: simPosition
                 })
         );
-        toggleHeatmapLayer(true);
-        updateLayerOpacity(imageLayer, document.getElementById('heatmapOpacitySlider').value);
 }
 
 function toggleLayerVisibility(layer, toggle){
         const isChecked = toggle.checked;
         layer.setVisible(isChecked);
         const id = toggle.id.slice(0, toggle.id.length - 6) + 'Container';
-        console.log('toggleLayerVisibility:: id: ' + id);
         if(isChecked){
                 $('#' + id).removeClass('hide');
         } else {
@@ -491,10 +423,63 @@ function toggleLayerVisibility(layer, toggle){
         }
 }
 
-function toggleHeatmapLayer(value){
-        imageLayer.setVisible(value);
-}
-
 function updateLayerOpacity(layer, value){
         layer.setOpacity(value/100);
+}
+
+function debugDrawLayer(dataURL){
+        let canvasImage = new Image();
+        canvasImage.onload = function(){
+                document.body.appendChild(canvasImage);
+        };
+
+        canvasImage.src = dataURL;
+}
+
+function setMapSetupMode(){
+        pointVector.setVisible(true);
+        updateLayerOpacity(bingLayers[1], 100);
+        updateLayerOpacity(bingLayers[0], 100);
+
+        let isRoadMap = document.getElementById("mapTypeToggle").checked;
+        if(isRoadMap || !navigator.onLine){
+                bingLayers[0].setVisible(true);
+                bingLayers[1].setVisible(false);
+        } else {
+                bingLayers[0].setVisible(false);
+                bingLayers[1].setVisible(true);
+        }
+
+        let resultLayers = [debugVector, heatmapLayer, exploitLayer];
+        for(let i = 0; i < resultLayers.length; i++)
+                resultLayers[i].setVisible(false);
+}
+
+function setMapResultsMode(isFirstRun){
+        if(isFirstRun){
+                let isRoadMap = document.getElementById("mapTypeToggle").checked;
+                if(isRoadMap || !navigator.onLine){
+                        document.getElementById('streetmapOpacitySlider').value = 100;
+                        document.getElementById('satelliteOpacitySlider').value = 0;
+                        updateLayerOpacity(bingLayers[1], 0);
+                        updateLayerOpacity(bingLayers[0], 100);
+                } else {
+                        document.getElementById('streetmapOpacitySlider').value = 0;
+                        document.getElementById('satelliteOpacitySlider').value = 100;
+                        updateLayerOpacity(bingLayers[1], 100);
+                        updateLayerOpacity(bingLayers[0], 0);
+                }
+        }
+        bingLayers[0].setVisible(true);
+        bingLayers[1].setVisible(true);
+        updateLayerOpacity(bingLayers[1], document.getElementById('satelliteOpacitySlider').value);
+        updateLayerOpacity(bingLayers[0], document.getElementById('streetmapOpacitySlider').value);
+
+        updateLayerOpacity(debugVector, document.getElementById('debugOpacitySlider').value);
+        updateLayerOpacity(heatmapLayer, document.getElementById('heatmapOpacitySlider').value);
+        updateLayerOpacity(exploitLayer, document.getElementById('exploitationSlider').value);
+        toggleLayerVisibility(heatmapLayer, document.getElementById('heatmapToggle'));
+        toggleLayerVisibility(debugVector, document.getElementById('debugViewToggle'));
+        toggleLayerVisibility(exploitLayer, document.getElementById('exploitationToggle'));
+        toggleLayerVisibility(pointVector, document.getElementById('popLabelToggle'));
 }

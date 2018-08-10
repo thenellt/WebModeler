@@ -184,8 +184,7 @@ function loadSimConfig(fileData){
                 document.getElementById("enable3ColorMode").checked = true;
                 document.getElementById("midColorReset").classList.remove("disabled");
                 document.getElementById("paramMidColor").value = simData.midColorCode;
-        }
-        else{
+        } else {
                 document.getElementById("enable3ColorMode").checked = false;
                 document.getElementById("paramMidColor").classList.add("disabled");
                 document.getElementById("midColorReset").classList.add("disabled");
@@ -279,7 +278,7 @@ function saveHeatmapToFile(){
         const requestYear = heatMapYear;
         const requestScale = document.getElementById('heatmapScale').value / 100;
         if(requestScale === 1){ 
-                heatMapImages.images[requestYear].toBlob(function(blob) {
+                heatMapImages[requestYear].toBlob(function(blob) {
                         saveAs(blob, simData.simName + '_year' + requestYear + '_heatmap.png');
                 });
         } else{

@@ -14,7 +14,8 @@ const workerFunctions = {
         'pointDebug':    function(data) {drawDebugPoint(data.data.point, data.data.color);},
         'singleCSV':     function(data) {saveSingleCSV(data.csvString, data.year);},
         'allYearsCSV':   function(data) {saveAllYearsCSV(data.csvString, data.year);},
-        'posKUpdate':    function(data) {updateKControl(data.text);},
+        'posKUpdate':    function(data) {$('#mouseKText').html(data.text);},
+        'storeMapPos':   function(data) {console.log(data.pos); simPosition = data.pos;}
 };
 
 function setupSimDefaults(){
@@ -60,7 +61,7 @@ function readUserParameters(){
                 console.log("readUserParameters::detected 3 color mode");
                 simData.threeColorMode = true;
                 simData.midColorCode = document.getElementById("paramMidColor").value;
-        } else{
+        } else {
                 simData.threeColorMode = false;
         }
 
@@ -113,7 +114,7 @@ function checkYearlyPopDuration(){
                 if(village.type === "yearly" && village.population.length < simData.years){
                         if(!nameString.length){
                                 nameString = village.name;
-                        } else{
+                        } else {
                                 nameString += ", " + village.name;
                         }
                 }
@@ -125,7 +126,7 @@ function checkYearlyPopDuration(){
                 msg += nameString + "</i> have less than <b>" + simData.years + "</b> years worth of data. </br></br>Please adjust the simulation duration or provide additional data.";
                 modalDialog(title, msg);
                 return false;
-        } else{
+        } else {
                 return true;
         }
 }
@@ -143,13 +144,13 @@ function sanitizeTownData(uiTown){
 
         if(data.killRate && !isNaN(parseFloat(data.killRate))){
                 data.killRate = parseFloat(data.killRate);
-        } else{
+        } else {
                 data.killRate = simData.killProb;
         }
 
         if(data.HPHY && !isNaN(parseFloat(data.HPHY))){
                 data.HPHY = parseFloat(data.HPHY);
-        } else{
+        } else {
                 data.HPHY = simData.HpHy;
         }
 
@@ -167,13 +168,13 @@ function setupSimulation(){
         if(!townData)
                 return;
         
-        toggleLayerVisibility(debugVector, document.getElementById('debugViewToggle'));
+        debugVector.setVisible(false);
         simulationTime = getTime();
         $('#coverScreen').modal('open');
-        geoGridFeatures.clear(true);
         debugSource.clear(true);
 
-        heatMapImages = {images:new Array(simData.years + 1), pos:false};
+        heatMapImages = new Array(simData.years + 1);
+        exploitImages = new Array(simData.years + 1);
         entireAreaData = [];
         localAreaData = [];
         simRunData = JSON.parse(JSON.stringify(simData));
@@ -195,6 +196,10 @@ function handleWorkerMessage(data){
                 break;
         case 'finished':
                 simResults = data.paramData;
+                let topLeft = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[0]);
+                let botRight = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[1]);
+                let testExtent = [topLeft[0], botRight[1], botRight[0], topLeft[1]];
+                map.getView().fit(testExtent, map.getSize());
                 synchPersisObject();
                 tabManager.changeTab(pageTabs.MAPS);
                 populateSelectionsFields();

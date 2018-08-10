@@ -174,14 +174,20 @@ input[type=text].parameterInputText {
 }
 
 /* generated with: http://www.cssarrowplease.com/ */
+
+.arrow_box.scale-in{
+        transform: scale(1) translateY(calc(-100% - 50px));
+        -webkit-transform: scale(1) translateY(calc(-100% - 50px));
+}
+
 .arrow_box {
 	position: absolute;
 	background: #ffffff;
         border: 1px solid #d9d9d9;
         width: 300px;
-        height: 500px;
+        /*height: 500px; */
         left: -94px;
-        top: -516px;
+        /*top: -516px; */
         z-index: 50;
         border-radius: 2px;
 }

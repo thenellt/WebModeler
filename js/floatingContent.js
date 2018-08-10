@@ -392,16 +392,16 @@ readLocalFile("./changelog.txt", 'GET', function(responseText) {
         list.className = "collection";
 
         for(let i = 0; i < splitLog.length - 1; i++){
-                var content = splitLog[i].split('-');
+                let content = splitLog[i].split('-');
 
-                var item = document.createElement('li');
+                let item = document.createElement('li');
                 item.className = "collection-item";
 
-                var title = document.createElement('span');
+                let title = document.createElement('span');
                 title.className = "title";
                 title.appendChild(document.createTextNode(content[0].slice(0, -1)));
 
-                var innerText = document.createElement('p');
+                let innerText = document.createElement('p');
                 innerText.appendChild(document.createTextNode(content[1].slice(0, -3)));
 
                 item.appendChild(title);
@@ -413,12 +413,12 @@ readLocalFile("./changelog.txt", 'GET', function(responseText) {
 });
 
 function toggleOverlaySelect(btn, isClose){
-        if(!isClose && btn.parentNode.querySelector('#layorSelector').classList.contains('scale-out')){
-                $('#layorSelector').addClass("scale-in").removeClass('scale-out');
+        if(!isClose && btn.parentNode.querySelector('#layerSelector').classList.contains('scale-out')){
+                $('#layerSelector').addClass("scale-in").removeClass('scale-out');
                 $('#overlaySelectionBtn').css('background-color', '#9e9e9e');
 
         } else {
-                $('#layorSelector').addClass("scale-out").removeClass('scale-in');
+                $('#layerSelector').addClass("scale-out").removeClass('scale-in');
                 $('#overlaySelectionBtn').css('background-color', '#26a69a');
         }
 }

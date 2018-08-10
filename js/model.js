@@ -55,20 +55,21 @@ function runSimulation(parameters){
                 self.postMessage({type:'error', text: err.message});
                 return;
         }
+        const posArray = [geoGrid[ySize - 1][0][0], geoGrid[ySize - 1][0][1], geoGrid[0][xSize - 1][0], geoGrid[0][xSize - 1][1]];
+        self.postMessage({type:'mapped', fnc:'storeMapPos', pos:posArray});
         placeLocations();
         calculateModel();
         let visStartTime = performance.now();
-        generateAnimationData();
+        generateOfftakeImages();
+        genExploitationImgData();
         generateEntireCDFData();
         generateSingleCDFData(towns[0].id, simData.huntRange);
         generateCDFPictureData(towns[0].id, simData.huntRange);
         generateOfftakeData();
-        //genExploitationImgData();
         let visTime = performance.now() - visStartTime;
         self.postMessage({type:'finished', paramData:{name: simData.simName, duration:simData.years,
                           xSize:xSize, ySize:ySize, geoGrid:geoGrid, townData:towns, bounds: bounds,
                           perfData:calcTimes, visTime:visTime}});
-        generateImageData({'scale': 5, 'year': simData.years, 'dest': 'highRes'});
 }
 
 function unpackParams(data){
@@ -235,7 +236,7 @@ function calculateModel(){
                                                 val    += grid[curYear][y][x+1] + diffusionGrid[y][x+1];
                                                 val    += grid[curYear][y][x-1] + diffusionGrid[y][x-1];
                                                 diffusionGrid[y][x] += (simData.animalDiffRate * (val - (4 * (grid[curYear][y][x] + diffusionGrid[y][x])))) / simData.diffusionSamples;
-                                        } else{
+                                        } else {
                                                 let val = grid[curYear][y+1][x];
                                                 val    += grid[curYear][y-1][x];
                                                 val    += grid[curYear][y][x+1];
@@ -280,56 +281,34 @@ function calculateModel(){
         }
 }
 
-function generateAnimationData(){
+function generateOfftakeImages(){
         self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Visualizing Data", statusValue: 100});
         let gradient = setupGradient();
-        for(let curYear = 0; curYear <= simData.years - 1; curYear++){
-                let params = {'scale': 2, 'year': curYear, 'dest': 'animationFrame'};
-                generateImageData(params, gradient);
+        for(let curYear = 0; curYear <= simData.years; curYear++){
+                generateImageData({'scale': 4, 'year': curYear, 'dest': 'animationFrame'}, gradient);
         }
-
-        let params = {'scale': 2, 'year': simData.years, 'dest': 'finalFrame'};
-        generateImageData(params, gradient);
 }
 
 function generateImageData(params, gradient){
-        let scale = params.scale;
         if(!gradient)
                 gradient = setupGradient();
-        var gradientSteps = Math.floor(simData.carryCapacity) - 1;
+        const gradientSteps = Math.floor(simData.carryCapacity) - 1;
+        const scale = params.scale;
 
-        var pos = 0;
-        //simResults.xSize * scale, simResults.ySize * scale
-        var imgData = new Uint8ClampedArray((xSize * scale) * (ySize * scale) * 4);
-        for(var y = 0; y < ySize; y++) {
-                for(var row = 0; row < scale; row++){
-                        for(var x = 0; x < xSize; x++) {
-                                //TODO talk about using floor vs ceiling
-                                var gradientPosition = Math.ceil(gradientSteps * (1 - (grid[params.year][y][x] / simData.carryCapacity)));
-                                if(gradientPosition < 0 || !gradientPosition){
-                                        for(let s = 0; s < scale; s++){
-                                                imgData[pos] = gradient[0][0];
-                                                imgData[pos + 1] = gradient[0][1];
-                                                imgData[pos + 2] = gradient[0][2];
-                                                imgData[pos + 3] = gradient[0][3];
-                                                pos += 4;
-                                        }
-                                } else {
-                                        for(let s = 0; s < scale; s++){
-                                                imgData[pos] = gradient[gradientPosition][0];           // some R value [0, 255]
-                                                imgData[pos + 1] = gradient[gradientPosition][1];           // some G value
-                                                imgData[pos + 2] = gradient[gradientPosition][2];           // some B value
-                                                imgData[pos + 3] = gradient[gradientPosition][3];
-                                                pos += 4;
-                                        }
-                                }
+        var imgData = new Uint8ClampedArray(((xSize - 1) * scale) * ((ySize - 1) * scale) * 4);
+        for(let y = 0; y < ySize - 1; y++){
+                for(let x = 0; x < xSize - 1; x++){
+                        let gradientPosition = Math.ceil(gradientSteps * (1 - (grid[params.year][y][x] / simData.carryCapacity)));
+                        if(gradientPosition < 0 || !gradientPosition){
+                                placePixel(imgData, x, y, gradient[0], scale);
+                        } else {
+                                placePixel(imgData, x, y, gradient[gradientPosition], scale);
                         }
                 }
         }
 
-        const posArray = [geoGrid[ySize - 1][0][0], geoGrid[ySize - 1][0][1], geoGrid[0][xSize - 1][0], geoGrid[0][xSize - 1][1]];
-        self.postMessage({type:'imgData', year:params.year, scale:params.scale, dest:params.dest, position:posArray,
-                          x:xSize, y:ySize, array:imgData}, [imgData.buffer]);
+        self.postMessage({type:'imgData', year:params.year, scale:scale, dest:params.dest,
+                          x:(xSize - 1), y:(ySize - 1), array:imgData}, [imgData.buffer]);
 }
 
 function setupGradient(){
@@ -365,8 +344,7 @@ function setupGradient(){
                         tempColor[3] = 255;
                         gradient.push(tempColor.slice());
                 }
-        }
-        else{
+        } else {
                 var redRange = midColor[0] - coolColor[0];
                 var greenRange = midColor[1] - coolColor[1];
                 var blueRange = midColor[2] - coolColor[2];
@@ -404,11 +382,6 @@ function setupGradient(){
         gradient[5][3] = 190;
         gradient[6][3] = 230;
         gradient[7][3] = 245;
-
-        var gradientOutput = "";
-        for(let i = 0; i < gradient.length; i++){
-                gradientOutput += gradient[i].toString() + " ";
-        }
 
         return gradient;
 }
@@ -547,7 +520,6 @@ function generateCSV(requestYear, callbackType){
 }
 
 function checkPositionInformation(pos, year){
-        //[geoGrid[0][0], geoGrid[0][xSize], geoGrid[ySize][xSize], geoGrid[ySize][0]]
         let mPos = proj4(proj4('espg4326'), proj4('mollweide'), pos);
         let xMin = geoGrid[0][0][0];
         let xMax = geoGrid[ySize - 1][xSize - 1][0];
@@ -596,7 +568,7 @@ function generateCircleCoords(center, radius){
 
 function genExploitationImgData(){
         const overexploitedColor = [255, 255, 0, 255];
-        const collapsedColor = [255, 153, 51, 255];
+        const collapsedColor = [255, 102, 0, 255];
         const extirpatedColor = [255, 0, 0, 255];
         const popColor = [128, 0, 0, 255];
         const gradientSteps = Math.floor(simData.carryCapacity) - 1;
@@ -607,67 +579,49 @@ function genExploitationImgData(){
         const height = ySize * scale;
         const gradient = setupGradient();
 
-        let dataGrid = new Array(ySize);
-        for(let y = 0; y < ySize - 1; y++){
-                dataGrid[y] = new Array(xSize);
-                for(let x = 0; x < xSize - 1; x++){
-                        dataGrid[y][x] = [];
-                        if(grid[simData.years][y][x] < 0.01 * simData.carryCapacity){
-                                dataGrid[y][x].push(3);
-                        } else if(grid[simData.years][y][x] < 0.1 * simData.carryCapacity){
-                                dataGrid[y][x].push(2);
-                        } else if(grid[simData.years][y][x] < 0.5 * simData.carryCapacity){
-                                dataGrid[y][x].push(1);
-                        } else {
-                                dataGrid[y][x].push(0);
-                        }
-                        const gradPos = Math.ceil(gradientSteps * (1 - (grid[simData.years][y][x] / simData.carryCapacity)));
-                        dataGrid[y][x].push(gradPos);
-                }
-        }
-
-        traceBoundries(dataGrid);
-        for(let i = 0; i < towns.length; i++){
-                dataGrid[towns[i].y][towns[i].x][0] = 4;
-        }
-
-        let imgData = new Uint8ClampedArray(((xSize - 1)* scale) * ((ySize - 1) * scale) * 4);
-        for(let y = 0; y < ySize - 1; y++){
-                for(let x = 0; x < xSize - 1; x++){
-                        switch(dataGrid[y][x][0]){
-                        /*
-                        case 0: placePixel(imgData, x, y, gradient[dataGrid[y][x][1]], scale);
-                                break;
-                        case 1: outlinePixel(imgData, x, y, overexploitedColor, gradient[dataGrid[y][x][1]], scale);
-                                break;
-                        case 2: outlinePixel(imgData, x, y, collapsedColor, gradient[dataGrid[y][x][1]], scale);
-                                break;
-                        case 3: outlinePixel(imgData, x, y, extirpatedColor, gradient[dataGrid[y][x][1]], scale);
-                                break;
-                        case 4: placePixel(imgData, x, y, popColor, scale);
-                                break;
-                        */
-                        case 0: //placePixel(imgData, x, y, gradient[dataGrid[y][x][1]], scale);
-                                break;
-                        case 1: outlinePixel(imgData, x, y, overexploitedColor, [0, 0, 0, 0], scale);
-                                break;
-                        case 2: outlinePixel(imgData, x, y, collapsedColor, [0, 0, 0, 0], scale);
-                                break;
-                        case 3: outlinePixel(imgData, x, y, extirpatedColor, [0, 0, 0, 0], scale);
-                                break;
-                        case 4: //placePixel(imgData, x, y, popColor, scale);
-                                break;
+        for(let curYear = 0; curYear <= simData.years; curYear++){
+                let dataGrid = new Array(ySize);
+                for(let y = 0; y < ySize - 1; y++){
+                        dataGrid[y] = new Array(xSize);
+                        for(let x = 0; x < xSize - 1; x++){
+                                dataGrid[y][x] = [];
+                                if(grid[curYear][y][x] < 0.01 * simData.carryCapacity){
+                                        dataGrid[y][x].push(3);
+                                } else if(grid[curYear][y][x] < 0.1 * simData.carryCapacity){
+                                        dataGrid[y][x].push(2);
+                                } else if(grid[curYear][y][x] < 0.5 * simData.carryCapacity){
+                                        dataGrid[y][x].push(1);
+                                } else {
+                                        dataGrid[y][x].push(0);
+                                }
+                                const gradPos = Math.ceil(gradientSteps * (1 - (grid[curYear][y][x] / simData.carryCapacity)));
+                                dataGrid[y][x].push(gradPos);
                         }
                 }
-        }
 
-        const posArray = [geoGrid[ySize - 1][0][0], geoGrid[ySize - 1][0][1], geoGrid[0][xSize - 1][0], geoGrid[0][xSize - 1][1]];
-        self.postMessage({type:'imgData', year:simData.years, scale:scale, dest:'highRes', position:posArray,
-                          x:xSize - 1, y:ySize - 1, array:imgData}, [imgData.buffer]);
-        //self.postMessage({type:'exploitImage', year:simData.years, x:width, y:height, array:imgData}, [imgData.buffer]);
+                //traceBoundries(dataGrid);
+                let imgData = new Uint8ClampedArray(((xSize - 1) * scale) * ((ySize - 1)  * scale) * 4);
+                for(let y = 0; y < ySize - 1; y++){
+                        for(let x = 0; x < xSize - 1; x++){
+                                switch(dataGrid[y][x][0]){
+                                case 0: //outlinePixel(imgData, x, y, [244, 66, 232, 255], scale);
+                                        break;
+                                case 1: outlinePixel(imgData, x, y, overexploitedColor, scale);
+                                        break;
+                                case 2: outlinePixel(imgData, x, y, collapsedColor, scale);
+                                        break;
+                                case 3: outlinePixel(imgData, x, y, extirpatedColor, scale);
+                                        break;
+                                }
+                        }
+                }
+
+                self.postMessage({type:'imgData', year:curYear, scale:scale, dest:'expImages',
+                                x:xSize - 1, y:ySize - 1, array:imgData}, [imgData.buffer]);
+        }
 }
 
-function outlinePixel(array, xPos, yPos, color1, color2, scale){
+function outlinePixel(array, xPos, yPos, color1, scale){
         const rowWidth = (xSize - 1) * scale * 4;
         const offset = (yPos * scale) * rowWidth;
         const xStart = (xPos * scale) * 4;
@@ -675,16 +629,13 @@ function outlinePixel(array, xPos, yPos, color1, color2, scale){
         for(let y = 0; y < scale; y++){
                 let start = offset + xStart + (y * rowWidth);
                 for(let x = 0; x < scale; x++){
-                        if(y === 0 || y === scale - 1 || x === 0 || x === scale - 1){
+                        if(y === 0 || y === (scale - 1) || x === 0 || x === (scale - 1)){
                                 array[start++] = color1[0];
                                 array[start++] = color1[1];
                                 array[start++] = color1[2];
                                 array[start++] = color1[3];
                         } else {
-                                array[start++] = color2[0];
-                                array[start++] = color2[1];
-                                array[start++] = color2[2];
-                                array[start++] = color2[3];
+                                start += 4;
                         }
                 }
         }

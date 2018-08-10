@@ -291,10 +291,10 @@
                                                                         data-position="bottom" data-delay="100" data-tooltip="Cycle through the images for each year with a quarter-second delay.">Play</a>                
                                                         </div>
                                                 </div></div>
-                                                <div class="col s3 offset-s3" style="margin-top: 8px;">
+                                                <div class="col s3 offset-s3" style="margin-top: 8px; height: 40px;">
                                                         <div style="width: 116px; height: 36px; position: relative; overflow: visible;">
-                                                                <a class="btn" id="overlaySelectionBtn" style="width:116px;"onclick="toggleOverlaySelect(this);">Layers</a>
-                                                                <div id="layorSelector" class="arrow_box scale-transition scale-out">
+                                                                <a class="waves-effect waves-light btn" id="overlaySelectionBtn" style="width:116px;"onclick="toggleOverlaySelect(this);">Layers</a>
+                                                                <div id="layerSelector" class="scale-transition scale-out arrow_box">
                                                                         <div class="row parameterRow">
                                                                                 <div class="col s10"><h5>Layers</h5></div>
                                                                                 <div class="col s2">
@@ -320,7 +320,7 @@
                                                                                 <div class="col s8">Heatmap:</div>
                                                                                 <div class="col s4"><div class="switch" style="margin-top: 0px;">
                                                                                         <label>
-                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(imageLayer, this)" checked="true" id="heatmapToggle">
+                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(heatmapLayer, this)" checked="true" id="heatmapToggle">
                                                                                                 <span class="lever"></span>
                                                                                         </label>
                                                                                 </div></div>
@@ -329,7 +329,7 @@
                                                                                 <div class="col s5"><div style="margin-top: 4px;">Opacity:</div></div>
                                                                                 <div class="col s7">
                                                                                         <p class="range-field range-short" style="margin: 0px;">
-                                                                                                <input type="range" id="heatmapOpacitySlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(imageLayer, this.value)" style="border: 0px;"/>
+                                                                                                <input type="range" id="heatmapOpacitySlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(heatmapLayer, this.value)" style="border: 0px;"/>
                                                                                         </p>
                                                                                 </div>
                                                                         </div>
@@ -339,16 +339,16 @@
                                                                                 <div class="col s8">Explotation Index:</div>
                                                                                 <div class="col s4"><div class="switch" style="margin-top: 0px;">
                                                                                         <label>
-                                                                                                <input type="checkbox" onchange="(this)" checked="true" id="exploitationToggle">
+                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(exploitLayer, this)" checked="true" id="exploitationToggle">
                                                                                                 <span class="lever"></span>
                                                                                         </label>
                                                                                 </div></div>
                                                                         </div>
-                                                                        <div class="row parameterRow" style="margin-top: 4px;">
+                                                                        <div class="row parameterRow" id="exploitationContainer" style="margin-top: 4px;">
                                                                                 <div class="col s5"><div style="margin-top: 4px;">Opacity:</div></div>
                                                                                 <div class="col s7">
                                                                                         <p class="range-field range-short" style="margin: 0px;">
-                                                                                                <input type="range" id="exploitationSlider" min="0" max="100" scale="1" oninput="" style="border: 0px;"/>
+                                                                                                <input type="range" id="exploitationSlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(exploitLayer, this.value)" style="border: 0px;"/>
                                                                                         </p>
                                                                                 </div>
                                                                         </div>
@@ -909,28 +909,6 @@
                                                         <div class="determinate" style="width: 0%" id="progressBar"></div>
                                                 </div>
                                         </div>
-                                </div>
-                        </div>
-                </div>
-        </div>
-        <div class="card small z-depth-3 blue-grey lighten-2 scale-transition scale-out" id="popInfoCard">
-                <div class="card-content white-text" style="padding-top: 0px; padding-left: 0px; padding-right: 0px;">
-                        <span class="card-title" id="popInfoCardHeader" style="padding-top: 8px; margin-bottom: 0px; padding-bottom: 8px;">
-                                <div id="infoCardName" style="padding-left: 12px; width: 350px; display: inline-block; cursor: move;"></div>
-                                <a class="waves-effect waves-light btn red" style="padding: 0px 6px 0px 6px; display: inline-block; height: 32px;" onclick="closePopInfoCard()">
-                                        <i class="material-icons" style="width: 20px;">close</i>
-                                </a>
-                        </span>
-                        <div class="divider"></div>
-                        <div class="row">
-                                <div class="col s6">
-
-                                </div>
-                                <div class="col s3">
-
-                                </div>
-                                <div class="col s3">
-
                                 </div>
                         </div>
                 </div>
