@@ -236,7 +236,7 @@ function calculateModel(){
                                                 val    += grid[curYear][y][x+1] + diffusionGrid[y][x+1];
                                                 val    += grid[curYear][y][x-1] + diffusionGrid[y][x-1];
                                                 diffusionGrid[y][x] += (simData.animalDiffRate * (val - (4 * (grid[curYear][y][x] + diffusionGrid[y][x])))) / simData.diffusionSamples;
-                                        } else {
+                                        } else { 
                                                 let val = grid[curYear][y+1][x];
                                                 val    += grid[curYear][y-1][x];
                                                 val    += grid[curYear][y][x+1];
@@ -568,11 +568,11 @@ function generateCircleCoords(center, radius){
 
 function genExploitationImgData(){
         const overexploitedColor = [255, 255, 0, 255];
-        const collapsedColor = [255, 102, 0, 255];
-        const extirpatedColor = [255, 0, 0, 255];
+        const collapsedColor = [255, 0, 0, 255];
+        const extirpatedColor = [128, 0, 0, 255];
         const popColor = [128, 0, 0, 255];
         const gradientSteps = Math.floor(simData.carryCapacity) - 1;
-        const scale = 5;
+        const scale = 7;
         const xNewSize = xSize - 1;
         const yNewSize = ySize - 1;
         const width = xSize * scale;

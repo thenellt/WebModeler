@@ -11,16 +11,17 @@ var localAreaRange;
 var offtakeChart;
 var offtakeChartData;
 var offtakeSelectedID;
-var heatMapYear;
+var overlayYear;
+var overlayAnimationHandle;
 var heatMapImages;
 var simPosition;
 var exploitImages;
 
-function setupStatsPage(){
-        heatMapYear = simRunData.years;
-        document.getElementById("heatmapYearLabel").innerHTML = "Heatmap Year: " + heatMapYear;
-        document.getElementById("entireCDFYearLabel").innerHTML = "Simulation Year: " + heatMapYear;
-        document.getElementById("singleCDFYearLabel").innerHTML = "Simulation Year: " + heatMapYear;
+function setupResultsPages(){
+        overlayYear = simRunData.years;
+        document.getElementById("overlayYearLabel").innerHTML = "Overlay Year: " + overlayYear;
+        document.getElementById("entireCDFYearLabel").innerHTML = "Simulation Year: " + overlayYear;
+        document.getElementById("singleCDFYearLabel").innerHTML = "Simulation Year: " + overlayYear;
         document.getElementById("csvNumberInput").max = simRunData.years;
         entireAreaYear = localAreaYear = simRunData.years;
         offtakeSelectedID = 'all';
@@ -29,6 +30,7 @@ function setupStatsPage(){
         localAreaPictures = new Array(simRunData.years + 1);
         document.getElementById("singleCDFRangeLabel").innerHTML = "Radius: " + localAreaRange + " km";
         document.getElementById("heatmapOpacitySlider").value = simRunData.opacity * 100;
+        $("#overlayPlayButton").attr("onclick","overlayAnimation(0, false)");
 }
 
 function populateOtherInfo(){
@@ -395,40 +397,57 @@ function populateSelectionsFields(){
         $('#offtakeSetSelection').material_select();
 }
 
-function changeHeatmapOverlayYear(isNext){
-        if(isNext && heatMapYear != simRunData.years){
-                heatMapYear += 1;
-                drawCanvasToMap(heatMapImages[heatMapYear], heatmapLayer);
-                document.getElementById("heatmapYearLabel").innerHTML = "Heatmap Year: " + heatMapYear;
+function changeOverlayYear(isNext){
+        if(isNext && overlayYear != simRunData.years){
+                overlayYear += 1;
+                drawCanvasToMap(heatMapImages[overlayYear], heatmapLayer);
+                drawCanvasToMap(exploitImages[overlayYear], exploitLayer);
+                document.getElementById("overlayYearLabel").innerHTML = "Overlay Year: " + overlayYear;
                 if(mouseLastPosition)
-                        workerThread.postMessage({type:"mouseKCheck", pos:mouseLastPosition, year:heatMapYear});
-        } else if(!isNext && heatMapYear > 0){
-                heatMapYear -= 1;
-                drawCanvasToMap(heatMapImages[heatMapYear], heatmapLayer);
-                document.getElementById("heatmapYearLabel").innerHTML = "Heatmap Year: " + heatMapYear;
+                        workerThread.postMessage({type:"mouseKCheck", pos:mouseLastPosition, year:overlayYear});
+        } else if(!isNext && overlayYear > 0){
+                overlayYear -= 1;
+                drawCanvasToMap(heatMapImages[overlayYear], heatmapLayer);
+                drawCanvasToMap(exploitImages[overlayYear], exploitLayer);
+                document.getElementById("overlayYearLabel").innerHTML = "Overlay Year: " + overlayYear;
                 if(mouseLastPosition)
-                        workerThread.postMessage({type:"mouseKCheck", pos:mouseLastPosition, year:heatMapYear});
+                        workerThread.postMessage({type:"mouseKCheck", pos:mouseLastPosition, year:overlayYear});
         }
 }
 
-function heatmapOverlayAnimation(year){
+function overlayAnimation(year, stop){
+        if(stop){
+                clearTimeout(overlayAnimationHandle);
+                $('#overlaySaveButton, #mapFullscreenButton').removeClass('disabled');
+                $('#overlayUpButton, #overlayDownButton, #overlaySelectionBtn').removeClass('disabled');
+                $('#overlayPlayButton').html('Play').removeClass('red').addClass('blue')
+                        .attr("onclick","overlayAnimation(0, false)");
+                overlayAnimationHandle = false;
+                return;
+        }
         if(year === 0){
                 $('#overlaySaveButton, #mapFullscreenButton').addClass('disabled');
-                $('#overlayUpButton, #overlayDownButton, #overlayPlayButton').addClass('disabled');
-                heatMapYear = 0;
+                $('#overlayUpButton, #overlayDownButton, #overlaySelectionBtn').addClass('disabled');
+                $('#overlayPlayButton').html('Stop').removeClass('blue').addClass('red')
+                        .attr("onclick","overlayAnimation(0, true)");
+                overlayYear = 0;
                 if(mouseLastPosition)
-                        workerThread.postMessage({type:"mouseKCheck", pos:mouseLastPosition, year:heatMapYear});
-                drawCanvasToMap(heatMapImages[heatMapYear], heatmapLayer);
-                document.getElementById("heatmapYearLabel").innerHTML = "Heatmap Year: " + heatMapYear;
+                        workerThread.postMessage({type:"mouseKCheck", pos:mouseLastPosition, year:overlayYear});
+                drawCanvasToMap(heatMapImages[overlayYear], heatmapLayer);
+                drawCanvasToMap(exploitImages[overlayYear], exploitLayer);
+                document.getElementById("overlayYearLabel").innerHTML = "Overlay Year: " + overlayYear;
         } else {
-                changeHeatmapOverlayYear(true);
+                changeOverlayYear(true);
         }
 
         if(year < simRunData.years){
-                setTimeout(heatmapOverlayAnimation, 250, year + 1);
+                overlayAnimationHandle = setTimeout(overlayAnimation, 250, year + 1);
         } else {
                 $('#overlaySaveButton, #mapFullscreenButton').removeClass('disabled');
-                $('#overlayUpButton, #overlayDownButton, #overlayPlayButton').removeClass('disabled');
+                $('#overlayUpButton, #overlayDownButton, #overlaySelectionBtn').removeClass('disabled');
+                $('#overlayPlayButton').html('Play').removeClass('red').addClass('blue')
+                        .attr("onclick","overlayAnimation(0, false)");
+                overlayAnimationHandle = false;
         }
 }
 
@@ -738,10 +757,15 @@ function refreshCanvas(){
                 entireAreaChart.update();
                 offtakeChart.update();
         }
-        bingLayers[0].getSource().refresh();
-        bingLayers[1].getSource().refresh();
-        if(heatmapLayer.getSource())
+        if(bingLayers[0]){
+                bingLayers[0].getSource().refresh();
+                bingLayers[1].getSource().refresh();
+        }
+
+        if(heatmapLayer.getSource()){
                 heatmapLayer.getSource().refresh();
+
+        }
         
         map.updateSize();
 }

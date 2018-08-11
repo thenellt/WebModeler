@@ -183,7 +183,7 @@ function setupSimulation(){
                 if(uiData[settlement].valid)
                         simRunData.townsByID[uiData[settlement].id] = sanitizeTownData(uiData[settlement]);
         simRunData.towns = JSON.parse(JSON.stringify(townData));
-        setupStatsPage();
+        setupResultsPages();
 
         showProgressBar("Setting up simulation", 0);
         workerThread.postMessage({type:"newSim", params:simData, towns:townData});

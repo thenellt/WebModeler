@@ -1,7 +1,7 @@
 var popEditorID;
 var popEditorType;
 var popEditorTempPopulation;
-var yearlyEditorId = -1;
+var yearlyEditorId = false;
 var advSettingsBackup;
 var advSettingsFnc;
 
@@ -80,10 +80,17 @@ function showPopEditor(position, existingPopID){
         popupEvntFunction = function(e){
                 e = e || window.event;
                 if(e.keyCode == 27){
-                        closePopEditor(1);
-                }
-                else if(e.keyCode == 13){
-                        closePopEditor(0);
+                        if(yearlyEditorId){
+                                closeYearlyEditor('clear');
+                        } else {
+                                closePopEditor(1);
+                        }
+                } else if(e.keyCode == 13) {
+                        if(yearlyEditorId){
+                                closeYearlyEditor('save');
+                        } else {
+                                closePopEditor(0);
+                        }
                 }
         };
 
@@ -231,10 +238,14 @@ function checkPopEditor(){
 }
 
 function openYearlyEditor(id){
-        if(id === 'popEditor')
-                id = popEditorID;
-        let data = uiData[id];
         var showName = "No Name";
+        if(id === 'popEditor'){
+                id = popEditorID;
+                const tempName = $('#floatPopName').val();
+                if(tempName && tempName.length > 0)
+                        showName = tempName;
+        }
+        let data = uiData[id];
         if(typeof(data) !== "undefined"){
                 if(data.name && data.name.length > 0)
                         showName = data.name;
@@ -282,6 +293,7 @@ function closeYearlyEditor(mode){
                 }
         }
 
+        yearlyEditorId = false;
         $('#yearlyPopEditor').modal('close');
 }
 

@@ -429,6 +429,9 @@ function verifyUpdate(){
 function updateOnlineStatus(isOnline){
         if(isOnline){
                 $("#satMapContainer").removeClass("hide");
+                if(tabManager.currentPage === pageTabs.MAPS)
+                        bingLayers[1].setVisible(true);
+                bingLayers[1].getSource().refresh();
         } else {
                 $("#satMapContainer").addClass("hide");
                 $('#mapTypeToggle').prop('checked', true);

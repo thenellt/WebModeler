@@ -33,7 +33,8 @@ function setupServiceWorker(){
                 setupMapping();
         } else {
                 navigator.serviceWorker.register('../serviceWorker.js').then(function (registration) {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        console.log('ServiceWorker registration successful ');
+                        window.location.reload();
                         registration.addEventListener('updatefound', function () {
                                 var activeWorker = registration.installing;
                                 activeWorker.addEventListener('statechange', function(e) {
@@ -268,14 +269,14 @@ function generateConfigObject(){
 function saveImgToFile(){
         map.once('postcompose', function(event) {
                 event.context.canvas.toBlob(function(blob) {
-                        saveAs(blob, simData.simName + '_year' + heatMapYear + '_map.png');
+                        saveAs(blob, simData.simName + '_year' + overlayYear + '_map.png');
                 });
         });
         map.renderSync();
 }
 
 function saveHeatmapToFile(){
-        const requestYear = heatMapYear;
+        const requestYear = overlayYear;
         const requestScale = document.getElementById('heatmapScale').value / 100;
         if(requestScale === 1){ 
                 heatMapImages[requestYear].toBlob(function(blob) {

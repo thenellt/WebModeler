@@ -150,7 +150,7 @@ function setupCustomMouseControl(){
 function requestUpdateKControl(e){
         if(e){
                 mouseLastPosition = e.coordinate;
-                workerThread.postMessage({type:"mouseKCheck", pos:e.coordinate, year:heatMapYear});
+                workerThread.postMessage({type:"mouseKCheck", pos:e.coordinate, year:overlayYear});
         } else {
                 mouseLastPosition = false;
                 document.getElementById('mouseKText').innerHTML = '-';
@@ -405,7 +405,6 @@ function drawCanvasToMap(imageURL, target){
         target.setSource(
                 new ol.source.ImageStatic({
                         url: imageURL,
-                        //imageSize: [canvasImage.naturalWidth, canvasImage.naturalHeight],
                         projection: 'mollweide',
                         imageExtent: simPosition
                 })
