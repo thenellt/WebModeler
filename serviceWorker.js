@@ -25,6 +25,7 @@ var fileNames = [
         './js/jquery-3.2.1.min.js',
         './js/jszip.min.js',
         './js/FileSaver.min.js',
+        './js/turf_subset.min.js',
         './css/materialize.min.css',
         './css/otherStyle.css',
         './css/table.css',

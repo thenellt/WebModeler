@@ -1,4 +1,4 @@
-self.importScripts('../js/proj4js.js');
+self.importScripts('./proj4js.js', './turf_subset.min.js');
 
 const eaProjection = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
 const viewProjection = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs ";
