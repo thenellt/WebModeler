@@ -475,23 +475,6 @@ function storeCDFData(location, year, data, id){
         }
 }
 
-function storeLocalCDFPictures(data){
-        let canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
-        let scale = 5;
-        canvas.width = data.x * scale;
-        canvas.height = data.y * scale;
-        let picData = new ImageData(data.array, data.x * scale, data.y * scale);
-        ctx.putImageData(picData, 0, 0);
-
-        if(data.year === localAreaYear){
-                localAreaPictures[data.year] = canvas.toDataURL();;
-                setLocalCDFPicture();
-        } else {
-                localAreaPictures[data.year] = canvas.toDataURL();;
-        }
-}
-
 function storeOfftakeData(data){
         offtakeChartData = {towns: JSON.parse(data)};
         if(simRunData.towns.length > 1){

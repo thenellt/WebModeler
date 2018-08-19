@@ -1,4 +1,4 @@
-self.importScripts('./proj4js.js', './turf_subset.min.js');
+self.importScripts('./proj4js.js');
 
 const eaProjection = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
 const viewProjection = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs ";
@@ -15,6 +15,8 @@ var growth;
 var offtake;
 var towns;
 var calcTimes;
+var visStartTime;
+var bounds;
 var eaPointSet = [];
 var points = [];
 var geoGrid = [[[]]];
@@ -47,8 +49,8 @@ onmessage = function(oEvent) {
 
 function runSimulation(parameters){
         unpackParams(parameters);
-        let bounds = generateBounds();
-        generategeoGrid(bounds);
+        generateBounds();
+        generategeoGrid();
         try{
                 allocateMemory();
         } catch(err) {
@@ -59,17 +61,16 @@ function runSimulation(parameters){
         self.postMessage({type:'mapped', fnc:'storeMapPos', pos:posArray});
         placeLocations();
         calculateModel();
-        let visStartTime = performance.now();
+        visStartTime = performance.now();
         generateOfftakeImages();
         genExploitationImgData();
         generateEntireCDFData();
         generateSingleCDFData(towns[0].id, simData.huntRange);
-        generateCDFPictureData(towns[0].id, simData.huntRange);
+        generateCDFPictureData(towns[0].id, simData.huntRange, true);
         generateOfftakeData();
-        let visTime = performance.now() - visStartTime;
         self.postMessage({type:'finished', paramData:{name: simData.simName, duration:simData.years,
-                          xSize:xSize, ySize:ySize, geoGrid:geoGrid, townData:towns, bounds: bounds,
-                          perfData:calcTimes, visTime:visTime}});
+                xSize:xSize, ySize:ySize, geoGrid:geoGrid, townData:towns, bounds: bounds,
+                perfData:calcTimes, visStart:visStartTime}});
 }
 
 function unpackParams(data){
@@ -147,10 +148,11 @@ function generateBounds(){
                 point:proj4(proj4('mollweide'), proj4('espg4326'), botOffset), color: "#e8f441"
         }});
 
-        return [topOffset, botOffset];
+        bounds = [topOffset, botOffset];
 }
 
-function generategeoGrid(extremePoints){
+function generategeoGrid(){
+        let extremePoints = bounds;
         geoGrid = [];
 
         const width = 1 + Math.abs(extremePoints[1][0] - extremePoints[0][0]) / 1000;
@@ -285,20 +287,17 @@ function generateOfftakeImages(){
         self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Visualizing Data", statusValue: 100});
         let gradient = setupGradient();
         for(let curYear = 0; curYear <= simData.years; curYear++){
-                generateImageData({'scale': 4, 'year': curYear, 'dest': 'animationFrame'}, gradient);
+                genHeatmapImg(4, curYear, gradient);
         }
 }
 
-function generateImageData(params, gradient){
-        if(!gradient)
-                gradient = setupGradient();
+function genHeatmapImg(scale, year, gradient){
         const gradientSteps = Math.floor(simData.carryCapacity) - 1;
-        const scale = params.scale;
 
         var imgData = new Uint8ClampedArray(((xSize - 1) * scale) * ((ySize - 1) * scale) * 4);
         for(let y = 0; y < ySize - 1; y++){
                 for(let x = 0; x < xSize - 1; x++){
-                        let gradientPosition = Math.ceil(gradientSteps * (1 - (grid[params.year][y][x] / simData.carryCapacity)));
+                        let gradientPosition = Math.ceil(gradientSteps * (1 - (grid[year][y][x] / simData.carryCapacity)));
                         if(gradientPosition < 0 || !gradientPosition){
                                 placePixel(imgData, x, y, gradient[0], scale);
                         } else {
@@ -307,8 +306,8 @@ function generateImageData(params, gradient){
                 }
         }
 
-        self.postMessage({type:'imgData', year:params.year, scale:scale, dest:params.dest,
-                          x:(xSize - 1), y:(ySize - 1), array:imgData}, [imgData.buffer]);
+        const params = {type:'genImg', width:(xSize - 1) * scale, height:(ySize - 1) * scale, year:year, dest:'heatmapImages', isEnd:false};
+        self.postMessage({type:'imgData', params:params, data:imgData}, [imgData.buffer]);
 }
 
 function setupGradient(){
@@ -386,7 +385,7 @@ function setupGradient(){
         return gradient;
 }
 
-function generateCDFPictureData(id, range){
+function generateCDFPictureData(id, range, isEnd){
         for(elmnt in towns)
                 if(towns[elmnt].id === id){
                         var selectedTown = towns[elmnt];
@@ -430,8 +429,8 @@ function generateCDFPictureData(id, range){
                                 }
                         }
                 }
-                self.postMessage({type:'singleCDFImages', year:year, x:xSize, y:ySize,
-                                  array:imgData}, [imgData.buffer]);
+                const params = {type:'genImg', width:(xSize) * scale, height:(ySize) * scale, year:year, dest:'localCDFimg', isEnd:isEnd};
+                self.postMessage({type:'imgData', params:params, data:imgData}, [imgData.buffer]);
         }
 }
 
@@ -599,7 +598,6 @@ function genExploitationImgData(){
                         }
                 }
 
-                //traceBoundries(dataGrid);
                 let imgData = new Uint8ClampedArray(((xSize - 1) * scale) * ((ySize - 1)  * scale) * 4);
                 for(let y = 0; y < ySize - 1; y++){
                         for(let x = 0; x < xSize - 1; x++){
@@ -615,9 +613,8 @@ function genExploitationImgData(){
                                 }
                         }
                 }
-
-                self.postMessage({type:'imgData', year:curYear, scale:scale, dest:'expImages',
-                                x:xSize - 1, y:ySize - 1, array:imgData}, [imgData.buffer]);
+                const params = {type:'genImg', width:(xSize - 1) * scale, height:(ySize - 1) * scale, year:curYear, dest:'expImages', isEnd:false};
+                self.postMessage({type:'imgData', params:params, data:imgData}, [imgData.buffer]);
         }
 }
 
@@ -654,12 +651,5 @@ function placePixel(array, xPos, yPos, color, scale){
                         array[start++] = color[2];
                         array[start++] = color[3];
                 }
-        }
-}
-
-function traceBoundries(array){
-        let clone = JSON.parse(JSON.stringify(array));
-        for(let i = 0; i < towns.length; i++){
-
         }
 }

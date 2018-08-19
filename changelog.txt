@@ -1,3 +1,4 @@
+8/19/18 v31 - Image generation is now multithreaded. \n
 8/9/18/ v30b - Many layor bugfixes and fully working exploitation index. \n
 8/7/18/ v30 - Rewrote map layers interface to allow for mixing and matching display options. \n
 8/2/18 v29 - Mostly complete service worker backend. Site now requires https. \n

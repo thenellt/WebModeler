@@ -6,6 +6,7 @@ var simData = {};
 var simRunData;
 var simResults = {};
 var progBarDet;
+var workerPool;
 
 $(document).ready(function() {
         $('#projBackground, #changelogPopup, #popImportDialog').modal();
@@ -34,6 +35,7 @@ $(document).ready(function() {
         window.addEventListener('offline', function(){updateOnlineStatus(false);});
         setupTabSystem();
         checkCompatibility();
+        setupWorkers();
 });
 
 function initApp(fullSupport){
@@ -437,5 +439,39 @@ function updateOnlineStatus(isOnline){
                 $('#mapTypeToggle').prop('checked', true);
                 bingLayers[1].setVisible(false);
                 bingLayers[0].setVisible(true);
+        }
+}
+
+function setupWorkers(){
+        const coreCount = navigator.hardwareConcurrency;
+        const cores = coreCount > 1 ? coreCount - 1 : 1;
+        workerPool = {
+                workers: [],
+                cores: cores,
+                nextCore: 0
+        };
+        for (let i = 0; i < cores; i++) {
+                workerPool.workers.push(new Worker('js/imgWorker.js'));
+                workerPool.workers[i].onmessage = function(oEvent) {
+                        receiveWork(oEvent.data);
+                };
+        }
+}
+
+function dispatchImgWork(data, imgData){
+        workerPool.workers[workerPool.nextCore++].postMessage({params:data, array:imgData}, [imgData.buffer]);
+        if(workerPool.nextCore === workerPool.cores)
+                workerPool.nextCore = 0;
+}
+
+function receiveWork(data){
+        storeImgURL(data);
+        if(data.isEnd && data.year === simData.years && data.dest === 'localCDFimg'){
+                tabManager.changeTab(pageTabs.MAPS);
+                closeProgressBar();
+                $('#coverScreen').modal('close');
+                simulationTime = getTime() - simulationTime;
+                simResults.visTime = getTime() - simResults.visStart;
+                populateOtherInfo();
         }
 }

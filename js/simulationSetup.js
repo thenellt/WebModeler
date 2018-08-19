@@ -15,7 +15,7 @@ const workerFunctions = {
         'singleCSV':     function(data) {saveSingleCSV(data.csvString, data.year);},
         'allYearsCSV':   function(data) {saveAllYearsCSV(data.csvString, data.year);},
         'posKUpdate':    function(data) {$('#mouseKText').html(data.text);},
-        'storeMapPos':   function(data) {console.log(data.pos); simPosition = data.pos;}
+        'storeMapPos':   function(data) {simPosition = data.pos;},
 };
 
 function setupSimDefaults(){
@@ -201,12 +201,8 @@ function handleWorkerMessage(data){
                 let testExtent = [topLeft[0], botRight[1], botRight[0], topLeft[1]];
                 map.getView().fit(testExtent, map.getSize());
                 synchPersisObject();
-                tabManager.changeTab(pageTabs.MAPS);
                 populateSelectionsFields();
-                simulationTime = getTime() - simulationTime;
                 populateOtherInfo();
-                closeProgressBar();
-                $('#coverScreen').modal('close');
                 break;
         case 'debug':
                 console.log("Worker::" + data.statusMsg);
@@ -220,10 +216,7 @@ function handleWorkerMessage(data){
                 modalDialog(title, msg, changeToPopulations);
                 break;
         case 'imgData':
-                generateCanvas(data);
-                break;
-        case 'singleCDFImages':
-                storeLocalCDFPictures(data);
+                dispatchImgWork(data.params, data.data);
                 break;
         }
 }

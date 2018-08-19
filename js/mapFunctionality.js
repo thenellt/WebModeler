@@ -372,31 +372,22 @@ function generateCircleCoords(origCenter, radius){
         return translatedCoordinates;
 }
 
-function generateCanvas(data){
-        let canvas = document.createElement('canvas');
-        let ctx = canvas.getContext('2d');
-
-        canvas.width = data.x * data.scale;
-        canvas.height = data.y * data.scale;
-
-        let picData = new ImageData(data.array, data.x * data.scale, data.y * data.scale);
-        ctx.putImageData(picData, 0, 0);
-
+function storeImgURL(data){
         switch(data.dest){
-        case 'animationFrame':
-                heatMapImages[data.year] = canvas.toDataURL();
+        case 'heatmapImages':
+                heatMapImages[data.year] = data.url;
                 if(data.year === simRunData.years)
                         drawCanvasToMap(heatMapImages[data.year], heatmapLayer);
                 break;
         case 'expImages':
-                exploitImages[data.year] = canvas.toDataURL();
+                exploitImages[data.year] = data.url;
                 if(data.year === simRunData.years)
                         drawCanvasToMap(exploitImages[data.year], exploitLayer);
                 break;
-        case 'save':
-                canvas.toBlob(function(blob) {
-                        saveAs(blob, simData.simName + '_year' + data.year + '_heatmap.png');
-                });
+        case 'localCDFimg':
+                localAreaPictures[data.year] = data.url;
+                if(data.year === localAreaYear)
+                        setLocalCDFPicture();
                 break;
         }
 }
