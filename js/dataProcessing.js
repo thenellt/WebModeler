@@ -28,9 +28,9 @@ function setupResultsPages(){
         localAreaPictures = new Array(simRunData.years + 1);
         document.getElementById("singleCDFRangeLabel").innerHTML = "Radius: " + localAreaRange + " km";
         document.getElementById("heatmapOpacitySlider").value = simRunData.opacity * 100;
-        $("#overlayPlayButton").click(overlayAnimation);
-        $('#entireCDFplayButton').click(entireCDFAnimation);
-        $('#localCDFplayButton').click(localCDFAnimation);
+        $("#overlayPlayButton").off('click').click(overlayAnimation);
+        $('#entireCDFplayButton').off('click').click(entireCDFAnimation);
+        $('#localCDFplayButton').off('click').click(localCDFAnimation);
 }
       
 function createGradient(){
@@ -462,19 +462,18 @@ function overlayAnimation(){
         drawCanvasToMap(exploitImages[overlayYear], exploitLayer);
         document.getElementById("overlayYearLabel").innerHTML = "Overlay Year: " + overlayYear;
 
-        var animHandle;
-        var animFunction = function(year){
+        var year = 0;
+        var animHandle = setInterval(function(){
                 if(year === simRunData.years){
                         clearTimeout(animHandle);
                         $('#overlaySaveButton, #mapFullscreenButton').removeClass('disabled');
                         $('#overlayUpButton, #overlayDownButton, #tabFillerButton').removeClass('disabled');
-                        $('#overlayPlayButton').html('Play').removeClass('red').addClass('blue').off('click')
-                                .click(overlayAnimation);
+                        $('#overlayPlayButton').html('Play').removeClass('red').addClass('blue').off('click').click(overlayAnimation);
                 } else {
                         changeOverlayYear(true);
-                        animHandle = setTimeout(animFunction, 300, year + 1);
+                        year++;
                 }
-        };
+        }, 250);
 
         $('#overlayPlayButton').html('Stop').removeClass('blue').addClass('red').off('click').click(function(){
                 clearTimeout(animHandle);
@@ -482,8 +481,6 @@ function overlayAnimation(){
                 $('#overlayUpButton, #overlayDownButton, #tabFillerButton').removeClass('disabled');
                 $('#overlayPlayButton').html('Play').removeClass('red').addClass('blue').off('click').click(overlayAnimation);
         });
-        
-        animHandle = setTimeout(animFunction, 300, 0);
 }
 
 function storeCDFData(location, year, data, id){
