@@ -444,33 +444,7 @@
                                         </div>
                                         <ul class="collapsible" data-collapsible="accordion">
                                                 <li>
-                                                        <div class="collapsible-header active">Entire Map Spatial Distribution</div>
-                                                        <div class="collapsible-body" style="padding: 12px;">
-                                                                <div class="row">
-                                                                        <div class="col s12" id="entireAreaChartContainer" style="resize: both;">
-                                                                                <canvas id="entireMapChart" style="width: 800px; height: 400px; margin: 0 auto;"></canvas>
-                                                                        </div>
-                                                                </div>
-                                                                <div class="row">
-                                                                        <div class="col s4 offset-s5"><div class="right">
-                                                                                <div id="entireCDFYearLabel">
-                                                                                        Simulation Year:
-                                                                                </div>
-                                                                                <div>
-                                                                                        <a class="waves-effect waves-light btn" id="entireCDFdownYear" onclick="changeEntireCDFYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
-                                                                                        <a class="waves-effect waves-light btn" id="entireCDFupYear" onclick="changeEntireCDFYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
-                                                                                        <a class="waves-effect waves-light btn blue lighten-2 tooltipped" id="entireCDFplayButton" style="display: inline-block;"
-                                                                                                data-position="bottom" data-delay="100" data-tooltip="Cycle through the data for each year with a quarter-second delay.">Play</a>                
-                                                                                </div>
-                                                                        </div></div>
-                                                                        <div class="col s3" style="margin-top: 20px;">
-                                                                                <a class="waves-effect waves-light btn right" id="entireCDFSaveButton" onclick="downloadGraph('entireMapChart');">Save Image</a>
-                                                                        </div>
-                                                                </div>
-                                                        </div>
-                                                </li>
-                                                <li>
-                                                        <div class="collapsible-header">Single Settlement Spatial Distribution</div>
+                                                        <div class="collapsible-header active">Single Settlement Spatial Distribution</div>
                                                         <div class="collapsible-body" style="padding: 12px;">
                                                                 <div class="row" style="margin-bottom: 8px;"><div class="col 12">Calculates the depletion of terrain within a radius around each population. While the preview is square, the graph only uses data from the cells contained within a circle inscribed in the square piece of terrain shown in the preview.</div></div>
                                                                 <div class="row" style="margin-bottom: 8px;">
@@ -507,6 +481,32 @@
                                                                         </div></div>
                                                                         <div class="col s3" style="margin-top: 20px;">
                                                                                 <a class="waves-effect waves-light btn right" id="singleCDFSaveButton" onclick="downloadGraph('localAreaCDF');">Save Chart</a>
+                                                                        </div>
+                                                                </div>
+                                                        </div>
+                                                </li>
+                                                <li>
+                                                        <div class="collapsible-header">Entire Map Spatial Distribution</div>
+                                                        <div class="collapsible-body" style="padding: 12px;">
+                                                                <div class="row">
+                                                                        <div class="col s12" id="entireAreaChartContainer" style="resize: both;">
+                                                                                <canvas id="entireMapChart" style="width: 800px; height: 400px; margin: 0 auto;"></canvas>
+                                                                        </div>
+                                                                </div>
+                                                                <div class="row">
+                                                                        <div class="col s4 offset-s5"><div class="right">
+                                                                                <div id="entireCDFYearLabel">
+                                                                                        Simulation Year:
+                                                                                </div>
+                                                                                <div>
+                                                                                        <a class="waves-effect waves-light btn" id="entireCDFdownYear" onclick="changeEntireCDFYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
+                                                                                        <a class="waves-effect waves-light btn" id="entireCDFupYear" onclick="changeEntireCDFYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
+                                                                                        <a class="waves-effect waves-light btn blue lighten-2 tooltipped" id="entireCDFplayButton" style="display: inline-block;"
+                                                                                                data-position="bottom" data-delay="100" data-tooltip="Cycle through the data for each year with a quarter-second delay.">Play</a>                
+                                                                                </div>
+                                                                        </div></div>
+                                                                        <div class="col s3" style="margin-top: 20px;">
+                                                                                <a class="waves-effect waves-light btn right" id="entireCDFSaveButton" onclick="downloadGraph('entireMapChart');">Save Image</a>
                                                                         </div>
                                                                 </div>
                                                         </div>

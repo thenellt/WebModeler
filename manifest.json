@@ -5,7 +5,7 @@
   "background_color": "#ffffff",
   "theme_color": "#f7454c",
   "display": "standalone",
-  "version": "32a",
+  "version": "32c",
   "icons": [{
     "src": "images/baseline_layers_black_48.png",
     "sizes": "48x48",

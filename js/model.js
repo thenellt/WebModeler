@@ -220,18 +220,15 @@ function calculateModel(){
         logMessage("calculateModel: Starting run. Years: " + simData.years + " samples: " + simData.diffusionSamples);
         let gradient = setupGradient();
         self.postMessage({type:'mapped', fnc:'storeGradient', gradient:gradient});
-        var top, bot, locationValue, x, y;
         calcTimes = new Array(simData.years);
 
         for(let curYear = 0; curYear < simData.years; curYear++){
-                //d*[i+1,j] + d*[i-1,j] + d*[i,j+1] + d*[i,j-1] + ([i,j] - 4*d*[i,j])
-                //D*a       + D*b       + D*d       + D*e       + (c     - 4*D*c    )
                 let startTime = performance.now();
                 let xEnd = xSize - 1;
                 let yEnd = ySize - 1;
                 for(let i = 0; i < simData.diffusionSamples; i++){
-                        for(y = 1; y < yEnd; y++){
-                                for(x = 1; x < xEnd; x++){
+                        for(let y = 1; y < yEnd; y++){
+                                for(let x = 1; x < xEnd; x++){
                                         if(i){
                                                 let val = grid[curYear][y+1][x] + diffusionGrid[y+1][x];
                                                 val    += grid[curYear][y-1][x] + diffusionGrid[y-1][x];
@@ -250,28 +247,26 @@ function calculateModel(){
                 }
 
                 for(let i = 0; i < ySize; i++){
-                        grid[curYear + 1][i][0] = simData.carryCapacity;
+                        grid[curYear + 1][i][0] = grid[curYear + 1][i][xEnd] = simData.carryCapacity;
                         grid[curYear + 1][i][xEnd] = simData.carryCapacity;
                 }
                 for(let i = 0; i < xSize; i++){
-                        grid[curYear + 1][0][i] = simData.carryCapacity;
+                        grid[curYear + 1][0][i] = grid[curYear + 1][yEnd][i] = simData.carryCapacity;
                         grid[curYear + 1][yEnd][i] = simData.carryCapacity;
                 }
 
-                for(y = 1; y < yEnd; y++){
-                        for(x = 1; x < xEnd; x++){
+                for(let y = 1; y < yEnd; y++){
+                        for(let x = 1; x < xEnd; x++){
                                 for(let settleNum = 0, length = towns.length; settleNum < length; settleNum++){
-                                        locationValue = Math.pow(towns[settleNum].x - x, 2) + Math.pow(towns[settleNum].y - y, 2);
-                                        top = Math.exp((-1)/(2*Math.pow(simData.huntRange, 2)) * locationValue);
-                                        bot = 2*Math.PI*Math.sqrt(locationValue + 1);
+                                        const locationValue = Math.pow(towns[settleNum].x - x, 2) + Math.pow(towns[settleNum].y - y, 2);
+                                        const top = Math.exp((-1)/(2*Math.pow(simData.huntRange, 2)) * locationValue);
+                                        const bot = 2*Math.PI*Math.sqrt(locationValue + 1);
                                         const effortValue = (towns[settleNum].HPHY*getTownPop(towns[settleNum], curYear)*top)/bot;
                                         const offtakeValue = towns[settleNum].killRate * simData.encounterRate * effortValue * grid[curYear][y][x];
                                         offtake[y][x] = settleNum ? offtake[y][x] + offtakeValue : offtakeValue;
                                         towns[settleNum].offtake[curYear] += offtakeValue;
                                         towns[settleNum].effort[curYear] += effortValue;
                                 }
-                                //n[year,:,:]*lambdas-lambdas*n[year,:,:]*(n[year,:,:]/density)**theta
-                                //growth[y][x] = animalGrowthRate*grid[curYear][y][x] - animalGrowthRate*grid[curYear][y][x]*Math.pow((grid[curYear][y][x]/carryCapacity), theta);
                                 growth[y][x] = simData.animalGrowthRate * grid[curYear][y][x] * (1 - Math.pow((grid[curYear][y][x]/simData.carryCapacity), simData.theta));
                                 let gridValue = grid[curYear][y][x] + diffusionGrid[y][x] + growth[y][x] - offtake[y][x];
                                 grid[curYear + 1][y][x] = gridValue > 0.0 ? gridValue : 0.0;

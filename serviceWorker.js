@@ -188,6 +188,7 @@ function precache() {
 }
 
 function queryUpdates(loadedVersion, responsePort){
+        updateGlobals();
         if(!navigator.onLine){
                 responsePort.postMessage("noUpdate");
         } else {
@@ -206,6 +207,21 @@ function queryUpdates(loadedVersion, responsePort){
                         });
                 }).catch(function(){
 
+                });
+        }
+}
+
+function updateGlobals(){
+        earthCacheAge = false;
+        if(!tileCount || isNaN(tileCount)){
+                tileCount = 0;
+                caches.open('tile-cache').then(function(tileCache){
+                        if(tileCache){
+                                tileCache.keys().then(function(keyList) {
+                                        if(keyList.length && typeof keyList.length == 'number')
+                                                tileCount = keyList.length;
+                                });
+                        }
                 });
         }
 }

@@ -462,8 +462,8 @@ function overlayAnimation(){
         drawCanvasToMap(exploitImages[overlayYear], exploitLayer);
         document.getElementById("overlayYearLabel").innerHTML = "Overlay Year: " + overlayYear;
 
-        var year = 0;
-        var animHandle = setInterval(function(){
+        var animHandle;
+        var animFunction = function(year){
                 if(year === simRunData.years){
                         clearTimeout(animHandle);
                         $('#overlaySaveButton, #mapFullscreenButton').removeClass('disabled');
@@ -472,18 +472,18 @@ function overlayAnimation(){
                                 .click(overlayAnimation);
                 } else {
                         changeOverlayYear(true);
-                        year++;
+                        animHandle = setTimeout(animFunction, 300, year + 1);
                 }
-        }, 250);
+        };
 
-        $('#overlayPlayButton').html('Stop').removeClass('blue').addClass('red').off('click')
-                .click(function(){
-                        clearTimeout(animHandle);
-                        $('#overlaySaveButton, #mapFullscreenButton').removeClass('disabled');
-                        $('#overlayUpButton, #overlayDownButton, #tabFillerButton').removeClass('disabled');
-                        $('#overlayPlayButton').html('Play').removeClass('red').addClass('blue').off('click')
-                                .click(overlayAnimation);
-                });
+        $('#overlayPlayButton').html('Stop').removeClass('blue').addClass('red').off('click').click(function(){
+                clearTimeout(animHandle);
+                $('#overlaySaveButton, #mapFullscreenButton').removeClass('disabled');
+                $('#overlayUpButton, #overlayDownButton, #tabFillerButton').removeClass('disabled');
+                $('#overlayPlayButton').html('Play').removeClass('red').addClass('blue').off('click').click(overlayAnimation);
+        });
+        
+        animHandle = setTimeout(animFunction, 300, 0);
 }
 
 function storeCDFData(location, year, data, id){

@@ -222,8 +222,7 @@ function resultsMapClick(e){
         }, {hitTolerance: 3});
 
         if(tempFeatures.length){
-                map.getView().setCenter(tempFeatures[0].getGeometry().getCoordinates());
-                map.getView().setZoom(11);
+                map.getView().animate({center:tempFeatures[0].getGeometry().getCoordinates(), zoom: 11, duration:500});
         }
 }
 
