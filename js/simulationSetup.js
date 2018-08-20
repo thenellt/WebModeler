@@ -16,6 +16,7 @@ const workerFunctions = {
         'allYearsCSV':   function(data) {saveAllYearsCSV(data.csvString, data.year);},
         'posKUpdate':    function(data) {$('#mouseKText').html(data.text);},
         'storeMapPos':   function(data) {simPosition = data.pos;},
+        'storeGradient': function(data) {simRunData.gradient = data.gradient; createGradient();}
 };
 
 function setupSimDefaults(){
@@ -32,7 +33,7 @@ function setupSimDefaults(){
         simData.lowColorCode = "ffeda0";
         simData.highColorCode = "f03b20";
         simData.simName = "defaultName";
-        simData.opacity = 0.8;
+        simData.opacity = 1.0;
         simData.boundryWidth = 10;
 }
 
@@ -72,7 +73,6 @@ function readUserParameters(){
 
         simData.theta = checkParam('paramTheta', simData.theta, true);
         simData.diffusionSamples = checkParam('diffSamples', simData.diffusionSamples, false);
-        simData.opacity = checkParam('imgOpacity', simData.opacity, true);
         simData.boundryWidth = checkParam('boundryWidth', simData.boundryWidth, false);
 }
 

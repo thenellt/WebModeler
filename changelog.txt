@@ -1,3 +1,4 @@
+8/20/18 v32 - Start/stop for all animations and layer information panel. \n
 8/19/18 v31 - Image generation is now multithreaded. \n
 8/9/18/ v30b - Many layor bugfixes and fully working exploitation index. \n
 8/7/18/ v30 - Rewrote map layers interface to allow for mixing and matching display options. \n

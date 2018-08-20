@@ -219,6 +219,7 @@ function placeLocations(){
 function calculateModel(){
         logMessage("calculateModel: Starting run. Years: " + simData.years + " samples: " + simData.diffusionSamples);
         let gradient = setupGradient();
+        self.postMessage({type:'mapped', fnc:'storeGradient', gradient:gradient});
         var top, bot, locationValue, x, y;
         calcTimes = new Array(simData.years);
 
@@ -366,15 +367,12 @@ function setupGradient(){
                 }
         }
 
-        //should really look into replacing this with a formula
         gradient[0][3] = 0;
         gradient[1][3] = 10;
         gradient[2][3] = 50;
-        gradient[3][3] = 90;
-        gradient[4][3] = 145;
-        gradient[5][3] = 190;
-        gradient[6][3] = 230;
-        gradient[7][3] = 245;
+        gradient[3][3] = 120;
+        gradient[4][3] = 210;
+        gradient[5][3] = 255;
 
         return gradient;
 }

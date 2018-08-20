@@ -179,7 +179,6 @@ function loadSimConfig(fileData){
         document.getElementById("paramLowColor").value = simData.lowColorCode;
         document.getElementById("paramHighColor").value = simData.highColorCode;
         document.getElementById("diffSamples").value = simData.diffusionSamples;
-        document.getElementById("imgOpacity").value = simData.opacity;
         document.getElementById("boundryWidth").value = simData.boundryWidth;
         if(simData.threeColorMode){
                 document.getElementById("enable3ColorMode").checked = true;

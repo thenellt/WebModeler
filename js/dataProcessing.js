@@ -12,26 +12,62 @@ var offtakeChart;
 var offtakeChartData;
 var offtakeSelectedID;
 var overlayYear;
-var overlayAnimationHandle;
 var heatMapImages;
 var simPosition;
 var exploitImages;
 
 function setupResultsPages(){
-        overlayYear = simRunData.years;
+        overlayYear = entireAreaYear = localAreaYear = simRunData.years;
         document.getElementById("overlayYearLabel").innerHTML = "Overlay Year: " + overlayYear;
         document.getElementById("entireCDFYearLabel").innerHTML = "Simulation Year: " + overlayYear;
         document.getElementById("singleCDFYearLabel").innerHTML = "Simulation Year: " + overlayYear;
         document.getElementById("csvNumberInput").max = simRunData.years;
-        entireAreaYear = localAreaYear = simRunData.years;
         offtakeSelectedID = 'all';
         localAreaRange = simRunData.huntRange;
         localAreaSelectedID = uiData[Object.keys(uiData)[0]].id;
         localAreaPictures = new Array(simRunData.years + 1);
         document.getElementById("singleCDFRangeLabel").innerHTML = "Radius: " + localAreaRange + " km";
         document.getElementById("heatmapOpacitySlider").value = simRunData.opacity * 100;
-        $("#overlayPlayButton").attr("onclick","overlayAnimation(0, false)");
+        $("#overlayPlayButton").click(overlayAnimation);
+        $('#entireCDFplayButton').click(entireCDFAnimation);
+        $('#localCDFplayButton').click(localCDFAnimation);
 }
+      
+function createGradient(){
+        let svg = document.getElementById('gradientSVG');
+        let child = svg.getElementById('heatGradient');
+        if(child)
+                child.parentNode.removeChild(child);
+
+        var id = 'heatGradient';
+        let grad = simRunData.gradient;
+        let len = grad.length - 1;
+        const lowColor = 'rgb(' + grad[0][0] + ',' + grad[0][1] + ',' + grad[0][2] + ')';
+        var stops = [{offset:'0%', 'stop-color':lowColor}];
+        if(simRunData.threeColorMode){
+                const pos = (Math.floor(simData.carryCapacity) - 1)/2;
+                const midColor = 'rgb(' + grad[pos][0] + ',' + grad[pos][1] + ',' + grad[pos][2] + ')';
+                stops.push({offset:'50%','stop-color':midColor});
+        }
+        const highColor = 'rgb(' + grad[len][0] + ',' + grad[len][1] + ',' + grad[len][2] + ')';
+        stops.push({offset:'100%','stop-color':highColor});
+        var svgNS = svg.namespaceURI;
+        var gradCon  = document.createElementNS(svgNS,'linearGradient');
+        gradCon.setAttribute('id',id);
+        for (var i=0;i<stops.length;i++){
+                var attrs = stops[i];
+                var stop = document.createElementNS(svgNS,'stop');
+                for (var attr in attrs){
+                        if (attrs.hasOwnProperty(attr)) stop.setAttribute(attr,attrs[attr]);
+                }
+                gradCon.appendChild(stop);
+        }
+      
+        var defs = svg.querySelector('defs') || svg.insertBefore( document.createElementNS(svgNS,'defs'), svg.firstChild );
+        defs.appendChild(gradCon);
+        $('#gradientSVG rect').attr('fill','url(#heatGradient)');
+}
+      
 
 function populateOtherInfo(){
         let timeString = simulationTime > 1000 ? (simulationTime / 1000).toFixed(2) + ' s' : simulationTime.toFixed(2) + ' ms';
@@ -416,40 +452,38 @@ function changeOverlayYear(isNext){
         }
 }
 
-function overlayAnimation(year, stop){
-        if(stop){
-                clearTimeout(overlayAnimationHandle);
-                $('#overlaySaveButton, #mapFullscreenButton').removeClass('disabled');
-                $('#overlayUpButton, #overlayDownButton, #tabFillerButton').removeClass('disabled');
-                $('#overlayPlayButton').html('Play').removeClass('red').addClass('blue')
-                        .attr("onclick","overlayAnimation(0, false)");
-                overlayAnimationHandle = false;
-                return;
-        }
-        if(year === 0){
-                $('#overlaySaveButton, #mapFullscreenButton').addClass('disabled');
-                $('#overlayUpButton, #overlayDownButton, #tabFillerButton').addClass('disabled');
-                $('#overlayPlayButton').html('Stop').removeClass('blue').addClass('red')
-                        .attr("onclick","overlayAnimation(0, true)");
-                overlayYear = 0;
-                if(mouseLastPosition)
-                        workerThread.postMessage({type:"mouseKCheck", pos:mouseLastPosition, year:overlayYear});
-                drawCanvasToMap(heatMapImages[overlayYear], heatmapLayer);
-                drawCanvasToMap(exploitImages[overlayYear], exploitLayer);
-                document.getElementById("overlayYearLabel").innerHTML = "Overlay Year: " + overlayYear;
-        } else {
-                changeOverlayYear(true);
-        }
+function overlayAnimation(){
+        $('#overlaySaveButton, #mapFullscreenButton').addClass('disabled');
+        $('#overlayUpButton, #overlayDownButton, #tabFillerButton').addClass('disabled');
+        overlayYear = 0;
+        if(mouseLastPosition)
+                workerThread.postMessage({type:"mouseKCheck", pos:mouseLastPosition, year:overlayYear});
+        drawCanvasToMap(heatMapImages[overlayYear], heatmapLayer);
+        drawCanvasToMap(exploitImages[overlayYear], exploitLayer);
+        document.getElementById("overlayYearLabel").innerHTML = "Overlay Year: " + overlayYear;
 
-        if(year < simRunData.years){
-                overlayAnimationHandle = setTimeout(overlayAnimation, 250, year + 1);
-        } else {
-                $('#overlaySaveButton, #mapFullscreenButton').removeClass('disabled');
-                $('#overlayUpButton, #overlayDownButton, #tabFillerButton').removeClass('disabled');
-                $('#overlayPlayButton').html('Play').removeClass('red').addClass('blue')
-                        .attr("onclick","overlayAnimation(0, false)");
-                overlayAnimationHandle = false;
-        }
+        var year = 0;
+        var animHandle = setInterval(function(){
+                if(year === simRunData.years){
+                        clearTimeout(animHandle);
+                        $('#overlaySaveButton, #mapFullscreenButton').removeClass('disabled');
+                        $('#overlayUpButton, #overlayDownButton, #tabFillerButton').removeClass('disabled');
+                        $('#overlayPlayButton').html('Play').removeClass('red').addClass('blue').off('click')
+                                .click(overlayAnimation);
+                } else {
+                        changeOverlayYear(true);
+                        year++;
+                }
+        }, 250);
+
+        $('#overlayPlayButton').html('Stop').removeClass('blue').addClass('red').off('click')
+                .click(function(){
+                        clearTimeout(animHandle);
+                        $('#overlaySaveButton, #mapFullscreenButton').removeClass('disabled');
+                        $('#overlayUpButton, #overlayDownButton, #tabFillerButton').removeClass('disabled');
+                        $('#overlayPlayButton').html('Play').removeClass('red').addClass('blue').off('click')
+                                .click(overlayAnimation);
+                });
 }
 
 function storeCDFData(location, year, data, id){
@@ -520,30 +554,32 @@ function changeEntireCDFYear(isNext){
         }
 }
 
-function entireCDFAnimation(year){
-        if(year === 0){
-                $('#entireCDFSaveButton').addClass('disabled');
-                $('#entireCDFdownYear').addClass('disabled');
-                $('#entireCDFupYear').addClass('disabled');
-                $('#entireCDFplayButton').addClass('disabled');
-                entireAreaYear = 0;
-                entireAreaChart.data.datasets[0].data = entireAreaData[entireAreaYear];
-                entireAreaChart.update();
-                document.getElementById("entireCDFYearLabel").innerHTML = "Simulation Year: " + entireAreaYear;
-        } else {
-                changeEntireCDFYear(true);
-        }
+function entireCDFAnimation(){
+        $('#entireCDFSaveButton, #entireCDFdownYear, #entireCDFupYear').addClass('disabled');
+        entireAreaYear = 0;
+        entireAreaChart.data.datasets[0].data = entireAreaData[entireAreaYear];
+        entireAreaChart.update();
+        document.getElementById("entireCDFYearLabel").innerHTML = "Simulation Year: " + entireAreaYear;
+        var year = 0;
 
-        if(year === 0) 
-                setTimeout(entireCDFAnimation, 1000, year + 1);
-        else if(year < simRunData.years)
-                setTimeout(entireCDFAnimation, 250, year + 1);
-        else{
-                $('#entireCDFSaveButton').removeClass('disabled');
-                $('#entireCDFdownYear').removeClass('disabled');
-                $('#entireCDFupYear').removeClass('disabled');
-                $('#entireCDFplayButton').removeClass('disabled');
-        }
+        var animHandle = setInterval(function(){
+                if(year === simRunData.years){
+                        clearTimeout(animHandle);
+                        $('#entireCDFSaveButton, #entireCDFdownYear, #entireCDFupYear').removeClass('disabled');
+                        $('#entireCDFplayButton').html('Play').removeClass('red').addClass('blue').off('click')
+                                                 .click(entireCDFAnimation);
+                } else {
+                        changeEntireCDFYear(true);
+                        year++;
+                }
+        }, 300);
+
+        $('#entireCDFplayButton').html('Stop').removeClass('blue').addClass('red').off('click').click(function(){
+                clearTimeout(animHandle);
+                $('#entireCDFSaveButton, #entireCDFdownYear, #entireCDFupYear').removeClass('disabled');
+                $('#entireCDFplayButton').html('Play').removeClass('red').addClass('blue').off('click')
+                                         .click(entireCDFAnimation);
+        });
 }
 
 function changeLocalCDFRange(isNext){
@@ -589,29 +625,42 @@ function setLocalCDFPicture(){
         canvasImage.src = localAreaPictures[localAreaYear];
 }
 
-function localCDFAnimation(year){
-        if(year === 0){
-                $('#singleCDFSaveButton, #localCDFdownRange, #localCDFplayButton').addClass('disabled');
-                $('#localCDFupRange, #localCDFdownYear, #localCDFupYear').addClass('disabled');
-                $('#CDFSetSelection').attr("disabled", "");
-                $('#CDFSetSelection').material_select();
-                localAreaYear = 0;
-                setLocalCDFPicture();
-                localAreaChart.data.datasets[0].data = localAreaData[localAreaSelectedID][localAreaYear];
-                localAreaChart.update();
-                document.getElementById("singleCDFYearLabel").innerHTML = "Simulation Year: " + localAreaYear;
-                setTimeout(localCDFAnimation, 1000, year + 1);
-        } else {
-                changeLocalCDFYear(true);
-                if(year < simRunData.years){
-                        setTimeout(localCDFAnimation, 350, year + 1);
-                } else {
-                        $('#singleCDFSaveButton, #localCDFdownRange, #localCDFplayButton').removeClass('disabled');
+function localCDFAnimation(){
+        $('#singleCDFSaveButton, #localCDFdownRange').addClass('disabled');
+        $('#localCDFupRange, #localCDFdownYear, #localCDFupYear').addClass('disabled');
+        $('#CDFSetSelection').attr("disabled", "");
+        $('#CDFSetSelection').material_select();
+        localAreaYear = 0;
+        setLocalCDFPicture();
+        localAreaChart.data.datasets[0].data = localAreaData[localAreaSelectedID][localAreaYear];
+        localAreaChart.update();
+        document.getElementById("singleCDFYearLabel").innerHTML = "Simulation Year: " + localAreaYear;
+
+        var year = 0;
+        var animHandle = setInterval(function(){
+                if(year === simRunData.years){
+                        clearTimeout(animHandle);
+                        $('#singleCDFSaveButton, #localCDFdownRange').removeClass('disabled');
                         $('#localCDFupRange, #localCDFdownYear, #localCDFupYear').removeClass('disabled');
                         $('#CDFSetSelection').removeAttr('disabled');
                         $('#CDFSetSelection').material_select();
+                        $('#localCDFplayButton').html('Play').removeClass('red').addClass('blue').off('click')
+                                                .click(localCDFAnimation);
+                } else {
+                        changeLocalCDFYear(true);
+                        year++;
                 }
-        }
+        }, 350);
+
+        $('#localCDFplayButton').html('Stop').removeClass('blue').addClass('red').off('click').click(function(){
+                clearTimeout(animHandle);
+                $('#singleCDFSaveButton, #localCDFdownRange').removeClass('disabled');
+                $('#localCDFupRange, #localCDFdownYear, #localCDFupYear').removeClass('disabled');
+                $('#CDFSetSelection').removeAttr('disabled');
+                $('#CDFSetSelection').material_select();
+                $('#localCDFplayButton').html('Play').removeClass('red').addClass('blue').off('click')
+                                        .click(localCDFAnimation);
+        });
 }
 
 function changeCDFSettlement(){

@@ -334,7 +334,6 @@ function showAdvancedSettings(){
                 paramLowColor: document.getElementById("paramLowColor").value,
                 paramHighColor: document.getElementById("paramHighColor").value,
                 diffSamples: document.getElementById("diffSamples").value,
-                imgOpacity: document.getElementById("imgOpacity").value,
                 boundryWidth: document.getElementById("boundryWidth").value
         }
 
@@ -353,7 +352,6 @@ function closeAdvancedSettings(clear){
                 document.getElementById("paramLowColor").value = advSettingsBackup.paramLowColor;
                 document.getElementById("paramHighColor").value = advSettingsBackup.paramHighColor;
                 document.getElementById("diffSamples").value = advSettingsBackup.diffSamples;
-                document.getElementById("imgOpacity").value = advSettingsBackup.imgOpacity;
                 document.getElementById("boundryWidth").value = advSettingsBackup.boundryWidth;
                 if(advSettingsBackup.threeColorMode){
                         document.getElementById("enable3ColorMode").checked = true;
@@ -374,6 +372,7 @@ function openFullscreenViewer(){
         document.getElementById("viewerMapContainer").appendChild(document.getElementById("popMapDiv"));
         document.getElementById("viewerControlsContainer").appendChild(document.getElementById("viewerControls"));
         $('#fullScreenMap').modal('open');
+        $('#mapFullscreenButton').addClass('hide');
         $('#popMapDiv').css('height', $(window).height() * 0.7 + "px");
         map.updateSize();
 }
@@ -381,9 +380,9 @@ function openFullscreenViewer(){
 function closeFullscreenViewer(){
         document.getElementById("resultsMapContainer").appendChild(document.getElementById("popMapDiv"));
         document.getElementById("viewControlsContainer").appendChild(document.getElementById("viewerControls"));
-
+        $('#mapFullscreenButton').removeClass('hide');
         $('#fullScreenMap').modal('close');
-        $('#popMapDiv').css('height', '500px');
+        $('#popMapDiv').css('height', '550px');
         map.updateSize();
 }
 

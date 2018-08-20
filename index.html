@@ -203,7 +203,7 @@
                                                 </div>
                                                 <div class="divider" style="margin-bottom: 4px;"></div>
                                                 <div class="row" id="popMapRow" style="margin-bottom: 0px;">
-                                                        <div id="popMapDiv" class="map" style="height: 600px; min-width: 600px;"></div>
+                                                        <div id="popMapDiv" class="map" style="height: 550px; min-width: 600px;"></div>
                                                 </div>
                                                 <div class="divider" style="margin-top: 4px; margin-bottom: 8px;"></div>
                                                 <a class='dropdown-button btn' style="visibility: hidden; position: absolute; margin-left: 0; margin-top: 0;" data-activates='mapDropdown' id="dropDownTest"></a>
@@ -261,18 +261,12 @@
                                         </div>
                                 </div>
                                 <div class="tabcontent" id="resultsPage" style="display: none;">
-                                        <div class="row" style="margin-bottom: 8px;">
-                                                <div class="col s6"><h4>Simulation Results</h4></div>
-                                        </div>
-                                        <div class="row" style="margin-bottom: 4px;">
-                                                <div class="col s9">
-                                                        The saved image will look as you see it below. Zoom or pan the map preview to select the area to save.
-                                                </div>
-                                                <div class="col s3">
-                                                        <a class="waves-effect waves-light btn right" id="mapFullscreenButton" onclick="openFullscreenViewer()">Fullscreen</a>
+                                        <div class="row" style="margin: 0px;">
+                                                <div class="col s6" style="margin: 8px 0px 8px 0px;">
+                                                        <h4 style="margin: 8px 0px 8px 0px;">Simulation Results</h4>
                                                 </div>
                                         </div>
-                                        <div class="row" id="resultsMapContainer">
+                                        <div class="row" id="resultsMapContainer" style="margin-bottom: 8px;">
                                                 <div id="resultMapDiv" onmouseleave="requestUpdateKControl(false)"></div>
                                         </div>
                                         <div id="viewControlsContainer">
@@ -291,7 +285,10 @@
                                                                         data-position="bottom" data-delay="100" data-tooltip="Cycle through the images for each year with a quarter-second delay.">Play</a>                
                                                         </div>
                                                 </div></div>
-                                                <div class="col s3 offset-s3" style="margin-top: 8px; height: 40px;">
+                                                <div class="col s3" style="margin-top: 8px; height: 40px;">
+                                                        <a class="waves-effect waves-light btn right" id="mapFullscreenButton" onclick="openFullscreenViewer()">Fullscreen</a>
+                                                </div>
+                                                <div class="col s3" style="margin-top: 8px; height: 40px;">
                                                         <div style="width: 116px; height: 36px; position: relative; overflow: visible;">
                                                                 <a class="waves-effect waves-light btn" id="overlaySelectionBtn" style="width:116px;"onclick="toggleOverlaySelect(this);">Layers</a>
                                                                 <div id="layerSelector" class="scale-transition scale-out arrow_box">
@@ -394,6 +391,50 @@
                                                         </div>
                                                 </div>
                                         </div></div>
+                                        <div class="row">
+                                                <div class="col s12">
+                                                        <div class="card" style="padding-top: 4px;">
+                                                                <span class="card-title" style="margin-left: 8px;">Layer Information</span>
+                                                                <div class="card-tabs">
+                                                                        <ul class="tabs tabs-fixed-width" style="height: 36px;">
+                                                                                <li class="tab" style="height: 36px;"><a id="activeLegendTab" href="#heatmapInfo">Heatmap</a></li>
+                                                                                <li class="tab" style="height: 36px;"><a href="#exploitInfo">Exploitation Grid</a></li>
+                                                                                <li class="tab" style="height: 36px;"><a href="#debugInfo">Debug View</a></li>
+                                                                        </ul>
+                                                                </div>
+                                                                <div class="card-content grey lighten-4">
+                                                                        <div id="heatmapInfo">
+                                                                                <div class="row" style="margin: 0px;">
+                                                                                        <div class="col s6">Percentage of carrying capacity</div>
+                                                                                        <div class="col s1">100%</div>
+                                                                                        <div class="col s4" style="height: 24px;">
+                                                                                                <svg id="gradientSVG" style="width: 100%; height: 24px;">
+                                                                                                        <defs></defs>
+                                                                                                        <rect width="100%" height="100%" />
+                                                                                                </svg>
+                                                                                        </div>
+                                                                                        <div class="col s1">0%</div>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div id="exploitInfo">
+                                                                                <div class="row" style="margin: 0px; height: 24px;">
+                                                                                        <div class="col s6">Cell Extinction Index - K is carrying capacity</div>
+                                                                                        <div class="col s2">10-50% K
+                                                                                                <div class="colorBox" style="border-color: rgb(255, 255, 0);"></div>
+                                                                                        </div>
+                                                                                        <div class="col s2">0-10% K
+                                                                                                <div class="colorBox" style="border-color: rgb(255, 0, 0);"></div>
+                                                                                        </div>
+                                                                                        <div class="col s2">0% K
+                                                                                                <div class="colorBox" style="border-color: rgb(128, 0, 0);"></div>
+                                                                                        </div>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div id="debugInfo">Shows the simulation extent, positions of each corner of the grid, the grid cell containing each population, and draws circles centered at each population with a radius equal to the hunting range.</div>
+                                                                </div>
+                                                        </div>
+                                                </div>
+                                        </div>
                                 </div>
                                 <div class="tabcontent" id="statsPage" style="display: none;">
                                         <div class="row" style="margin-bottom: 8px;">
@@ -418,7 +459,7 @@
                                                                                 <div>
                                                                                         <a class="waves-effect waves-light btn" id="entireCDFdownYear" onclick="changeEntireCDFYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
                                                                                         <a class="waves-effect waves-light btn" id="entireCDFupYear" onclick="changeEntireCDFYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
-                                                                                        <a class="waves-effect waves-light btn blue lighten-2 tooltipped" id="entireCDFplayButton" onclick="entireCDFAnimation(0);"style="display: inline-block;"
+                                                                                        <a class="waves-effect waves-light btn blue lighten-2 tooltipped" id="entireCDFplayButton" style="display: inline-block;"
                                                                                                 data-position="bottom" data-delay="100" data-tooltip="Cycle through the data for each year with a quarter-second delay.">Play</a>                
                                                                                 </div>
                                                                         </div></div>
@@ -460,7 +501,7 @@
                                                                                 <div>
                                                                                         <a class="waves-effect waves-light btn" id="localCDFdownYear" onclick="changeLocalCDFYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
                                                                                         <a class="waves-effect waves-light btn" id="localCDFupYear" onclick="changeLocalCDFYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
-                                                                                        <a class="waves-effect waves-light btn blue lighten-2 tooltipped" id="localCDFplayButton" onclick="localCDFAnimation(0);"style="display: inline-block;"
+                                                                                        <a class="waves-effect waves-light btn blue lighten-2 tooltipped" id="localCDFplayButton" style="display: inline-block;"
                                                                                                 data-position="bottom" data-delay="100" data-tooltip="Cycle through the data for each year with a quarter-second delay.">Play</a>                
                                                                                 </div>
                                                                         </div></div>
@@ -648,13 +689,6 @@
                                                 <div class="col s1"><input type="color" value="#f03b20" style="margin-top: 12px;" id="paramHighColor"></div>
                                                 <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode('high');" style="margin-top: 6px;">Reset</a></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Depleted color in the heatmap gradient."><i>?</i></a></div>
-                                        </div>
-                                </li>
-                                <li class="collection-item advancedColItem">
-                                        <div class="row" style="margin-bottom: 0;">
-                                                <div class="col s8"><h5>Heatmap Overlay Opacity (0.0 - 1.0):</h5></div>
-                                                <div class="col s3"><input type="text" id="imgOpacity" style="margin-bottom: 0;"></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Sets how transparent the heatmap overlay is over the background map."><i>?</i></a></div>
                                         </div>
                                 </li>
                         </ul>

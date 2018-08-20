@@ -88,7 +88,6 @@ function resetSimulation(){
         document.getElementById("paramLowColor").value = "#ffeda0";
         document.getElementById("paramHighColor").value = "#f03b20";
         document.getElementById("diffSamples").value = "1";
-        document.getElementById("imgOpacity").value = "0.8";
         document.getElementById("boundryWidth").value = "10";
 
         if(simulationRun){
@@ -333,7 +332,6 @@ function populateDefaultValues(){
         document.getElementById("paramLowColor").value = "#ffeda0";
         document.getElementById("paramHighColor").value = "#f03b20";
         document.getElementById("diffSamples").value = "1";
-        document.getElementById("imgOpacity").value = "0.8";
         document.getElementById("boundryWidth").value = "10";
         document.getElementById("debugModeToggle").checked = false;
 
@@ -350,7 +348,7 @@ function checkSettings(){
         }
         //id, min value, max value, isAdvanced
         let intParams = [["paramYears", 0, 200, 0], ['diffSamples', 1, 365, 1], ['boundryWidth', 0, 100, 1]];
-        let floatParams = [['imgOpacity', 0, 1, 1], ['paramTheta', 0, 100, 1], ['rangeHphy', 1, 1000, 0],
+        let floatParams = [['paramTheta', 0, 100, 1], ['rangeHphy', 1, 1000, 0],
                            ['paramHphy', 0, 365, 0], ['paramKillProb', 0, 1, 0], ['paramEncounterRate', 0, 1, 0],
                            ['paramDifRate', 0, 1, 0], ['paramGrowthRate', 0, 1, 0], ['paramCarry', 0, 1000, 0]];
         
@@ -516,6 +514,7 @@ function receiveWork(data){
                 simResults.visTime = performance.now() - simResults.visTime;
                 populateOtherInfo();
                 setTimeout(function(){
+                        $('#activeLegendTab').click();
                         let topLeft = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[0]);
                         let botRight = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[1]);
                         let testExtent = [topLeft[0], botRight[1], botRight[0], topLeft[1]];
