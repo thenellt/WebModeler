@@ -7,6 +7,7 @@ var simRunData;
 var simResults = {};
 var progBarDet;
 var workerPool;
+var completedImgCount;
 
 $(document).ready(function() {
         $('#projBackground, #changelogPopup, #popImportDialog').modal();
@@ -444,34 +445,81 @@ function updateOnlineStatus(isOnline){
 
 function setupWorkers(){
         const coreCount = navigator.hardwareConcurrency;
-        const cores = coreCount > 1 ? coreCount - 1 : 1;
+        if(coreCount > 1){
+                var threadCount = coreCount - 1;
+        } else {
+                var threadCount = 1;
+        }
         workerPool = {
                 workers: [],
-                cores: cores,
-                nextCore: 0
+                active: [],
+                cores: coreCount,
+                threads: threadCount,
+                workQueue: new Queue(),
         };
-        for (let i = 0; i < cores; i++) {
+        for (let i = 0; i < coreCount; i++) {
                 workerPool.workers.push(new Worker('js/imgWorker.js'));
-                workerPool.workers[i].onmessage = function(oEvent) {
-                        receiveWork(oEvent.data);
-                };
+                workerPool.workers[i].postMessage({type:'setNum', number:i});
+                workerPool.workers[i].onmessage = function(oEvent) {receiveWork(oEvent.data);};
+                workerPool.active.push(false);
         }
 }
 
-function dispatchImgWork(data, imgData){
-        workerPool.workers[workerPool.nextCore++].postMessage({params:data, array:imgData}, [imgData.buffer]);
-        if(workerPool.nextCore === workerPool.cores)
-                workerPool.nextCore = 0;
+function increaseWorkerCount(){
+        if(workerPool.threads < workerPool.cores){
+                if(!workerPool.workQueue.isEmpty())
+                        dispatchWork(workerPool.threads, workerPool.workQueue.dequeue());
+                
+                workerPool.threads++;
+        }
+}
+
+function resetWorkerCount(){
+        if(workerPool.cores > 1){
+                workerPool.threads = workerPool.cores - 1;
+        } else {
+                workerPool.threads = 1;
+        }
+}
+
+function dispatchWork(thread, work){
+        workerPool.active[thread] = true;
+        workerPool.workers[thread].postMessage({type:'genImg', params:work.data, array:work.imgData}, [work.imgData.buffer]);
+}
+
+function processWork(data, imgData){
+        let nextCore = 0;
+        while(workerPool.active[nextCore] && nextCore < workerPool.threads)
+                nextCore++;
+
+        if(nextCore < workerPool.threads){
+                dispatchWork(nextCore, {data:data, imgData:imgData});
+        } else {
+                workerPool.workQueue.enqueue({data:data, imgData:imgData});
+        }
 }
 
 function receiveWork(data){
+        if(!workerPool.workQueue.isEmpty()){
+                dispatchWork(data.threadNum, workerPool.workQueue.dequeue());
+        } else {
+                workerPool.active[data.threadNum] = false;
+        }
         storeImgURL(data);
-        if(data.isEnd && data.year === simData.years && data.dest === 'localCDFimg'){
+        completedImgCount++;
+        if(completedImgCount === ((simRunData.years + 1) * 3)){
                 tabManager.changeTab(pageTabs.MAPS);
                 closeProgressBar();
                 $('#coverScreen').modal('close');
-                simulationTime = getTime() - simulationTime;
-                simResults.visTime = getTime() - simResults.visStart;
+                synchPersisObject();
+                simulationTime = performance.now() - simulationTime;
+                simResults.visTime = performance.now() - simResults.visTime;
                 populateOtherInfo();
+                setTimeout(function(){
+                        let topLeft = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[0]);
+                        let botRight = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[1]);
+                        let testExtent = [topLeft[0], botRight[1], botRight[0], topLeft[1]];
+                        map.getView().fit(testExtent, {duration: 500});
+                }, 200);
         }
 }

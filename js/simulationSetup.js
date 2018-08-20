@@ -168,8 +168,10 @@ function setupSimulation(){
         if(!townData)
                 return;
         
+        resetWorkerCount();
+        completedImgCount = 0;
         debugVector.setVisible(false);
-        simulationTime = getTime();
+        simulationTime = performance.now();
         $('#coverScreen').modal('open');
         debugSource.clear(true);
 
@@ -196,13 +198,9 @@ function handleWorkerMessage(data){
                 break;
         case 'finished':
                 simResults = data.paramData;
-                let topLeft = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[0]);
-                let botRight = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[1]);
-                let testExtent = [topLeft[0], botRight[1], botRight[0], topLeft[1]];
-                map.getView().fit(testExtent, map.getSize());
-                synchPersisObject();
+                simResults.visTime = performance.now();
                 populateSelectionsFields();
-                populateOtherInfo();
+                increaseWorkerCount();
                 break;
         case 'debug':
                 console.log("Worker::" + data.statusMsg);
@@ -216,7 +214,7 @@ function handleWorkerMessage(data){
                 modalDialog(title, msg, changeToPopulations);
                 break;
         case 'imgData':
-                dispatchImgWork(data.params, data.data);
+                processWork(data.params, data.data);
                 break;
         }
 }

@@ -34,7 +34,7 @@ function setupResultsPages(){
 }
 
 function populateOtherInfo(){
-        let timeString = simulationTime > 1000 ? (simulationTime / 1000).toFixed(2) + ' s' : simulationTime + ' ms';
+        let timeString = simulationTime > 1000 ? (simulationTime / 1000).toFixed(2) + ' s' : simulationTime.toFixed(2) + ' ms';
         document.getElementById('oStatsTime').innerHTML = timeString;
         document.getElementById('oStatsArea').innerHTML = simResults.xSize * simResults.ySize + ' km2';
         document.getElementById('oStatsWidth').innerHTML = simResults.xSize + ' km';
@@ -57,6 +57,7 @@ function populateOtherInfo(){
 }
 
 function showPerformanceDetails(){
+        let visStr = simResults.visTime > 1000 ? (simResults.visTime / 1000).toFixed(2) + ' s' : simResults.visTime.toFixed(2) + ' ms';
         const title = "Performance Details";
         let body = "<table>";
         for(let i = 0; i < simResults.perfData.length; i++){
@@ -64,7 +65,7 @@ function showPerformanceDetails(){
                 body += "<td style='padding: 0;'>" + simResults.perfData[i].toFixed(2) + " ms </td></tr>";
         }
         body += "<tr><td style='padding: 0;'>Visualization Time</td>";
-        body += "<td style='padding: 0;'>" + simResults.visTime.toFixed(2) + " ms </td></tr>";
+        body += "<td style='padding: 0;'>" + visStr + " </td></tr>";
         body += "</table>";
         modalDialog(title, body);
 }
@@ -419,7 +420,7 @@ function overlayAnimation(year, stop){
         if(stop){
                 clearTimeout(overlayAnimationHandle);
                 $('#overlaySaveButton, #mapFullscreenButton').removeClass('disabled');
-                $('#overlayUpButton, #overlayDownButton, #overlaySelectionBtn').removeClass('disabled');
+                $('#overlayUpButton, #overlayDownButton, #tabFillerButton').removeClass('disabled');
                 $('#overlayPlayButton').html('Play').removeClass('red').addClass('blue')
                         .attr("onclick","overlayAnimation(0, false)");
                 overlayAnimationHandle = false;
@@ -427,7 +428,7 @@ function overlayAnimation(year, stop){
         }
         if(year === 0){
                 $('#overlaySaveButton, #mapFullscreenButton').addClass('disabled');
-                $('#overlayUpButton, #overlayDownButton, #overlaySelectionBtn').addClass('disabled');
+                $('#overlayUpButton, #overlayDownButton, #tabFillerButton').addClass('disabled');
                 $('#overlayPlayButton').html('Stop').removeClass('blue').addClass('red')
                         .attr("onclick","overlayAnimation(0, true)");
                 overlayYear = 0;
@@ -444,7 +445,7 @@ function overlayAnimation(year, stop){
                 overlayAnimationHandle = setTimeout(overlayAnimation, 250, year + 1);
         } else {
                 $('#overlaySaveButton, #mapFullscreenButton').removeClass('disabled');
-                $('#overlayUpButton, #overlayDownButton, #overlaySelectionBtn').removeClass('disabled');
+                $('#overlayUpButton, #overlayDownButton, #tabFillerButton').removeClass('disabled');
                 $('#overlayPlayButton').html('Play').removeClass('red').addClass('blue')
                         .attr("onclick","overlayAnimation(0, false)");
                 overlayAnimationHandle = false;
@@ -467,7 +468,7 @@ function storeCDFData(location, year, data, id){
                         if(!localAreaChart)
                                 createLocalCDFChart();
                         localAreaChart.data.datasets[0].data = localAreaData[localAreaSelectedID][localAreaYear];
-                        var labelText = simRunData.townsByID[localAreaSelectedID].name +  ": " + localAreaRange + " km Spatial Distribution";
+                        let labelText = simRunData.townsByID[localAreaSelectedID].name +  ": " + localAreaRange + " km Spatial Distribution";
                         localAreaChart.options.title.text = labelText;
                         localAreaChart.update();
                 }
@@ -576,8 +577,6 @@ function changeLocalCDFYear(isNext){
 }
 
 function setLocalCDFPicture(){
-        //let picData = new ImageData(data.array, data.x * scale, data.y * scale);
-        //ctx.putImageData(picData, 0, 0);
         let canvasImage = new Image();
         canvasImage.onload = function(){
                 canvasImage.classList.add('localCDFImage');

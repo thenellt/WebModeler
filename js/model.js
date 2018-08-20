@@ -61,16 +61,14 @@ function runSimulation(parameters){
         self.postMessage({type:'mapped', fnc:'storeMapPos', pos:posArray});
         placeLocations();
         calculateModel();
-        visStartTime = performance.now();
-        generateOfftakeImages();
-        genExploitationImgData();
-        generateEntireCDFData();
-        generateSingleCDFData(towns[0].id, simData.huntRange);
-        generateCDFPictureData(towns[0].id, simData.huntRange, true);
-        generateOfftakeData();
         self.postMessage({type:'finished', paramData:{name: simData.simName, duration:simData.years,
                 xSize:xSize, ySize:ySize, geoGrid:geoGrid, townData:towns, bounds: bounds,
-                perfData:calcTimes, visStart:visStartTime}});
+                perfData:calcTimes}});
+        self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Visualizing Data", statusValue: 100});
+        generateEntireCDFData();
+        generateSingleCDFData(towns[0].id, simData.huntRange);
+        generateCDFPictureData(towns[0].id, simData.huntRange);
+        generateOfftakeData();
 }
 
 function unpackParams(data){
@@ -220,6 +218,7 @@ function placeLocations(){
 
 function calculateModel(){
         logMessage("calculateModel: Starting run. Years: " + simData.years + " samples: " + simData.diffusionSamples);
+        let gradient = setupGradient();
         var top, bot, locationValue, x, y;
         calcTimes = new Array(simData.years);
 
@@ -277,18 +276,13 @@ function calculateModel(){
                                 grid[curYear + 1][y][x] = gridValue > 0.0 ? gridValue : 0.0;
                         }
                 }
-
+                genHeatmapImg(3, curYear, gradient);
+                genExploitationImg(curYear);
                 self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Finished Year " + curYear, statusValue: 100 * (curYear / simData.years)});
                 calcTimes[curYear] = performance.now() - startTime;
         }
-}
-
-function generateOfftakeImages(){
-        self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Visualizing Data", statusValue: 100});
-        let gradient = setupGradient();
-        for(let curYear = 0; curYear <= simData.years; curYear++){
-                genHeatmapImg(4, curYear, gradient);
-        }
+        genHeatmapImg(3, simData.years, gradient);
+        genExploitationImg(simData.years);
 }
 
 function genHeatmapImg(scale, year, gradient){
@@ -306,7 +300,7 @@ function genHeatmapImg(scale, year, gradient){
                 }
         }
 
-        const params = {type:'genImg', width:(xSize - 1) * scale, height:(ySize - 1) * scale, year:year, dest:'heatmapImages', isEnd:false};
+        const params = {width:(xSize - 1) * scale, height:(ySize - 1) * scale, year:year, dest:'heatmapImages'};
         self.postMessage({type:'imgData', params:params, data:imgData}, [imgData.buffer]);
 }
 
@@ -385,7 +379,7 @@ function setupGradient(){
         return gradient;
 }
 
-function generateCDFPictureData(id, range, isEnd){
+function generateCDFPictureData(id, range){
         for(elmnt in towns)
                 if(towns[elmnt].id === id){
                         var selectedTown = towns[elmnt];
@@ -399,7 +393,7 @@ function generateCDFPictureData(id, range, isEnd){
         let ySize = 2 * range + 1;
         let xEnd = xStart + xSize;
         let yEnd = yStart + ySize;
-        let scale = 5;
+        let scale = 4;
 
         for(let year = 0; year <= simData.years; year++){
                 let pos = 0;
@@ -429,7 +423,7 @@ function generateCDFPictureData(id, range, isEnd){
                                 }
                         }
                 }
-                const params = {type:'genImg', width:(xSize) * scale, height:(ySize) * scale, year:year, dest:'localCDFimg', isEnd:isEnd};
+                const params = {width:(xSize) * scale, height:(ySize) * scale, year:year, dest:'localCDFimg'};
                 self.postMessage({type:'imgData', params:params, data:imgData}, [imgData.buffer]);
         }
 }
@@ -565,57 +559,45 @@ function generateCircleCoords(center, radius){
         return translatedCoordinates;
 }
 
-function genExploitationImgData(){
+function genExploitationImg(curYear){
         const overexploitedColor = [255, 255, 0, 255];
         const collapsedColor = [255, 0, 0, 255];
         const extirpatedColor = [128, 0, 0, 255];
-        const popColor = [128, 0, 0, 255];
-        const gradientSteps = Math.floor(simData.carryCapacity) - 1;
-        const scale = 7;
-        const xNewSize = xSize - 1;
-        const yNewSize = ySize - 1;
-        const width = xSize * scale;
-        const height = ySize * scale;
-        const gradient = setupGradient();
+        const scale = 6;
 
-        for(let curYear = 0; curYear <= simData.years; curYear++){
-                let dataGrid = new Array(ySize);
-                for(let y = 0; y < ySize - 1; y++){
-                        dataGrid[y] = new Array(xSize);
-                        for(let x = 0; x < xSize - 1; x++){
-                                dataGrid[y][x] = [];
-                                if(grid[curYear][y][x] < 0.01 * simData.carryCapacity){
-                                        dataGrid[y][x].push(3);
-                                } else if(grid[curYear][y][x] < 0.1 * simData.carryCapacity){
-                                        dataGrid[y][x].push(2);
-                                } else if(grid[curYear][y][x] < 0.5 * simData.carryCapacity){
-                                        dataGrid[y][x].push(1);
-                                } else {
-                                        dataGrid[y][x].push(0);
-                                }
-                                const gradPos = Math.ceil(gradientSteps * (1 - (grid[curYear][y][x] / simData.carryCapacity)));
-                                dataGrid[y][x].push(gradPos);
+        let dataGrid = new Array(ySize);
+        for(let y = 0; y < ySize - 1; y++){
+                dataGrid[y] = new Array(xSize);
+                for(let x = 0; x < xSize - 1; x++){
+                        if(grid[curYear][y][x] < 0.01 * simData.carryCapacity){
+                                dataGrid[y][x] = 3;
+                        } else if(grid[curYear][y][x] < 0.1 * simData.carryCapacity){
+                                dataGrid[y][x] = 2;
+                        } else if(grid[curYear][y][x] < 0.5 * simData.carryCapacity){
+                                dataGrid[y][x] = 1;
+                        } else {
+                                dataGrid[y][x] = 0;
                         }
                 }
-
-                let imgData = new Uint8ClampedArray(((xSize - 1) * scale) * ((ySize - 1)  * scale) * 4);
-                for(let y = 0; y < ySize - 1; y++){
-                        for(let x = 0; x < xSize - 1; x++){
-                                switch(dataGrid[y][x][0]){
-                                case 0: //outlinePixel(imgData, x, y, [244, 66, 232, 255], scale);
-                                        break;
-                                case 1: outlinePixel(imgData, x, y, overexploitedColor, scale);
-                                        break;
-                                case 2: outlinePixel(imgData, x, y, collapsedColor, scale);
-                                        break;
-                                case 3: outlinePixel(imgData, x, y, extirpatedColor, scale);
-                                        break;
-                                }
-                        }
-                }
-                const params = {type:'genImg', width:(xSize - 1) * scale, height:(ySize - 1) * scale, year:curYear, dest:'expImages', isEnd:false};
-                self.postMessage({type:'imgData', params:params, data:imgData}, [imgData.buffer]);
         }
+
+        let imgData = new Uint8ClampedArray(((xSize - 1) * scale) * ((ySize - 1)  * scale) * 4);
+        for(let y = 0; y < ySize - 1; y++){
+                for(let x = 0; x < xSize - 1; x++){
+                        switch(dataGrid[y][x]){
+                        case 0: //outlinePixel(imgData, x, y, [244, 66, 232, 255], scale);
+                                break;
+                        case 1: outlinePixel(imgData, x, y, overexploitedColor, scale);
+                                break;
+                        case 2: outlinePixel(imgData, x, y, collapsedColor, scale);
+                                break;
+                        case 3: outlinePixel(imgData, x, y, extirpatedColor, scale);
+                                break;
+                        }
+                }
+        }
+        const params = {width:(xSize - 1) * scale, height:(ySize - 1) * scale, year:curYear, dest:'expImages'};
+        self.postMessage({type:'imgData', params:params, data:imgData}, [imgData.buffer]);
 }
 
 function outlinePixel(array, xPos, yPos, color1, scale){

@@ -112,7 +112,7 @@ function addConfigFromFile(fileData){
                 msg += "<br>Select <b>CANCEL</b> to give the config being loaded a new ID.";
         
                 modalConfirmation(title, msg, function(){
-                        deleteConfigByID(config.simID)
+                        deleteConfigByID(config.simID);
                         synchPersisObject(config);
                         populatePersistSaves();
                         setupPersistConfigs();
@@ -302,7 +302,7 @@ function generatePersistObject(config){
 
 function synchPersisObject(config){
         var saveObject = config ? generatePersistObject(config) : generatePersistObject();
-        let oldConfig = simData.simID ? findConfig(simData.simID) : false;
+        let oldConfig = saveObject.id ? findConfig(saveObject.id) : false;
 
         if(!oldConfig){
                 let entryIDs = JSON.parse(localStorage.getItem('entryIDs'));
