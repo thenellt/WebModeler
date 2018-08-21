@@ -177,9 +177,9 @@
                                         </div>
                                 </div>
                                 <div class="tabcontent" id="popSetup" style="display: none;">
-                                        <div class="row">
+                                        <div class="row" style="margin-bottom: 8px;">
                                                 <div class="col s6"><h4>Setup Populations</h4></div>
-                                                <div class="col s3" style="padding: 16px 0px 0px 0px;"><a class="waves-effect waves-light btn" id="importPopData" onclick="$('#popImportDialog').modal('open')">Import Data</a></div>
+                                                <div class="col s3" style="padding: 16px 0px 0px 0px;"><a class="waves-effect waves-light teal darken-3 btn" id="importPopData" onclick="$('#popImportDialog').modal('open')">Import Data</a></div>
                                                 <div class="col s3" style="padding: 16px 0px 0px 0px;">
                                                         <a class='dropdown-button btn' href='#' data-activates='viewDropdown'>Change View</a>
                                                         <ul id='viewDropdown' class='dropdown-content'>
@@ -221,12 +221,23 @@
                                         </div>
                                         <div id="popTableContent" style="min-height: 500px; min-width: 600px;">
                                                 <div class="row">
-                                                        <div class="col s12">
-                                                                <p>Rows will gain a gray background when they are valid. Only valid rows are used when the simulation is run.</p>
-                                                                <p>Kill rate and HPHY are both optional and leaving them blank will use the values from the parameters page.</p>
+                                                        <div class="col s6">
+                                                                <p style="margin: 8px 0px 4px 0px;">Rows will gain a gray background when they are valid. Only valid rows are used when the simulation is run.</p>
+                                                                <p style="margin: 8px 0px 4px 0px;">Kill rate and HPHY are both optional and leaving them blank will use the values from the parameters page.</p>
+                                                        </div>
+                                                        <div class="col s3">
+                                                                <h5 style="margin-top: 32px;">Add Table Row:</h5>
+                                                        </div>
+                                                        <div class="col s3">
+                                                                <a class="waves-effect waves-light btn" id="addRowButton" onclick='addRow()' style="width: 150px;">
+                                                                        Exponential
+                                                                </a>
+                                                                <a class="waves-effect waves-light btn" id="addRowButton" onclick='addYearlyRow()' style="margin-top: 8px; width: 150px;">
+                                                                        Discrete
+                                                                </a>
                                                         </div>
                                                 </div>
-                                                <div class="row" style="min-height: 450px; max-height: 620px; margin-bottom: 8px;">
+                                                <div class="row" style="min-height: 450px; max-height: 620px; margin-bottom: 8px; overflow-y: auto;">
                                                         <table class="bordered highlight" id="popTable" style="margin-bottom: 8px;">
                                                                 <thead>
                                                                         <tr>
@@ -242,21 +253,6 @@
                                                                 </thead>
                                                                 <tbody id="popTableBody"></tbody>
                                                         </table>
-                                                </div>
-                                                <div class="row" style="bottom: 8px; width: 90%">
-                                                        <div class="col s4">
-                                                                <h5>Add table row:</h5>
-                                                        </div>
-                                                        <div class="col s4" style="margin-top: 8px;">
-                                                                <a class="waves-effect waves-light btn" id="addRowButton" onclick='addYearlyRow()'>
-                                                                        Discrete Settlement
-                                                                </a>
-                                                        </div>
-                                                        <div class="col s4" style="margin-top: 8px;">
-                                                                <a class="waves-effect waves-light btn" id="addRowButton" onclick='addRow()'>
-                                                                        Exponential Settlement
-                                                                </a>
-                                                        </div>
                                                 </div>
                                         </div>
                                 </div>
@@ -635,7 +631,7 @@
         </table>
 
         <div id="advancedSettings" class="modal modal-fixed-footer"
-                style="width: 90%; max-height: 80% !important; height: 80% !important; max-width: 1000px;">
+                style="width: 900px; height: 560px;">
                 <div class="modal-content">
                         <h4>Advanced Settings:</h4>
                         <p>Changing these settings can have a <b>huge</b> impact on simulation results and/or runtime.</p>
@@ -822,7 +818,7 @@
                         <a class="waves-effect waves-green btn" style="margin-right: 8px;" onclick="closeFullscreenViewer()">Done</a>
                 </div>
         </div>
-        <div id="popImportDialog" class="modal modal-fixed-footer" style="max-width: 80%; width: 80%; max-height: 90%; height: 90% !important;">
+        <div id="popImportDialog" class="modal modal-fixed-footer">
                 <div class="modal-content" id="importDialogContent">
                         <h4>Import Population Data</h4>
                         <div class="row" style="margin-bottom: 8px;">

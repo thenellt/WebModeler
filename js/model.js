@@ -556,7 +556,7 @@ function genExploitationImg(curYear){
         const overexploitedColor = [255, 255, 0, 255];
         const collapsedColor = [255, 0, 0, 255];
         const extirpatedColor = [128, 0, 0, 255];
-        const scale = 6;
+        const scale = 5;
 
         let dataGrid = new Array(ySize);
         for(let y = 0; y < ySize - 1; y++){

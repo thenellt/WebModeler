@@ -212,7 +212,8 @@ function queryUpdates(loadedVersion, responsePort){
 }
 
 function updateGlobals(){
-        earthCacheAge = false;
+        if(!earthCacheAge)
+                earthCacheAge = false;
         if(!tileCount || isNaN(tileCount)){
                 tileCount = 0;
                 caches.open('tile-cache').then(function(tileCache){

@@ -102,7 +102,10 @@ nav .brand-logo { white-space: nowrap; }
 }
 
 #popImportDialog {
-        top: 5% !important;
+        top: 64px !important;
+        width: 80% !important;
+        height: 75% !important;
+        max-height: 750px !important;
 }
 
 .example-pop td{
