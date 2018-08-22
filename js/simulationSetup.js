@@ -5,7 +5,7 @@ workerThread.onmessage = function(oEvent) {
 };
 
 const workerFunctions = {
-        'progress':      function(data) {updateProgressBar(data.statusMsg, data.statusValue);},
+        'progress':      function(data) {updateProgressBar(data.statusMsg, 100 * (data.statusValue / simRunData.years));},
         'entireCDFData': function(data) {storeCDFData('entire', data.year, data.densities);},
         'localCDFData':  function(data) {storeCDFData('single', data.year, data.densities, data.id);},
         'offtakeData':   function(data) {storeOfftakeData(data.dataString);},

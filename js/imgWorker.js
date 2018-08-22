@@ -13,8 +13,8 @@ onmessage = function(oEvent){
 }
 
 function genEncodedImg(params, rawImageData){
-        var test = new Jimp({ data: rawImageData, width: params.width, height: params.height }, function(err, image){
-                image.getBase64(Jimp.AUTO, function(err, result){
+        new Jimp({ data: rawImageData, width: params.width, height: params.height }, function(err, image){
+                image.getBase64(Jimp.MIME_PNG, function(err, result){
                         self.postMessage({threadNum:workerNumber, dest:params.dest, year:params.year, isEnd:params.isEnd, url:result});
                 }); 
         });

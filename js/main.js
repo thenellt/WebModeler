@@ -150,17 +150,9 @@ function changeToPopulations(){
         }
 }
 
-function changeToGetStarted(){
-        let contentDiv = document.getElementById("getStarted");
-        if(contentDiv.style.display == "none"){
-                var saveContainer = document.getElementById("persistSaveContainer");
-                while (saveContainer.firstChild) {
-                        saveContainer.removeChild(saveContainer.firstChild);
-                }
-
-                setupPersistConfigs();
-                populatePersistSaves();
-        }
+function changeToGetStarted(){    
+        setupPersistConfigs();             
+        populatePersistSaves();
 }
 
 function changeToOutput(){
@@ -333,8 +325,6 @@ function populateDefaultValues(){
         document.getElementById("paramHighColor").value = "#f03b20";
         document.getElementById("diffSamples").value = "1";
         document.getElementById("boundryWidth").value = "10";
-        document.getElementById("debugModeToggle").checked = false;
-
         document.getElementById("paramName").focus();
 }
 

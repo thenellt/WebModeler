@@ -16,7 +16,6 @@ var offtake;
 var towns;
 var calcTimes;
 var visStartTime;
-var bounds;
 var eaPointSet = [];
 var points = [];
 var geoGrid = [[[]]];
@@ -49,8 +48,8 @@ onmessage = function(oEvent) {
 
 function runSimulation(parameters){
         unpackParams(parameters);
-        generateBounds();
-        generategeoGrid();
+        let bounds = generateBounds();
+        generategeoGrid(bounds);
         try{
                 allocateMemory();
         } catch(err) {
@@ -96,9 +95,8 @@ function allocateMemory(){
 
         for(let i = 0; i < simData.years + 1; i++){
                 grid[i] = new Array(ySize);
-                for(let j = 0; j < ySize; j++){
+                for(let j = 0; j < ySize; j++)
                         grid[i][j] = new Array(xSize).fill(simData.carryCapacity);
-                }
         }
 
         for(let k = 0; k < ySize; k++){
@@ -108,12 +106,8 @@ function allocateMemory(){
         }
 
         for(let i = 0; i < towns.length; i++){
-                towns[i].offtake = [];
-                towns[i].effort = [];
-                for(let j = 0; j < simData.years; j++){
-                        towns[i].offtake.push(0.0);
-                        towns[i].effort.push(0.0);
-                }
+                towns[i].offtake = new Array(simData.years).fill(0.0);
+                towns[i].effort = new Array(simData.years).fill(0.0);
         }
 }
 
@@ -134,23 +128,13 @@ function generateBounds(){
                         botRight[1] = eaPointSet[i][1];
         }
 
-        var topOffset = [];
-        topOffset[0] = topLeft[0] - (1000 * range);
-        topOffset[1] = topLeft[1] + (1000 * range);
-        var botOffset = [botRight[0] + 1000 * range, botRight[1] - 1000 * range];
+        let topOffset = [topLeft[0] - (1000 * range), topLeft[1] + (1000 * range)];
+        let botOffset = [botRight[0] + 1000 * range, botRight[1] - 1000 * range];
 
-        self.postMessage({type:'mapped', fnc:'pointDebug', data: {
-                point:proj4(proj4('mollweide'), proj4('espg4326'), topOffset), color: "#6bf442"
-        }});
-        self.postMessage({type:'mapped', fnc:'pointDebug', data: {
-                point:proj4(proj4('mollweide'), proj4('espg4326'), botOffset), color: "#e8f441"
-        }});
-
-        bounds = [topOffset, botOffset];
+        return [topOffset, botOffset];
 }
 
-function generategeoGrid(){
-        let extremePoints = bounds;
+function generategeoGrid(extremePoints){
         geoGrid = [];
 
         const width = 1 + Math.abs(extremePoints[1][0] - extremePoints[0][0]) / 1000;
@@ -169,9 +153,6 @@ function generategeoGrid(){
 
         self.postMessage({type:'mapped', fnc:'extentDebug', data:{
                 points:[geoGrid[0][0], geoGrid[0][xSize], geoGrid[ySize][xSize], geoGrid[ySize][0]], color:[255, 0, 0, .5]
-        }});
-        self.postMessage({type:'mapped', fnc:'extentDebug', data:{
-                points:[geoGrid[ySize - 2][xSize - 2], geoGrid[ySize - 2][xSize - 1], geoGrid[ySize - 1][xSize - 1], geoGrid[ySize - 1][xSize - 2]], color:[255, 0, 0, 1]
         }});
         self.postMessage({type:'mapped', fnc:'extentDebug', data:{
                 points:[geoGrid[ySize - 1][xSize - 1], geoGrid[ySize - 1][xSize], geoGrid[ySize][xSize], geoGrid[ySize][xSize - 1]], color:[255, 0, 0, 1]
@@ -202,9 +183,7 @@ function placeLocations(){
                 y -= 1;
                 x -= 1;
 
-
-                const loc = [geoGrid[y][x][0] + 500, geoGrid[y][x][1] - 500];
-                const coordinates = generateCircleCoords(loc, simData.huntRange);
+                const coordinates = generateCircleCoords([geoGrid[y][x][0] + 500, geoGrid[y][x][1] - 500], simData.huntRange);
                 self.postMessage({type:'mapped', fnc:'circleDebug', data: {points:coordinates, color: [0, 0, 255, 1]}});
 
                 self.postMessage({type:'mapped', fnc:'extentDebug', data:{
@@ -221,60 +200,60 @@ function calculateModel(){
         let gradient = setupGradient();
         self.postMessage({type:'mapped', fnc:'storeGradient', gradient:gradient});
         calcTimes = new Array(simData.years);
+        let xEnd = xSize - 1;
+        let yEnd = ySize - 1;
+        var startTime, val, i, y, x, locationValue, top, bot, effortValue, offtakeValue, gridValue, settleNum;
+        const TWO_PI = 2*Math.PI;
 
         for(let curYear = 0; curYear < simData.years; curYear++){
-                let startTime = performance.now();
-                let xEnd = xSize - 1;
-                let yEnd = ySize - 1;
-                for(let i = 0; i < simData.diffusionSamples; i++){
-                        for(let y = 1; y < yEnd; y++){
-                                for(let x = 1; x < xEnd; x++){
+                startTime = performance.now();
+                for(i = 0; i < simData.diffusionSamples; i++){
+                        for(y = 1; y < yEnd; y++){
+                                for(x = 1; x < xEnd; x++){
                                         if(i){
-                                                let val = grid[curYear][y+1][x] + diffusionGrid[y+1][x];
-                                                val    += grid[curYear][y-1][x] + diffusionGrid[y-1][x];
-                                                val    += grid[curYear][y][x+1] + diffusionGrid[y][x+1];
-                                                val    += grid[curYear][y][x-1] + diffusionGrid[y][x-1];
+                                                val = grid[curYear][y+1][x] + diffusionGrid[y+1][x];
+                                                val += grid[curYear][y-1][x] + diffusionGrid[y-1][x];
+                                                val += grid[curYear][y][x+1] + diffusionGrid[y][x+1];
+                                                val += grid[curYear][y][x-1] + diffusionGrid[y][x-1];
                                                 diffusionGrid[y][x] += (simData.animalDiffRate * (val - (4 * (grid[curYear][y][x] + diffusionGrid[y][x])))) / simData.diffusionSamples;
                                         } else { 
-                                                let val = grid[curYear][y+1][x];
-                                                val    += grid[curYear][y-1][x];
-                                                val    += grid[curYear][y][x+1];
-                                                val    += grid[curYear][y][x-1];
+                                                val = grid[curYear][y+1][x] + grid[curYear][y-1][x] + grid[curYear][y][x+1] + grid[curYear][y][x-1];
                                                 diffusionGrid[y][x] = (simData.animalDiffRate * (val - (4 * grid[curYear][y][x]))) / simData.diffusionSamples;
                                         }
                                 }
                         }
                 }
 
-                for(let i = 0; i < ySize; i++){
+                for(i = 0; i < ySize; i++){
                         grid[curYear + 1][i][0] = grid[curYear + 1][i][xEnd] = simData.carryCapacity;
                         grid[curYear + 1][i][xEnd] = simData.carryCapacity;
                 }
-                for(let i = 0; i < xSize; i++){
+                for(i = 0; i < xSize; i++){
                         grid[curYear + 1][0][i] = grid[curYear + 1][yEnd][i] = simData.carryCapacity;
                         grid[curYear + 1][yEnd][i] = simData.carryCapacity;
                 }
 
-                for(let y = 1; y < yEnd; y++){
-                        for(let x = 1; x < xEnd; x++){
-                                for(let settleNum = 0, length = towns.length; settleNum < length; settleNum++){
-                                        const locationValue = Math.pow(towns[settleNum].x - x, 2) + Math.pow(towns[settleNum].y - y, 2);
-                                        const top = Math.exp((-1)/(2*Math.pow(simData.huntRange, 2)) * locationValue);
-                                        const bot = 2*Math.PI*Math.sqrt(locationValue + 1);
-                                        const effortValue = (towns[settleNum].HPHY*getTownPop(towns[settleNum], curYear)*top)/bot;
-                                        const offtakeValue = towns[settleNum].killRate * simData.encounterRate * effortValue * grid[curYear][y][x];
-                                        offtake[y][x] = settleNum ? offtake[y][x] + offtakeValue : offtakeValue;
+                for(y = 1; y < yEnd; y++){
+                        for(x = 1; x < xEnd; x++){
+                                offtake[y][x] = 0.0;
+                                for(settleNum = 0; settleNum < towns.length; settleNum++){
+                                        locationValue = Math.pow(towns[settleNum].x - x, 2) + Math.pow(towns[settleNum].y - y, 2);
+                                        top = Math.exp((-1)/(2*Math.pow(simData.huntRange, 2)) * locationValue);
+                                        bot = TWO_PI*Math.sqrt(locationValue + 1);
+                                        effortValue = (towns[settleNum].HPHY * getTownPop(towns[settleNum], curYear) * top) / bot;
+                                        offtakeValue = towns[settleNum].killRate * simData.encounterRate * effortValue * grid[curYear][y][x];
+                                        offtake[y][x] += offtakeValue;
                                         towns[settleNum].offtake[curYear] += offtakeValue;
                                         towns[settleNum].effort[curYear] += effortValue;
                                 }
-                                growth[y][x] = simData.animalGrowthRate * grid[curYear][y][x] * (1 - Math.pow((grid[curYear][y][x]/simData.carryCapacity), simData.theta));
-                                let gridValue = grid[curYear][y][x] + diffusionGrid[y][x] + growth[y][x] - offtake[y][x];
-                                grid[curYear + 1][y][x] = gridValue > 0.0 ? gridValue : 0.0;
+                                growth[y][x] = simData.animalGrowthRate * grid[curYear][y][x] * (1 - Math.pow(grid[curYear][y][x]/simData.carryCapacity, simData.theta));
+                                gridValue = grid[curYear][y][x] + diffusionGrid[y][x] + growth[y][x] - offtake[y][x];
+                                grid[curYear + 1][y][x] = gridValue > 0 ? gridValue : 0.0;
                         }
                 }
                 genHeatmapImg(3, curYear, gradient);
                 genExploitationImg(curYear);
-                self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Finished Year " + curYear, statusValue: 100 * (curYear / simData.years)});
+                self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Finished Year " + curYear, statusValue: curYear});
                 calcTimes[curYear] = performance.now() - startTime;
         }
         genHeatmapImg(3, simData.years, gradient);
@@ -283,8 +262,7 @@ function calculateModel(){
 
 function genHeatmapImg(scale, year, gradient){
         const gradientSteps = Math.floor(simData.carryCapacity) - 1;
-
-        var imgData = new Uint8ClampedArray(((xSize - 1) * scale) * ((ySize - 1) * scale) * 4);
+        let imgData = new Uint8ClampedArray(((xSize - 1) * scale) * ((ySize - 1) * scale) * 4);
         for(let y = 0; y < ySize - 1; y++){
                 for(let x = 0; x < xSize - 1; x++){
                         let gradientPosition = Math.ceil(gradientSteps * (1 - (grid[year][y][x] / simData.carryCapacity)));
@@ -386,7 +364,7 @@ function generateCDFPictureData(id, range){
         let ySize = 2 * range + 1;
         let xEnd = xStart + xSize;
         let yEnd = yStart + ySize;
-        let scale = 4;
+        let scale = 6;
 
         for(let year = 0; year <= simData.years; year++){
                 let pos = 0;
@@ -556,7 +534,7 @@ function genExploitationImg(curYear){
         const overexploitedColor = [255, 255, 0, 255];
         const collapsedColor = [255, 0, 0, 255];
         const extirpatedColor = [128, 0, 0, 255];
-        const scale = 5;
+        const scale = 6;
 
         let dataGrid = new Array(ySize);
         for(let y = 0; y < ySize - 1; y++){
@@ -578,8 +556,6 @@ function genExploitationImg(curYear){
         for(let y = 0; y < ySize - 1; y++){
                 for(let x = 0; x < xSize - 1; x++){
                         switch(dataGrid[y][x]){
-                        case 0: //outlinePixel(imgData, x, y, [244, 66, 232, 255], scale);
-                                break;
                         case 1: outlinePixel(imgData, x, y, overexploitedColor, scale);
                                 break;
                         case 2: outlinePixel(imgData, x, y, collapsedColor, scale);

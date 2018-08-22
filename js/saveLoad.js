@@ -527,9 +527,8 @@ function copyConfigByID(persistID){
 
 function populatePersistSaves(){
         var saveContainer = document.getElementById("persistSaveContainer");
-        while (saveContainer.firstChild){
+        while (saveContainer.firstChild)
                         saveContainer.removeChild(saveContainer.firstChild);
-        }
 
         var saves = getPersistObjects();
         if(saves){
