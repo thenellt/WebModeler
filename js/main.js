@@ -505,10 +505,7 @@ function receiveWork(data){
                 populateOtherInfo();
                 setTimeout(function(){
                         $('#activeLegendTab').click();
-                        let topLeft = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[0]);
-                        let botRight = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[1]);
-                        let testExtent = [topLeft[0], botRight[1], botRight[0], topLeft[1]];
-                        map.getView().fit(testExtent, {duration: 750});
+                        fitMap(simResults.bounds[0], simResults.bounds[1]);
                 }, 200);
         }
 }

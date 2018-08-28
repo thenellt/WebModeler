@@ -1,12 +1,16 @@
 html {
         font-family: 'Roboto', Trebuchet, sans-serif;
+        font-size: 14px;
 }
 
 #mainNavbar {
+        min-width: 1030px;
         z-index: 19;
 }
 
-nav .brand-logo { white-space: nowrap; }
+nav .brand-logo { 
+        white-space: nowrap; 
+}
 
 #mainContentContainer {
         table-layout: fixed;
@@ -34,8 +38,6 @@ nav .brand-logo { white-space: nowrap; }
         box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12), 0 3px 1px -2px rgba(0,0,0,0.2);
 }
 
-
-/* Style the buttons inside the tab */
 .tablinks {
         display: block;
         background-color: inherit;
@@ -64,12 +66,10 @@ nav .brand-logo { white-space: nowrap; }
         color: #999999 !important;
 }
 
-/* Change background color of buttons on hover */
 .tablinks:hover {
         background-color: #ddd;
 }
 
-/* Create an active/current "tab button" class */
 .tablinks.active {
         background-color: #ccc;
 }
@@ -177,7 +177,6 @@ input[type=text].parameterInputText {
 }
 
 /* generated with: http://www.cssarrowplease.com/ */
-
 .arrow_box.scale-in{
         transform: scale(1) translateY(calc(-100% - 50px));
         -webkit-transform: scale(1) translateY(calc(-100% - 50px));

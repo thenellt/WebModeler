@@ -472,3 +472,22 @@ function setMapResultsMode(isFirstRun){
         toggleLayerVisibility(exploitLayer, document.getElementById('exploitationToggle'));
         toggleLayerVisibility(pointVector, document.getElementById('popLabelToggle'));
 }
+
+function requestFitMap(){
+        if(!uiData && uiData.length)
+                return;
+        
+        let townData = setupTowns();
+        if(!townData)
+                return;
+        const range = checkParam('rangeHphy', 5, false);
+        const width = checkParam('boundryWidth', 10, false);
+        workerThread.postMessage({type:"requestBounds", towns:townData, range:range, width:width});
+}
+
+function fitMap(p1, p2){
+        let topLeft = proj4(proj4('mollweide'), proj4('espg4326'), p1);
+        let botRight = proj4(proj4('mollweide'), proj4('espg4326'), p2);
+        let testExtent = [topLeft[0], botRight[1], botRight[0], topLeft[1]];
+        map.getView().fit(testExtent, {duration: 750});
+}

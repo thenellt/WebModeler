@@ -16,7 +16,8 @@ const workerFunctions = {
         'allYearsCSV':   function(data) {saveAllYearsCSV(data.csvString, data.year);},
         'posKUpdate':    function(data) {$('#mouseKText').html(data.text);},
         'storeMapPos':   function(data) {simPosition = data.pos;},
-        'storeGradient': function(data) {simRunData.gradient = data.gradient; createGradient();}
+        'storeGradient': function(data) {simRunData.gradient = data.gradient; createGradient();},
+        'boundsCheck':   function(data) {fitMap(data.bounds[0], data.bounds[1]);}
 };
 
 function setupSimDefaults(){

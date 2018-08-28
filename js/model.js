@@ -43,12 +43,18 @@ onmessage = function(oEvent) {
         case 'mouseKCheck':
                 checkPositionInformation(oEvent.data.pos, oEvent.data.year);
                 break;
+        case 'requestBounds':
+                {
+                        let bounds = generateBounds(oEvent.data.range, oEvent.data.width, oEvent.data.towns);
+                        self.postMessage({type:'mapped', fnc:'boundsCheck', bounds:bounds});
+                }
+                break;
         }
 };
 
 function runSimulation(parameters){
         unpackParams(parameters);
-        let bounds = generateBounds();
+        let bounds = generateBounds(simData.huntRange, simData.boundryWidth);
         generategeoGrid(bounds);
         try{
                 allocateMemory();
@@ -111,21 +117,29 @@ function allocateMemory(){
         }
 }
 
-function generateBounds(){
-        var topLeft = eaPointSet[0].slice(0);
-        var botRight = eaPointSet[0].slice(0);
-        let range = simData.huntRange * 2 + simData.boundryWidth;
+function generateBounds(huntRange, boundryWidth, newPoints){
+        var pointSet;
+        if(newPoints){
+                pointSet = [];
+                for(let i = 0; i < newPoints.length; i++)
+                        pointSet.push(proj4(proj4('espg4326'), proj4('mollweide'), [newPoints[i].long, newPoints[i].lat]));
+        } else {
+                pointSet = eaPointSet;
+        }
+        var topLeft = pointSet[0].slice(0);
+        var botRight = pointSet[0].slice(0);
+        let range = huntRange * 2 + boundryWidth;
 
-        for(let i = 1; i < eaPointSet.length; i++){
-                if(eaPointSet[i][0] < topLeft[0])
-                        topLeft[0] = eaPointSet[i][0];
-                else if(eaPointSet[i][0] > botRight[0])
-                        botRight[0] = eaPointSet[i][0];
+        for(let i = 1; i < pointSet.length; i++){
+                if(pointSet[i][0] < topLeft[0])
+                        topLeft[0] = pointSet[i][0];
+                else if(pointSet[i][0] > botRight[0])
+                        botRight[0] = pointSet[i][0];
 
-                if(eaPointSet[i][1] > topLeft[1])
-                        topLeft[1] = eaPointSet[i][1];
-                else if(eaPointSet[i][1] < botRight[1])
-                        botRight[1] = eaPointSet[i][1];
+                if(pointSet[i][1] > topLeft[1])
+                        topLeft[1] = pointSet[i][1];
+                else if(pointSet[i][1] < botRight[1])
+                        botRight[1] = pointSet[i][1];
         }
 
         let topOffset = [topLeft[0] - (1000 * range), topLeft[1] + (1000 * range)];
