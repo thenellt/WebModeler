@@ -122,6 +122,7 @@ function resetSimulation(){
         document.getElementById("quickSaveButton").classList.add("hide");
         document.getElementById("newSimButton").classList.remove("hide");
 
+        map.getView().animate({zoom: 2}, {center: [0, 0]});
         emptyTable();
 }
 
@@ -146,8 +147,10 @@ function changeToPopulations(){
                 addPopFunction = map.on('click', placePopulation);
                 map.removeControl(mouseKControl);
                 setMapSetupMode();
-                map.updateSize();
         }
+
+        map.updateSize();
+        console.log("refreshed canvas");
 }
 
 function changeToGetStarted(){    

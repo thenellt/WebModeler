@@ -92,6 +92,14 @@ class TabManager {
                 const id = tabNames[tab] + 'Tab';
                 document.getElementById(id).disabled = false;
         }
+        disableAll(){
+                for(tab in tabNames)
+                        document.getElementById(tab + 'Tab').disabled = true;
+        }
+        enableAll(){
+                for(tab in tabNames)
+                        document.getElementById(tab + 'Tab').disabled = false;
+        }
         /*
         _cacheTab(tabNum){
                 let child = document.getElementById(tabNames[tabNum]);
