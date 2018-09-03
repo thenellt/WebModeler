@@ -1,36 +1,27 @@
 var csvStrings;
-var entireAreaChart;
 var entireAreaData;
-var entireAreaYear;
-var localAreaChart;
 var localAreaData;
 var localAreaPictures;
-var localAreaYear;
-var localAreaSelectedID;
-var localAreaRange;
-var offtakeChart;
 var offtakeChartData;
-var offtakeSelectedID;
 var overlayYear;
 var heatMapImages;
 var simPosition;
 var exploitImages;
 
 function setupResultsPages(){
-        overlayYear = entireAreaYear = localAreaYear = simRunData.years;
+        overlayYear = simRunData.years;
         document.getElementById("overlayYearLabel").innerHTML = "Overlay Year: " + overlayYear;
-        document.getElementById("entireCDFYearLabel").innerHTML = "Simulation Year: " + overlayYear;
-        document.getElementById("singleCDFYearLabel").innerHTML = "Simulation Year: " + overlayYear;
         document.getElementById("csvNumberInput").max = simRunData.years;
-        offtakeSelectedID = 'all';
-        localAreaRange = simRunData.huntRange;
-        localAreaSelectedID = uiData[Object.keys(uiData)[0]].id;
+        //offtakeSelectedID = 'all';
+        //localAreaRange = simRunData.huntRange;
+        //localAreaSelectedID = uiData[Object.keys(uiData)[0]].id;
         localAreaPictures = new Array(simRunData.years + 1);
-        document.getElementById("singleCDFRangeLabel").innerHTML = "Radius: " + localAreaRange + " km";
+        //document.getElementById("singleCDFRangeLabel").innerHTML = "Radius: " + localAreaRange + " km";
         document.getElementById("heatmapOpacitySlider").value = simRunData.opacity * 100;
-        $("#overlayPlayButton").off('click').click(overlayAnimation);
-        $('#entireCDFplayButton').off('click').click(entireCDFAnimation);
-        $('#localCDFplayButton').off('click').click(localCDFAnimation);
+        //$("#overlayPlayButton").off('click').click(overlayAnimation);
+        //$('#entireCDFplayButton').off('click').click(entireCDFAnimation);
+        //$('#localCDFplayButton').off('click').click(localCDFAnimation);
+        registerCharts();
 }
       
 function createGradient(){
@@ -106,6 +97,14 @@ function showPerformanceDetails(){
         modalDialog(title, body);
 }
 
+function registerCharts(){
+        const hText1 = 'Calculates the depletion of terrain within a radius around each population. While the preview is square, the graph only uses data from the cells contained within a circle inscribed in the square piece of terrain shown in the preview.';
+        let cfg = {helpText:hText1, createGraph:createLocalCDFChart, isSplit:true, changeYear:changeLocalCDFYear,
+                   range:simRunData.huntRange, rangeMin:1, rangeMax:(simRunData.huntRange * 2 + simRunData.boundryWidth - 2),
+                   rangeFnc:changeLocalCDFRange, updateSelect:populateCDFSelection, changeSelection:changeCDFSettlement};
+        ChartMgr.register('Local CDF', cfg);
+}
+
 Chart.plugins.register({
         beforeDraw: function(c) {
                 var ctx = c.chart.ctx;
@@ -114,14 +113,8 @@ Chart.plugins.register({
         }
 });
 
-function createEntireCDFChart(){
-        if(entireAreaChart){
-                entireAreaChart.destroy();
-                document.getElementById('entireMapChart').width = 800;
-                document.getElementById('entireMapChart').height = 400;
-        }
-        let ctx = document.getElementById('entireMapChart').getContext('2d');
-        entireAreaChart = new Chart(ctx, {
+function createEntireCDFChart(ctx){
+        return new Chart(ctx, {
                 type: 'bar',
                 data: {
                         labels: ['0.0 - 0.1', '0.1 - 0.2','0.2 - 0.3','0.3 - 0.4','0.4 - 0.5','0.5 - 0.6',
@@ -176,16 +169,9 @@ function createEntireCDFChart(){
         }); 
 }
 
-function createLocalCDFChart(){
-        var labelText = simRunData.townsByID[localAreaSelectedID].name +  ": " + localAreaRange + " km CDF Graph";
-
-        if(localAreaChart){
-                localAreaChart.destroy();
-                document.getElementById('localAreaCDF').width = 800;
-                document.getElementById('localAreaCDF').height = 400;
-        }
-        let ctx = document.getElementById('localAreaCDF').getContext('2d');
-        localAreaChart = new Chart(ctx, {
+function createLocalCDFChart(ctx){
+        const labelText = simRunData.townsByID[ChartMgr.getCurrentlySelected()].name +  ": " + ChartMgr.getRange() + " km CDF Graph";
+        return new Chart(ctx, {
                 type: 'bar',
                 data: {
                         labels: ['0.0 - 0.1', '0.1 - 0.2','0.2 - 0.3','0.3 - 0.4','0.4 - 0.5','0.5 - 0.6',
@@ -241,7 +227,7 @@ function createLocalCDFChart(){
         });
 }
 
-function createOfftakeChart(){
+function createOfftakeChart(ctx){
         if(simRunData.towns.length > 1){
                 var data = offtakeChartData.total;
                 var tempColor = offtakeChartData.total.color;
@@ -252,7 +238,6 @@ function createOfftakeChart(){
                 var titleText = offtakeChartData.towns[simRunData.towns[0].id].name + ' Offtake';
         }
         
-        let ctx = document.getElementById('offtakeChart').getContext('2d');
         let xAxisLabels = [];
         for(let i = 1; i <= simRunData.years; i++)
                 xAxisLabels.push(i);
@@ -263,12 +248,7 @@ function createOfftakeChart(){
         const tickMax = Math.ceil(maxTemp * 1.10);
         const stepAmount = (tickMax - tickMin) / 10;
 
-        if(offtakeChart){
-                offtakeChart.destroy();
-                document.getElementById('offtakeChart').width = 800;
-                document.getElementById('offtakeChart').height = 400;
-        }
-        offtakeChart = new Chart(ctx, {
+        return new Chart(ctx, {
                 type: 'line',
                 data: {
                         datasets: [{
@@ -330,8 +310,8 @@ function createOfftakeChart(){
         });
 }
 
-function createExterpationChart(){
-        exterpationChart = new Chart(ctx, {
+function createExterpationChart(ctx){
+        return new Chart(ctx, {
                 type: 'line',
                 data: {
                         datasets: [{
@@ -382,29 +362,30 @@ function createExterpationChart(){
         });
 }
 
-function downloadGraph(containerID){
-        if(containerID === "entireMapChart"){
-                var name = "entireMapCDF_year_" + entireAreaYear + ".png";
-        } else if(containerID === "localAreaCDF") {
-                var name = "localAreaCDF_year_" + localAreaYear + ".png";
-        } else if(containerID === "offtakeChart") {
-                for(let i = 0; i < simResults.townData.length; i++)
-                        if(simResults.townData[i].id = offtakeSelectedID)
-                                var vName = simResults.townData[i].name;
-                var name = vName + "_offtake.png";
+function populateCDFSelection(){
+        $('#graphSettlementSelect').children('option').remove();
+        var CDFselector = document.getElementById('graphSettlementSelect');
+        for(let settlement in simRunData.towns){
+                let option = document.createElement("option");
+                option.text = settlement.name;
+                option.value = settlement.id;
+                CDFselector.add(option);
         }
-        $('#' + containerID).get(0).toBlob(function(blob){
-                saveAs(blob, name);
-        });
+
+        ChartMgr._curSettlementID = simRunData.towns[0].id;
+        $('#graphSettlementSelect').material_select();
 }
 
-function populateSelectionsFields(){
-        $('#CDFSetSelection').children('option').remove();
-        $('#offtakeSetSelection').children('option').remove();
-        var CDFselector = document.getElementById('CDFSetSelection');
-        var offtakeSelector = document.getElementById('offtakeSetSelection');
+function populateOfftakeSelection(){
+        $('#graphSettlementSelect').children('option').remove();
+        var offtakeSelector = document.getElementById('graphSettlementSelect');
 
         if(simRunData.towns.length > 1){
+                let option1 = document.createElement("option");
+                option1.text = 'All Settlements';
+                option1.value = 'all';
+                offtakeSelector.add(option1);
+
                 let option3 = document.createElement("option");
                 option3.text = 'Combined Totals';
                 option3.value = 'total';
@@ -415,10 +396,9 @@ function populateSelectionsFields(){
                 option2.value = 'avg';
                 offtakeSelector.add(option2);
 
-                let option1 = document.createElement("option");
-                option1.text = 'All Settlements';
-                option1.value = 'all';
-                offtakeSelector.add(option1);
+                ChartMgr._curSettlementID = 'all';
+        } else {
+                ChartMgr._curSettlementID = simRunData.towns[0].id;
         }
 
         for(let settlementID in uiData){
@@ -426,12 +406,9 @@ function populateSelectionsFields(){
                 let option = document.createElement("option");
                 option.text = settlement.name;
                 option.value = settlement.id;
-                CDFselector.add(option);
                 offtakeSelector.add(option.cloneNode(true));
         }
-
-        $('#CDFSetSelection').material_select();
-        $('#offtakeSetSelection').material_select();
+        $('#graphSettlementSelect').material_select();
 }
 
 function changeOverlayYear(isNext){
@@ -487,21 +464,22 @@ function storeCDFData(location, year, data, id){
         switch(location){
         case 'entire':
                 entireAreaData[year] = data;
+                /*
                 if(year === simRunData.years){
                         createEntireCDFChart();
                         entireAreaChart.data.datasets[0].data = entireAreaData[entireAreaYear];
                         entireAreaChart.update();
                 }
+                */
                 break;
         case 'single':
                 localAreaData[id] = data;
-                if(id === localAreaSelectedID){
-                        if(!localAreaChart)
-                                createLocalCDFChart();
-                        localAreaChart.data.datasets[0].data = localAreaData[localAreaSelectedID][localAreaYear];
-                        let labelText = simRunData.townsByID[localAreaSelectedID].name +  ": " + localAreaRange + " km Spatial Distribution";
-                        localAreaChart.options.title.text = labelText;
-                        localAreaChart.update();
+                const tempID = ChartMgr.getCurrentlySelected();
+                if(tempID && id === tempID){
+                        ChartMgr._resultsChart.data.datasets[0].data = localAreaData[tempID][ChartMgr.getYear()];
+                        let labelText = simRunData.townsByID[tempID].name +  ": " + ChartMgr.getRange() + " km Spatial Distribution";
+                        ChartMgr._resultsChart.options.title.text = labelText;
+                        ChartMgr._resultsChart.update();
                 }
                 break;
         }
@@ -533,22 +511,11 @@ function storeOfftakeData(data){
         for(key in offtakeChartData.towns){
                 offtakeChartData.towns[key].color = getRandomColor();
         }
-
-        createOfftakeChart();
 }
 
-function changeEntireCDFYear(isNext){
-        if(isNext && entireAreaYear != simRunData.years){
-                entireAreaYear += 1;
-                entireAreaChart.data.datasets[0].data = entireAreaData[entireAreaYear];
-                entireAreaChart.update();
-                document.getElementById("entireCDFYearLabel").innerHTML = "Simulation Year: " + entireAreaYear;
-        } else if(!isNext && entireAreaYear > 0) {
-                entireAreaYear -= 1;
-                entireAreaChart.data.datasets[0].data = entireAreaData[entireAreaYear];
-                entireAreaChart.update();
-                document.getElementById("entireCDFYearLabel").innerHTML = "Simulation Year: " + entireAreaYear;
-        }
+function changeEntireCDFYear(newYear, chart){
+        chart.data.datasets[0].data = entireAreaData[newYear];
+        chart.update();
 }
 
 function entireCDFAnimation(){
@@ -579,96 +546,44 @@ function entireCDFAnimation(){
         });
 }
 
-function changeLocalCDFRange(isNext){
-        if(isNext && localAreaRange < simRunData.huntRange * 2 + simRunData.boundryWidth - 2){
-                localAreaRange += 1;
-                workerThread.postMessage({type:"getSingleCDFData", id:localAreaSelectedID, range:localAreaRange});
-                workerThread.postMessage({type:"getSingleCDFPictures", id:localAreaSelectedID, range:localAreaRange});
-                document.getElementById("singleCDFRangeLabel").innerHTML = "Radius: " + localAreaRange + " km";
-        } else if(!isNext && localAreaRange > 1){
-                localAreaRange -= 1;
-                workerThread.postMessage({type:"getSingleCDFData", id:localAreaSelectedID, range:localAreaRange});
-                workerThread.postMessage({type:"getSingleCDFPictures", id:localAreaSelectedID, range:localAreaRange});
-                document.getElementById("singleCDFRangeLabel").innerHTML = "Radius: " + localAreaRange + " km";
-        }
+function changeLocalCDFRange(newRange){
+        const selectedID = ChartMgr.getCurrentlySelected();
+        workerThread.postMessage({type:"getSingleCDFData", id:selectedID, range:newRange});
+        workerThread.postMessage({type:"getSingleCDFPictures", id:selectedID, range:newRange});
+        $("#graphRangeLabel").html("Radius: " + newRange + " km");
 }
 
-function changeLocalCDFYear(isNext){
-        if(isNext && localAreaYear != simRunData.years){
-                localAreaYear += 1;
-                setLocalCDFPicture();
-                localAreaChart.data.datasets[0].data = localAreaData[localAreaSelectedID][localAreaYear];
-                localAreaChart.update();
-                document.getElementById("singleCDFYearLabel").innerHTML = "Simulation Year: " + localAreaYear;
-        } else if(!isNext && localAreaYear > 0) {
-                localAreaYear -= 1;
-                setLocalCDFPicture();
-                localAreaChart.data.datasets[0].data = localAreaData[localAreaSelectedID][localAreaYear];
-                localAreaChart.update();
-                document.getElementById("singleCDFYearLabel").innerHTML = "Simulation Year: " + localAreaYear;
-        }
+function changeLocalCDFYear(newYear, chart){
+        const selectedID = ChartMgr.getCurrentlySelected();
+        setLocalCDFPicture(newYear);
+        chart.data.datasets[0].data = localAreaData[selectedID][newYear];
+        chart.update();
 }
 
-function setLocalCDFPicture(){
+function setLocalCDFPicture(newYear){
         let canvasImage = new Image();
         canvasImage.onload = function(){
                 canvasImage.classList.add('localCDFImage');
-                let container = document.getElementById('localAreaCDFPicture');
+                let container = document.getElementById('localAreaPicture');
                 if(container.firstChild)
                         container.removeChild(container.firstChild);
                 container.appendChild(canvasImage);
         };
 
-        canvasImage.src = localAreaPictures[localAreaYear];
-}
-
-function localCDFAnimation(){
-        $('#singleCDFSaveButton, #localCDFdownRange').addClass('disabled');
-        $('#localCDFupRange, #localCDFdownYear, #localCDFupYear').addClass('disabled');
-        $('#CDFSetSelection').attr("disabled", "");
-        $('#CDFSetSelection').material_select();
-        localAreaYear = 0;
-        setLocalCDFPicture();
-        localAreaChart.data.datasets[0].data = localAreaData[localAreaSelectedID][localAreaYear];
-        localAreaChart.update();
-        document.getElementById("singleCDFYearLabel").innerHTML = "Simulation Year: " + localAreaYear;
-
-        var year = 0;
-        var animHandle = setInterval(function(){
-                if(year === simRunData.years){
-                        clearTimeout(animHandle);
-                        $('#singleCDFSaveButton, #localCDFdownRange').removeClass('disabled');
-                        $('#localCDFupRange, #localCDFdownYear, #localCDFupYear').removeClass('disabled');
-                        $('#CDFSetSelection').removeAttr('disabled');
-                        $('#CDFSetSelection').material_select();
-                        $('#localCDFplayButton').html('Play').removeClass('red').addClass('blue').off('click')
-                                                .click(localCDFAnimation);
-                } else {
-                        changeLocalCDFYear(true);
-                        year++;
-                }
-        }, 350);
-
-        $('#localCDFplayButton').html('Stop').removeClass('blue').addClass('red').off('click').click(function(){
-                clearTimeout(animHandle);
-                $('#singleCDFSaveButton, #localCDFdownRange').removeClass('disabled');
-                $('#localCDFupRange, #localCDFdownYear, #localCDFupYear').removeClass('disabled');
-                $('#CDFSetSelection').removeAttr('disabled');
-                $('#CDFSetSelection').material_select();
-                $('#localCDFplayButton').html('Play').removeClass('red').addClass('blue').off('click')
-                                        .click(localCDFAnimation);
-        });
+        canvasImage.src = localAreaPictures[newYear];
 }
 
 function changeCDFSettlement(){
-        let value = $("#CDFSetSelection").val();
-        localAreaSelectedID = parseInt(value, 10);
+        let value = $("#graphSettlementSelect").val();
+        const localAreaRange = ChartMgr.getRange();
+        const localAreaSelectedID = parseInt(value, 10);
+        ChartMgr._curSettlementID = localAreaSelectedID;
         workerThread.postMessage({type:"getSingleCDFData", id:localAreaSelectedID, range:localAreaRange});
         workerThread.postMessage({type:"getSingleCDFPictures", id:localAreaSelectedID, range:localAreaRange});
 }
 
-function changeOfftakeSettlement(){
-        offtakeSelectedID = $("#offtakeSetSelection").val();
+function changeOfftakeSettlement(chart){
+        offtakeSelectedID = $("#graphSettlementSelect").val();
         if(offtakeSelectedID == 'all'){
                 offtakeChart.data.datasets = [];
                 for(key in offtakeChartData.towns){
@@ -780,11 +695,9 @@ function getRandomColor(){
 }
 
 function refreshCanvas(){
-        if(simulationRun){
-                localAreaChart.update();
-                entireAreaChart.update();
-                offtakeChart.update();
-        }
+        if(simulationRun && ChartMgr._resultsChart)
+                ChartMgr._resultsChart.update();
+
         if(bingLayers[0]){
                 bingLayers[0].getSource().refresh();
                 bingLayers[1].getSource().refresh();

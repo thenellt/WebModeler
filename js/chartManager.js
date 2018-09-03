@@ -1,94 +1,130 @@
 class chartMgr {
         constructor(){
-                this._currentGraph = '';
+                this._currentConfigType = '';
+                this._currentConfig = '';
                 this._currentYear = -1;
-                this._currentRadius = -1;
                 this._curSettlementID = '';
+                this._resultsChart = '';
                 this._configs = [];
                 this._controls = ['settlement', 'radius', 'year'];
-                $("#graphPlayBtn").off('click').click(this._playAnimation);
+                this._animElmnts = ['#graphSaveBtn', '#graphDecRange', '#graphIncRange', '#graphDecYear', '#graphIncYear', '#tabFillerButton'];
+                $("#graphPlayBtn").off('click').click(function(){ChartMgr.playAnimation();});
         }
 
-        registerChart(name, config){
+        register(name, config){
                 this._configs[name] = config;
         }
 
         changeYear(isNext){
-                this._configs.yearFunc(isNext);
+                if(isNext && (this._currentYear + 1) <= simRunData.years){
+                        this._currentYear += 1;
+                        $('#graphYearLabel').html("Simulation Year: " + this._currentYear);
+                        this._currentConfig.changeYear(this._currentYear, this._resultsChart);
+                } else if(!isNext && (this._currentYear - 1) >= 0) {
+                        this._currentYear -= 1;
+                        $('#graphYearLabel').html("Simulation Year: " + this._currentYear);
+                        this._currentConfig.changeYear(this._currentYear, this._resultsChart);
+                }
         }
 
         changeSettlement(){
-
+                this._currentConfig.changeSelection();
         }
 
-        changeRadius(radius){
-
+        changeRange(isNext){
+                if(isNext && (this._currentConfig.range + 1) <= this._currentConfig.rangeMax){
+                        this._currentConfig.range += 1;
+                        this._currentConfig.rangeFnc(this._currentConfig.range);
+                } else if(!isNext && (this._currentConfig.range - 1) >= this._currentConfig.rangeMin){
+                        this._currentConfig.range -= 1;
+                        this._currentConfig.rangeFnc(this._currentConfig.range);
+                }
         }
 
-        changeChart(chartName){
-                //change title
-                //change help text
+        changeChart(){
+                const chartName = $("#graphTypeSelector").val();
+                this._currentConfigType = chartName;
+                this._currentConfig = this._configs[chartName];
+                let chartElement = document.getElementById('resultsGraph');
+                $('#graphHelpText').html(this._currentConfig.helpText);
                 //disable all controls
                 //enable correct controls
-                //check graph container type (full or split)
+
+                if(this._currentConfig.updateSelect)
+                        this._currentConfig.updateSelect();
+
+                if(this._resultsChart)
+                        this._resultsChart.destroy();
+
+                if(this._currentConfig.isSplit){
+                        $('#localAreaPictureContainer').css('display', 'inline-block');
+                        chartElement.width = 550;
+                        chartElement.height = 400;
+                } else {
+                        $('#localAreaPictureContainer').css('display', 'none');
+                        chartElement.width = 800;
+                        chartElement.height = 400;
+                }
+                let ctx = chartElement.getContext('2d');
+                this._resultsChart = this._currentConfig.createGraph(ctx);
+                this._currentYear -= 1;
+                this.changeYear(true);
         }
 
         playAnimation(){
-                $('#graphSaveBtn, #graphDecRange, #graphIncRange').addClass('disabled');
-                $('#graphDecYear, #graphIncYear, #localCDFupYear').addClass('disabled');
+                $(this._animElmnts).addClass('disabled');
                 $('#graphSettlementSelect').attr("disabled", "");
                 $('#graphSettlementSelect').material_select();
-                this._currentYear = 0;
-                setLocalCDFPicture(this._currentYear);
-                localAreaChart.data.datasets[0].data = localAreaData[this._curSettlementID][this._currentYear];
-                localAreaChart.update();
-                document.getElementById("graphYearLabel").innerHTML = "Simulation Year: " + this._currentYear;
+                this._currentYear = -1;
+                this.changeYear(true);
 
-                var year = 0;
                 var animHandle = setInterval(function(){
-                        if(year === simRunData.years){
+                        if(ChartMgr._currentYear === simRunData.years){
                                 clearTimeout(animHandle);
-                                $('#singleCDFSaveButton, #localCDFdownRange').removeClass('disabled');
-                                $('#localCDFupRange, #localCDFdownYear, #localCDFupYear').removeClass('disabled');
-                                $('#CDFSetSelection').removeAttr('disabled');
-                                $('#CDFSetSelection').material_select();
-                                $('#localCDFplayButton').html('Play').removeClass('red').addClass('blue').off('click')
-                                                        .click(localCDFAnimation);
+                                $(ChartMgr._animElmnts).removeClass('disabled');
+                                $('#graphSettlementSelect').removeAttr('disabled');
+                                $('#graphSettlementSelect').material_select();
+                                $('#graphPlayBtn').html('Play').removeClass('red').addClass('blue').off('click')
+                                                        .click(function(){ChartMgr.playAnimation();});
                         } else {
-                                changeLocalCDFYear(true);
-                                year++;
+                                ChartMgr.changeYear(true);
                         }
                 }, 350);
 
-                $('#localCDFplayButton').html('Stop').removeClass('blue').addClass('red').off('click').click(function(){
+                $('#graphPlayBtn').html('Stop').removeClass('blue').addClass('red').off('click').click(function(){
                         clearTimeout(animHandle);
-                        $('#singleCDFSaveButton, #localCDFdownRange').removeClass('disabled');
-                        $('#localCDFupRange, #localCDFdownYear, #localCDFupYear').removeClass('disabled');
-                        $('#CDFSetSelection').removeAttr('disabled');
-                        $('#CDFSetSelection').material_select();
-                        $('#localCDFplayButton').html('Play').removeClass('red').addClass('blue').off('click')
-                                                .click(localCDFAnimation);
+                        $(this._animElmnts).removeClass('disabled');
+                        $('#graphSettlementSelect').removeAttr('disabled');
+                        $('#graphSettlementSelect').material_select();
+                        $('#graphPlayBtn').html('Play').removeClass('red').addClass('blue').off('click')
+                                                .click(function(){ChartMgr.playAnimation();});
                 });
         }
 
         saveImg(){
-                if(this._currentGraph === "entireMapChart"){
-                        var name = "entireMapCDF_year_" + entireAreaYear + ".png";
-                } else if(this._currentGraph === "localAreaCDF") {
-                        var name = "localAreaCDF_year_" + localAreaYear + ".png";
-                } else if(this._currentGraph === "offtakeChart") {
-                        for(let i = 0; i < simResults.townData.length; i++)
-                                if(simResults.townData[i].id = offtakeSelectedID)
-                                        var vName = simResults.townData[i].name;
-                        var name = vName + "_offtake.png";
+                if(this._currentConfigType === "Entire Simulation CDF"){
+                        var name = "entireMapCDF_year" + this._currentYear + ".png";
+                } else if(this._currentConfigType === "Local CDF") {
+                        var name = simRunData.townsByID[this._curSettlementID].name + "_year" + this._currentYear + "_localCDF.png";
+                } else if(this._currentConfigType === "Settlement Offtake") {
+                        var name = simRunData.townsByID[this._curSettlementID].name + "_offtake.png";
                 }
-                $('#' + containerID).get(0).toBlob(function(blob){
+                $('#resultsGraph').get(0).toBlob(function(blob){
                         saveAs(blob, name);
                 });
         }
-  }
+
+        getCurrentlySelected(){
+                return this._curSettlementID;
+        }
+
+        getYear(){
+                return this._currentYear;
+        }
+
+        getRange(){
+                return this._currentConfig.range;
+        }
+}
   
-  const ChartMgr = new chartMgr();
-  Object.freeze(ChartMgr);
-  
-  export default ChartMgr;
+var ChartMgr = new chartMgr();

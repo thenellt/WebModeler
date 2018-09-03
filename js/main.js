@@ -12,22 +12,11 @@ var completedImgCount;
 $(document).ready(function() {
         $('#projBackground, #changelogPopup, #popImportDialog').modal();
         $('#yearlyPopEditor, #coverScreen, #fullScreenMap, #sysDialog').modal({dismissible: false});
-        $('#visualCollapsable').collapsible({
-                onOpen: function(el) { 
-                        if(el[0].childNodes[1].childNodes[0].data === "Heatmap with Sattelite Overlay"
-                           && simulationRun){
-                                bingLayers[0].getSource().refresh();
-                                bingLayers[1].getSource().refresh();
-                                if(heatmapLayer)
-                                        heatmapLayer.getSource().refresh();
-                                map.updateSize();
-                        }
-                }
-        });
         $('#advancedSettings').modal({dismissible: false, ready: showAdvancedSettings});
-        $('#dropDownTest').dropdown({inDuration: 75, outDuration: 25,});
-        $("#CDFSetSelection").change(function() {changeCDFSettlement();}); 
-        $("#offtakeSetSelection").change(function() {changeOfftakeSettlement();});
+        $('#popDropDown').dropdown({inDuration: 75, outDuration: 25,});
+        $('#graphTypeSelector').material_select();
+        $('#graphTypeSelector').change(function(){ChartMgr.changeChart();});
+        $("#graphSettlementSelect").change(function() {ChartMgr.changeSettlement();}); 
         $('#floatingPopEditor').modal({dismissible: false});
         $('#offtakeLegendToggle, #exploitationToggle, #streetmapToggle, #debugViewToggle').prop('checked', false);
         $('#tabFillerButton').addClass('disabled');
@@ -506,6 +495,9 @@ function receiveWork(data){
                 simulationTime = performance.now() - simulationTime;
                 simResults.visTime = performance.now() - simResults.visTime;
                 populateOtherInfo();
+                ChartMgr._currentYear = simRunData.years;
+                $("#graphRangeLabel").html("Radius: " + simRunData.huntRange + " km");
+                ChartMgr.changeChart('Local CDF');
                 setTimeout(function(){
                         $('#activeLegendTab').click();
                         fitMap(simResults.bounds[0], simResults.bounds[1]);

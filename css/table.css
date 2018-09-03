@@ -61,8 +61,7 @@ tbody.highlight tr:hover{
 }
 
 #oStatsTable {
-        max-height: 400px;
-        height: 400px;
+        height: 350px;
         width: 100%;
         overflow-x: hidden;
         overflow-y: scroll;

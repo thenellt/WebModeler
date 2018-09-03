@@ -13,6 +13,7 @@ var fileNames = [
         './js/mapFunctionality.js',
         './js/saveLoad.js',
         './js/dataProcessing.js',
+        './js/chartManager.js',
         './js/floatingContent.js',
         './js/main.js',
         './js/table.js',

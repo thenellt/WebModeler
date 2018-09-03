@@ -181,7 +181,7 @@ function placePopulation(e){
         } else {
                 isMenuOpen = true;
                 let tempId = tempFeatures[0].get('description');
-                $('#dropDownTest').css({ 
+                $('#popDropDown').css({ 
                         top: e.originalEvent.clientY, 
                         left: (e.originalEvent.clientX - 27)
                 });
@@ -195,7 +195,7 @@ function placePopulation(e){
                         });
                         $('#dropDeleteOption').off('click')
                                 .click(function(){removeRow('popTable', tempId);});
-                        $('#dropDownTest').dropdown('open');
+                        $('#popDropDown').dropdown('open');
                 }, 200);
         }
 }
@@ -385,8 +385,8 @@ function storeImgURL(data){
                 break;
         case 'localCDFimg':
                 localAreaPictures[data.year] = data.url;
-                if(data.year === localAreaYear)
-                        setLocalCDFPicture();
+                if(ChartMgr.getYear() > -1)
+                        setLocalCDFPicture(ChartMgr.getYear());
                 break;
         }
 }

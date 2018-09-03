@@ -200,7 +200,6 @@ function handleWorkerMessage(data){
         case 'finished':
                 simResults = data.paramData;
                 simResults.visTime = performance.now();
-                populateSelectionsFields();
                 increaseWorkerCount();
                 break;
         case 'debug':
