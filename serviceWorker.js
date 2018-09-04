@@ -14,6 +14,7 @@ var fileNames = [
         './js/saveLoad.js',
         './js/dataProcessing.js',
         './js/chartManager.js',
+        './js/chartSetup.js',
         './js/floatingContent.js',
         './js/main.js',
         './js/table.js',

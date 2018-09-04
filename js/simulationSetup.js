@@ -6,16 +6,16 @@ workerThread.onmessage = function(oEvent) {
 
 const workerFunctions = {
         'progress':      function(data) {updateProgressBar(data.statusMsg, 100 * (data.statusValue / simRunData.years));},
-        'entireCDFData': function(data) {storeCDFData('entire', data.year, data.densities);},
-        'localCDFData':  function(data) {storeCDFData('single', data.year, data.densities, data.id);},
+        'entireCDFData': function(data) {storeCDFData('entire', data.densities);},
+        'localCDFData':  function(data) {storeCDFData('single', data.densities, data.id);},
         'offtakeData':   function(data) {storeOfftakeData(data.dataString);},
+        'CPUEdata':      function(data) {storeCPUEdata(data.dataString);},
         'extentDebug':   function(data) {drawDebugBounds(data.data.points, data.data.color);},
         'circleDebug':   function(data) {drawDebugCircle(data.data.points, data.data.color);},
         'pointDebug':    function(data) {drawDebugPoint(data.data.point, data.data.color);},
         'singleCSV':     function(data) {saveSingleCSV(data.csvString, data.year);},
         'allYearsCSV':   function(data) {saveAllYearsCSV(data.csvString, data.year);},
         'posKUpdate':    function(data) {$('#mouseKText').html(data.text);},
-        'storeMapPos':   function(data) {simPosition = data.pos;},
         'storeGradient': function(data) {simRunData.gradient = data.gradient; createGradient();},
         'boundsCheck':   function(data) {fitMap(data.bounds[0], data.bounds[1]);}
 };

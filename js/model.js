@@ -8,7 +8,6 @@ proj4.defs('mollweide', eaProjection);
 var simData;
 var xSize;
 var ySize;
-//model arrays
 var grid;
 var diffusionGrid;
 var growth;
@@ -16,9 +15,9 @@ var offtake;
 var towns;
 var calcTimes;
 var visStartTime;
-var eaPointSet = [];
-var points = [];
-var geoGrid = [[[]]];
+var eaPointSet;
+var points;
+var geoGrid;
 
 onmessage = function(oEvent) {
         switch(oEvent.data.type){
@@ -62,18 +61,17 @@ function runSimulation(parameters){
                 self.postMessage({type:'error', text: err.message});
                 return;
         }
-        const posArray = [geoGrid[ySize - 1][0][0], geoGrid[ySize - 1][0][1], geoGrid[0][xSize - 1][0], geoGrid[0][xSize - 1][1]];
-        self.postMessage({type:'mapped', fnc:'storeMapPos', pos:posArray});
         placeLocations();
         calculateModel();
+        const posArray = [geoGrid[ySize - 1][0][0], geoGrid[ySize - 1][0][1], geoGrid[0][xSize - 1][0], geoGrid[0][xSize - 1][1]];
         self.postMessage({type:'finished', paramData:{name: simData.simName, duration:simData.years,
-                xSize:xSize, ySize:ySize, geoGrid:geoGrid, townData:towns, bounds: bounds,
-                perfData:calcTimes}});
+                xSize:xSize, ySize:ySize, townData:towns, bounds: bounds, simPosition:posArray, perfData:calcTimes}});
         self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Visualizing Data", statusValue: 100});
-        generateEntireCDFData();
+        generateCDFBins();
         generateSingleCDFData(towns[0].id, simData.huntRange);
         generateCDFPictureData(towns[0].id, simData.huntRange);
         generateOfftakeData();
+        generateCPUEdata();
 }
 
 function unpackParams(data){
@@ -92,9 +90,9 @@ function unpackParams(data){
 function allocateMemory(){
         ySize = geoGrid.length;
         xSize = geoGrid[0].length;
+        calcTimes = new Float64Array(simData.years);
 
         grid = new Array(simData.years + 1);
-
         diffusionGrid = new Array(ySize);
         growth = new Array(ySize);
         offtake = new Array(ySize);
@@ -102,18 +100,18 @@ function allocateMemory(){
         for(let i = 0; i < simData.years + 1; i++){
                 grid[i] = new Array(ySize);
                 for(let j = 0; j < ySize; j++)
-                        grid[i][j] = new Array(xSize).fill(simData.carryCapacity);
+                        grid[i][j] = new Float64Array(xSize).fill(simData.carryCapacity);
         }
 
         for(let k = 0; k < ySize; k++){
-                diffusionGrid[k] = new Array(xSize).fill(0.0);
-                growth[k] = new Array(xSize).fill(0.0);
-                offtake[k] = new Array(xSize).fill(0.0);
+                diffusionGrid[k] = new Float64Array(xSize).fill(0.0);
+                growth[k] = new Float64Array(xSize).fill(0.0);
+                offtake[k] = new Float64Array(xSize).fill(0.0);
         }
 
         for(let i = 0; i < towns.length; i++){
-                towns[i].offtake = new Array(simData.years).fill(0.0);
-                towns[i].effort = new Array(simData.years).fill(0.0);
+                towns[i].offtake = new Float64Array(simData.years).fill(0.0);
+                towns[i].effort = new Float64Array(simData.years).fill(0.0);
         }
 }
 
@@ -184,8 +182,7 @@ function generategeoGrid(extremePoints){
 
 
 function placeLocations(){
-        //for each location we find best fitting 1km x 1km square
-        for(var i = 0; i < eaPointSet.length; i++){
+        for(let i = 0; i < eaPointSet.length; i++){
                 let x = 0;
                 let y = 0;
                 while(geoGrid[0][x][0] < eaPointSet[i][0])
@@ -213,7 +210,6 @@ function calculateModel(){
         logMessage("calculateModel: Starting run. Years: " + simData.years + " samples: " + simData.diffusionSamples);
         let gradient = setupGradient();
         self.postMessage({type:'mapped', fnc:'storeGradient', gradient:gradient});
-        calcTimes = new Array(simData.years);
         let xEnd = xSize - 1;
         let yEnd = ySize - 1;
         var startTime, val, i, y, x, locationValue, top, bot, effortValue, offtakeValue, gridValue, settleNum;
@@ -281,9 +277,9 @@ function genHeatmapImg(scale, year, gradient){
                 for(let x = 0; x < xSize - 1; x++){
                         let gradientPosition = Math.ceil(gradientSteps * (1 - (grid[year][y][x] / simData.carryCapacity)));
                         if(gradientPosition < 0 || !gradientPosition){
-                                placePixel(imgData, x, y, gradient[0], scale);
+                                fillPixel(imgData, x, y, gradient[0], scale);
                         } else {
-                                placePixel(imgData, x, y, gradient[gradientPosition], scale);
+                                fillPixel(imgData, x, y, gradient[gradientPosition], scale);
                         }
                 }
         }
@@ -413,11 +409,6 @@ function generateCDFPictureData(id, range){
         }
 }
 
-function generateEntireCDFData(){
-        for(let i = 0; i <= simData.years; i++)
-                generateCDFBins(i);
-}
-
 //alg based on https://stackoverflow.com/questions/40779343/java-loop-through-all-pixels-in-a-2d-circle-with-center-x-y-and-radius
 function generateSingleCDFData(settlementID, range){
         for(elmnt in towns)
@@ -457,40 +448,52 @@ function generateSingleCDFData(settlementID, range){
                         dataValues[year][i] = parseFloat(dataValues[year][i] / (1.0 *numCells)) * 100;
         }
 
-        self.postMessage({type:'mapped', fnc:'localCDFData', densities:dataValues, year:simData.years, id:settlementID});
+        self.postMessage({type:'mapped', fnc:'localCDFData', densities:dataValues, id:settlementID});
 }
 
-function generateCDFBins(year){
-        var numCells = 0;
-        var dataValues = new Array(10);
-        for(let i = 0; i < dataValues.length; i++)
-                dataValues[i] = 0;
+function generateCDFBins(){
+        const numCells = (ySize - 2) * (xSize - 2);
+        var dataValues = new Array(simData.years + 1);
+        for(let i = 0; i <= simData.years; i++)
+                dataValues[i] = new Array(10).fill(0);
 
-        grid[year].forEach(function(element){
-                element.forEach(function(ele){
-                        numCells++;
-                        let temp = ele == simData.carryCapacity ? 9 : Math.floor((ele / simData.carryCapacity) * 10);
-                        dataValues[temp]++;
-                });
-        });
+        for(let year = 0; year <= simData.years; year++){
+                for(let y = 1; y < ySize - 1; y++){
+                        for(let x = 1; x < xSize - 1; x++){
+                                const ele = grid[year][y][x];
+                                let temp = ele == simData.carryCapacity ? 9 : Math.floor((ele / simData.carryCapacity) * 10);
+                                dataValues[year][temp] += 1;
+                        }
+                }
 
-        for(let i = 0; i < dataValues.length; i++)
-                dataValues[i] = parseFloat(dataValues[i] / (1.0 *numCells)) * 100;
+                for(let i = 0; i < 10; i++)
+                        dataValues[year][i] = parseFloat(dataValues[year][i] / (1.0 * numCells)) * 100;
+        }
 
-        self.postMessage({type:'mapped', fnc:'entireCDFData', densities:dataValues, year:year});
+        self.postMessage({type:'mapped', fnc:'entireCDFData', densities:dataValues});
 }
 
 function generateOfftakeData(){
         let dataValues = {};
-        for(let i = 0, length = towns.length; i < length; i++)
-                dataValues[towns[i].id] = towns[i].offtake;
+        for(let town of towns)
+                dataValues[town.id] = town.offtake;
         self.postMessage({type:'mapped', fnc:'offtakeData', dataString:JSON.stringify(dataValues)});
+}
+
+function generateCPUEdata(){
+        let dataValues = {};
+        for(let town of towns){
+                dataValues[town.id] = [];
+                for(let i = 0; i < simData.years; i++)
+                        dataValues[town.id].push(town.offtake[i] / town.effort[i]);
+        }
+        self.postMessage({type:'mapped', fnc:'CPUEdata', dataString:JSON.stringify(dataValues)});
 }
 
 function generateCSV(requestYear, callbackType){
         var outputString = "";
         for(let i = 0, length = grid[requestYear].length; i < length; i++){
-                outputString += grid[requestYear][i].join(", ");
+                outputString += grid[requestYear][i].join(",");
                 outputString += "\r\n";
         }
 
@@ -603,7 +606,7 @@ function outlinePixel(array, xPos, yPos, color1, scale){
         }
 }
 
-function placePixel(array, xPos, yPos, color, scale){
+function fillPixel(array, xPos, yPos, color, scale){
         const rowWidth = (xSize - 1) * scale * 4;
         const offset = (yPos * scale) * rowWidth;
         const xStart = (xPos * scale) * 4;

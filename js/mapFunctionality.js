@@ -396,7 +396,7 @@ function drawCanvasToMap(imageURL, target){
                 new ol.source.ImageStatic({
                         url: imageURL,
                         projection: 'mollweide',
-                        imageExtent: simPosition
+                        imageExtent: simResults.simPosition
                 })
         );
 }
@@ -474,6 +474,7 @@ function setMapResultsMode(isFirstRun){
 }
 
 function requestFitMap(){
+        if(isFinal)
         if(!uiData && uiData.length)
                 return;
         
@@ -486,8 +487,14 @@ function requestFitMap(){
 }
 
 function fitMap(p1, p2){
-        let topLeft = proj4(proj4('mollweide'), proj4('espg4326'), p1);
-        let botRight = proj4(proj4('mollweide'), proj4('espg4326'), p2);
+        if(!p1 && !p2){
+                var topLeft = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[0]);
+                var botRight = proj4(proj4('mollweide'), proj4('espg4326'), simResults.bounds[1]);
+        } else {
+                var topLeft = proj4(proj4('mollweide'), proj4('espg4326'), p1);
+                var botRight = proj4(proj4('mollweide'), proj4('espg4326'), p2);
+        }
+
         let testExtent = [topLeft[0], botRight[1], botRight[0], topLeft[1]];
         map.getView().fit(testExtent, {duration: 750});
 }

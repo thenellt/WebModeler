@@ -4,16 +4,23 @@ const pageTabs = {
         POPS: 2,
         MAPS: 3,
         STATS: 4,
-        ANY: 5,
+        INFO: 5,
+        ANY: 6,
 };
-const tabNames = ["getStarted", "parameterSetup", "popSetup", "resultsPage", "statsPage"];
+const tabNames = ["getStarted", "parameterSetup", "popSetup", "resultsPage", "statsPage", "otherInfo"];
 var tabManager;
+
+class tabChange {
+        constructor(src, func) {
+                this.src = src;
+                this.func = func;
+        }
+}
 
 class TabManager {
         constructor() {
                 this.populationView = 1;
                 this.tabChanges = [];
-                //this.cachedPages = new Array(5);
                 for (let i = 0; i < 5; i++)
                         this.tabChanges.push([]);
                 this.currentPage = pageTabs.MENU;
@@ -22,40 +29,13 @@ class TabManager {
                 for (let i = 0; i < tabs.length; i++) {
                         if (!tabs[i].classList.contains("defaultOpen")) {
                                 tabs[i].disabled = true;
-                        }
-                        else {
-                                this._switchToTab(i);
+                        } else {
+                                this.changeTab(i);
                         }
                 }
-                /*
-                setTimeout(function(){
-                        tabManager._cacheTab(pageTabs.PARAMS);
-                        tabManager._cacheTab(pageTabs.POPS);
-                }, 500);
-                */
         }
+
         changeTab(tab, isDirect) {
-                this._switchToTab(tab, isDirect);
-                /*
-                if(tab == pageTabs.MAPS || tab == pageTabs.STATS){
-                        if(this.currentPage < 3)
-                                setTimeout(function(page){
-                                        tabManager._cacheTab(page);
-                                }, 200, this.currentPage);
-                        this._switchToTab(tab, isDirect);
-                } else {
-                        this._restoreTab(tab);
-                        setTimeout(function(page){
-                                if(page < 3)
-                                        setTimeout(function(page){
-                                                tabManager._cacheTab(page);
-                                        }, 200, page);
-                                tabManager._switchToTab(tab, isDirect);
-                        }, 50, this.currentPage);
-                }
-                */
-        }
-        _switchToTab(tab, isDirect) {
                 $('#' + tabNames[this.currentPage]).css("display", "none");
                 $('#' + tabNames[tab]).css("display", "block");
                 $('#' + tabNames[this.currentPage] + 'Tab').removeClass("active");
@@ -67,6 +47,7 @@ class TabManager {
                                 if (this.tabChanges[tab][i].src == this.currentPage || this.tabChanges[tab][i].src == pageTabs.ANY)
                                         this.tabChanges[tab][i].func();
         }
+
         togglePopView(mode) {
                 if (mode == this.populationView)
                         return;
@@ -74,56 +55,35 @@ class TabManager {
                 if (this.populationView) {
                         $("#popMapContent").addClass("hide");
                         $("#popTableContent").removeClass("hide");
-                }
-                else {
+                } else {
                         $("#popTableContent").addClass("hide");
                         $("#popMapContent").removeClass("hide");
                         map.updateSize();
                 }
         }
+
         registerChange(src, dest, func) {
                 this.tabChanges[dest].push(new tabChange(src, func));
         }
+
         disableTab(tab) {
                 const id = tabNames[tab] + 'Tab';
                 document.getElementById(id).disabled = true;
         }
+
         enableTab(tab) {
                 const id = tabNames[tab] + 'Tab';
                 document.getElementById(id).disabled = false;
         }
+
         disableAll(){
-                for(tab in tabNames)
+                for(const tab of tabNames)
                         document.getElementById(tab + 'Tab').disabled = true;
         }
-        enableAll(){
-                for(tab in tabNames)
-                        document.getElementById(tab + 'Tab').disabled = false;
-        }
-        /*
-        _cacheTab(tabNum){
-                let child = document.getElementById(tabNames[tabNum]);
-                let parent = child.parentNode;
-                this.cachedPages[tabNum] = child;
-                parent.removeChild(child);
-        }
-        _restoreTab(tabNum){
-                document.getElementById('contentContainer').appendChild(this.cachedPages[tabNum]);
-                this.cachedPages[tabNum] = [];
-        }
-        get currentPage(){
-                return this._currentPage;
-        }
-        set currentPage(page){
-                this._currentPage = page;
-        }
-        */
-}
 
-class tabChange {
-        constructor(src, func) {
-                this.src = src;
-                this.func = func;
+        enableAll(){
+                for(const tab of tabNames)
+                        document.getElementById(tab + 'Tab').disabled = false;
         }
 }
 
@@ -139,6 +99,7 @@ function setupTabSystem(){
         document.getElementById('popSetupTab').onclick = function(){tabManager.changeTab(pageTabs.POPS);};
         document.getElementById('resultsPageTab').onclick = function(){tabManager.changeTab(pageTabs.MAPS);};
         document.getElementById('statsPageTab').onclick = function(){tabManager.changeTab(pageTabs.STATS);};
+        document.getElementById('otherInfoTab').onclick = function(){tabManager.changeTab(pageTabs.INFO);};
         document.getElementById('dropdownMapView').onclick = function(){tabManager.togglePopView(0);};
         document.getElementById('dropdownTableView').onclick = function(){tabManager.togglePopView(1);};
 }

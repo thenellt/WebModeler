@@ -3,11 +3,11 @@ class chartMgr {
                 this._currentConfigType = '';
                 this._currentConfig = '';
                 this._currentYear = -1;
-                this._curSettlementID = '';
                 this._resultsChart = '';
+                this._colors = {};
                 this._configs = [];
-                this._controls = ['settlement', 'radius', 'year'];
-                this._animElmnts = ['#graphSaveBtn', '#graphDecRange', '#graphIncRange', '#graphDecYear', '#graphIncYear', '#tabFillerButton'];
+                this._controls = ['#graphSelectContainer', '#graphRangeContainer', '#graphYearContainer'];
+                this._animElmnts = '#graphSaveBtn, #graphDecRange, #graphIncRange, #graphDecYear, #graphIncYear, #tabFillerButton';
                 $("#graphPlayBtn").off('click').click(function(){ChartMgr.playAnimation();});
         }
 
@@ -27,7 +27,7 @@ class chartMgr {
                 }
         }
 
-        changeSettlement(){
+        changeSelected(){
                 this._currentConfig.changeSelection();
         }
 
@@ -46,12 +46,18 @@ class chartMgr {
                 this._currentConfigType = chartName;
                 this._currentConfig = this._configs[chartName];
                 let chartElement = document.getElementById('resultsGraph');
+                $('#graphTypeTitle').html(this._currentConfig.title);
                 $('#graphHelpText').html(this._currentConfig.helpText);
-                //disable all controls
-                //enable correct controls
 
-                if(this._currentConfig.updateSelect)
-                        this._currentConfig.updateSelect();
+                if(this._currentConfig.setupSelect)
+                        this._currentConfig.setupSelect();
+                for(const ctrl in this._currentConfig.uiModules){
+                        if(this._currentConfig.uiModules[ctrl]){
+                                $(this._controls[ctrl]).css('visibility', 'visible');
+                        } else {
+                                $(this._controls[ctrl]).css('visibility', 'hidden');
+                        }
+                }
 
                 if(this._resultsChart)
                         this._resultsChart.destroy();
@@ -59,63 +65,95 @@ class chartMgr {
                 if(this._currentConfig.isSplit){
                         $('#localAreaPictureContainer').css('display', 'inline-block');
                         chartElement.width = 550;
-                        chartElement.height = 400;
+                        chartElement.height = 500;
                 } else {
                         $('#localAreaPictureContainer').css('display', 'none');
                         chartElement.width = 800;
-                        chartElement.height = 400;
+                        chartElement.height = 500;
                 }
                 let ctx = chartElement.getContext('2d');
                 this._resultsChart = this._currentConfig.createGraph(ctx);
-                this._currentYear -= 1;
-                this.changeYear(true);
+                if(this._currentConfig.changeSelection){
+                        this.changeSelected();
+                } else if(this._currentConfig.changeYear){
+                        this._currentYear -= 1;
+                        this.changeYear(true);
+                }
         }
 
         playAnimation(){
                 $(this._animElmnts).addClass('disabled');
-                $('#graphSettlementSelect').attr("disabled", "");
-                $('#graphSettlementSelect').material_select();
+                $('#graphSettlementSelect, #graphTypeSelector').attr("disabled", "");
+                $('#graphSettlementSelect, #graphTypeSelector').material_select();
+                tabManager.disableAll();
                 this._currentYear = -1;
                 this.changeYear(true);
 
-                var animHandle = setInterval(function(){
+                var animHandle;
+                var endFnc = function(){
+                        clearTimeout(animHandle);
+                        $(ChartMgr._animElmnts).removeClass('disabled');
+                        $('#graphSettlementSelect, #graphTypeSelector').removeAttr('disabled');
+                        $('#graphSettlementSelect, #graphTypeSelector').material_select();
+                        tabManager.enableAll();
+                        $('#graphPlayBtn').html('Play').removeClass('red').addClass('blue').off('click')
+                                                .click(function(){ChartMgr.playAnimation();});
+                }
+
+                animHandle = setInterval(function(){
                         if(ChartMgr._currentYear === simRunData.years){
-                                clearTimeout(animHandle);
-                                $(ChartMgr._animElmnts).removeClass('disabled');
-                                $('#graphSettlementSelect').removeAttr('disabled');
-                                $('#graphSettlementSelect').material_select();
-                                $('#graphPlayBtn').html('Play').removeClass('red').addClass('blue').off('click')
-                                                        .click(function(){ChartMgr.playAnimation();});
+                                endFnc();
                         } else {
                                 ChartMgr.changeYear(true);
                         }
                 }, 350);
 
-                $('#graphPlayBtn').html('Stop').removeClass('blue').addClass('red').off('click').click(function(){
-                        clearTimeout(animHandle);
-                        $(this._animElmnts).removeClass('disabled');
-                        $('#graphSettlementSelect').removeAttr('disabled');
-                        $('#graphSettlementSelect').material_select();
-                        $('#graphPlayBtn').html('Play').removeClass('red').addClass('blue').off('click')
-                                                .click(function(){ChartMgr.playAnimation();});
-                });
+                $('#graphPlayBtn').html('Stop').removeClass('blue').addClass('red').off('click').click(endFnc);
         }
 
         saveImg(){
-                if(this._currentConfigType === "Entire Simulation CDF"){
-                        var name = "entireMapCDF_year" + this._currentYear + ".png";
-                } else if(this._currentConfigType === "Local CDF") {
-                        var name = simRunData.townsByID[this._curSettlementID].name + "_year" + this._currentYear + "_localCDF.png";
-                } else if(this._currentConfigType === "Settlement Offtake") {
-                        var name = simRunData.townsByID[this._curSettlementID].name + "_offtake.png";
+                const selected = this._currentConfig.selected;
+                var name;
+                switch(this._currentConfigType){
+                case "Entire Map CDF":
+                        name = "year" + this._currentYear + "_entireMapCDF.png";
+                        break;
+                case "Local CDF":
+                        name = simRunData.townsByID[this._currentConfig.selected].name + "_year" + this._currentYear;
+                        name += "_range" + this._currentConfig.range + "_localCDF.png"
+                        break;
+                case "Settlement Offtake":
+                        let temp = selected in simRunData.townsByID ? simRunData.townsByID[selected].name : selected;
+                        name = temp + "_offtake.png";
+                        break;
+                case "Exploitation":
+                        return;
+                case "Catch/Unit Effort":
+                        let temp = selected in simRunData.townsByID ? simRunData.townsByID[selected].name : selected;
+                        name = temp + "_CPUE.png";
+                        break;
                 }
+
                 $('#resultsGraph').get(0).toBlob(function(blob){
                         saveAs(blob, name);
                 });
         }
 
+        getPopColor(id){
+                if(id in this._colors){
+                        return this._colors[id];
+                } else {
+                        this._colors[id] = getRandomColor();
+                        return this._colors[id];
+                }
+        }
+
+        saveData(){
+                this._currentConfig.saveData(this._currentYear);
+        }
+
         getCurrentlySelected(){
-                return this._curSettlementID;
+                return this._currentConfig.selected;
         }
 
         getYear(){
@@ -125,6 +163,8 @@ class chartMgr {
         getRange(){
                 return this._currentConfig.range;
         }
+
+        getChart(){
+                return this._resultsChart;
+        }
 }
-  
-var ChartMgr = new chartMgr();

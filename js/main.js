@@ -16,7 +16,7 @@ $(document).ready(function() {
         $('#popDropDown').dropdown({inDuration: 75, outDuration: 25,});
         $('#graphTypeSelector').material_select();
         $('#graphTypeSelector').change(function(){ChartMgr.changeChart();});
-        $("#graphSettlementSelect").change(function() {ChartMgr.changeSettlement();}); 
+        $("#graphSettlementSelect").change(function() {ChartMgr.changeSelected();}); 
         $('#floatingPopEditor').modal({dismissible: false});
         $('#offtakeLegendToggle, #exploitationToggle, #streetmapToggle, #debugViewToggle').prop('checked', false);
         $('#tabFillerButton').addClass('disabled');
@@ -106,6 +106,7 @@ function resetSimulation(){
         tabManager.disableTab(pageTabs.PARAMS);
         tabManager.disableTab(pageTabs.POPS);
         tabManager.disableTab(pageTabs.MAPS);
+        tabManager.disableTab(pageTabs.INFO);
         $('#tabFillerButton').addClass('disabled');
         document.getElementById("resetButton").classList.add("hide");
         document.getElementById("quickSaveButton").classList.add("hide");
@@ -152,6 +153,7 @@ function changeToOutput(){
         olmapLocation = 1;
         tabManager.enableTab(pageTabs.MAPS);
         tabManager.enableTab(pageTabs.STATS);
+        tabManager.enableTab(pageTabs.INFO);
         ol.Observable.unByKey(addPopFunction);
         addPopFunction = map.on('click', resultsMapClick);
         map.addControl(mouseKControl);
