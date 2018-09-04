@@ -6,21 +6,26 @@ var simData = {};
 var simRunData;
 var simResults = {};
 var progBarDet;
+var workerPool;
+var completedImgCount;
 
 $(document).ready(function() {
         $('#projBackground, #changelogPopup, #popImportDialog').modal();
         $('#yearlyPopEditor, #coverScreen, #fullScreenMap, #sysDialog').modal({dismissible: false});
         $('#advancedSettings').modal({dismissible: false, ready: showAdvancedSettings});
-        $('#dropDownTest').dropdown({inDuration: 75, outDuration: 25,});
-        $("#CDFSetSelection").change(function() {changeCDFSettlement();}); 
-        $("#offtakeSetSelection").change(function() {changeOfftakeSettlement();});
+        $('#popDropDown').dropdown({inDuration: 75, outDuration: 25,});
+        $('#graphTypeSelector').material_select();
+        $('#graphTypeSelector').change(function(){ChartMgr.changeChart();});
+        $("#graphSettlementSelect").change(function() {ChartMgr.changeSelected();}); 
         $('#floatingPopEditor').modal({dismissible: false});
-        $('#debugModeToggle').prop('checked', false);
-        $('#offtakeLegendToggle').prop('checked', false);
+        $('#offtakeLegendToggle, #exploitationToggle, #streetmapToggle, #debugViewToggle').prop('checked', false);
         $('#tabFillerButton').addClass('disabled');
         $(window).focus(function() {refreshCanvas();});
+        window.addEventListener('online',  function(){updateOnlineStatus(true);});
+        window.addEventListener('offline', function(){updateOnlineStatus(false);});
         setupTabSystem();
         checkCompatibility();
+        setupWorkers();
 });
 
 function initApp(fullSupport){
@@ -72,12 +77,11 @@ function resetSimulation(){
         document.getElementById("paramLowColor").value = "#ffeda0";
         document.getElementById("paramHighColor").value = "#f03b20";
         document.getElementById("diffSamples").value = "1";
-        document.getElementById("imgOpacity").value = "0.8";
         document.getElementById("boundryWidth").value = "10";
-        document.getElementById("debugModeToggle").checked = false;
 
         if(simulationRun){
                 simulationRun = 0;
+                setMapSetupMode();
                 if(olmapLocation){ //move the map from output page back to pop page
                         document.getElementById("popMapRow").appendChild(document.getElementById("popMapDiv"));
                         olmapLocation = 0;
@@ -85,13 +89,7 @@ function resetSimulation(){
                         ol.Observable.unByKey(mouseKListner);
                         addPopFunction = map.on('click', placePopulation);
                         map.removeControl(mouseKControl);
-                        imageLayer.setVisible(false);
                         debugVector.getSource().clear();
-                }
-
-                let cleanup = document.getElementById("rawHeatmapContainer");
-                while (cleanup.firstChild) {
-                        cleanup.removeChild(cleanup.firstChild);
                 }
         }
 
@@ -108,11 +106,13 @@ function resetSimulation(){
         tabManager.disableTab(pageTabs.PARAMS);
         tabManager.disableTab(pageTabs.POPS);
         tabManager.disableTab(pageTabs.MAPS);
+        tabManager.disableTab(pageTabs.INFO);
         $('#tabFillerButton').addClass('disabled');
         document.getElementById("resetButton").classList.add("hide");
         document.getElementById("quickSaveButton").classList.add("hide");
         document.getElementById("newSimButton").classList.remove("hide");
 
+        map.getView().animate({zoom: 2}, {center: [0, 0]});
         emptyTable();
 }
 
@@ -136,25 +136,16 @@ function changeToPopulations(){
                 ol.Observable.unByKey(mouseKListner);
                 addPopFunction = map.on('click', placePopulation);
                 map.removeControl(mouseKControl);
-                imageLayer.setVisible(false);
-                debugVector.setVisible(false);
-                pointVector.setVisible(true);
-                changeMapView(document.getElementById("mapTypeToggle").checked);
-                map.updateSize();
+                setMapSetupMode();
         }
+
+        map.updateSize();
+        console.log("refreshed canvas");
 }
 
-function changeToGetStarted(){
-        let contentDiv = document.getElementById("getStarted");
-        if(contentDiv.style.display == "none"){
-                var saveContainer = document.getElementById("persistSaveContainer");
-                while (saveContainer.firstChild) {
-                        saveContainer.removeChild(saveContainer.firstChild);
-                }
-
-                setupPersistConfigs();
-                populatePersistSaves();
-        }
+function changeToGetStarted(){    
+        setupPersistConfigs();             
+        populatePersistSaves();
 }
 
 function changeToOutput(){
@@ -162,27 +153,19 @@ function changeToOutput(){
         olmapLocation = 1;
         tabManager.enableTab(pageTabs.MAPS);
         tabManager.enableTab(pageTabs.STATS);
+        tabManager.enableTab(pageTabs.INFO);
         ol.Observable.unByKey(addPopFunction);
         addPopFunction = map.on('click', resultsMapClick);
         map.addControl(mouseKControl);
         mouseKListner = map.on('pointermove', requestUpdateKControl);
-        
-        if(simulationRun){
-                imageLayer.setVisible(true);
-                if(document.getElementById("debugModeToggle").checked){
-                        debugVector.setVisible(true);
-                        $('#debugViewToggle').prop('checked', true);
-                        $('#debugViewToggleF').prop('checked', true);        
-                }
-        } else {
+
+        setMapResultsMode(!simulationRun);
+        if(!simulationRun){
                 simulationRun = 1;
                 var parentDiv = document.getElementById("resultMapDiv");
                 map.setSize([parentDiv.style.width, parentDiv.style.offsetHeight]);
         }
 
-        let labelCheckBox = document.getElementById('popLabelToggle');
-        pointVector.setVisible(labelCheckBox.checked);
-        changeMapView(false);
         setTimeout(function(){
                 map.updateSize();
         }, 50);
@@ -199,12 +182,14 @@ function toggleThirdColorMode(isEnabled){
 }
 
 function changeMapView(isRoadMap){
-        if(isRoadMap && !bingLayers[0].getVisible()){
+        if(isRoadMap){
                 bingLayers[1].setVisible(false);
                 bingLayers[0].setVisible(true);
-        } else if(!isRoadMap && !bingLayers[1].getVisible() && navigator.onLine) {
+        } else if(!isRoadMap && navigator.onLine) {
                 bingLayers[0].setVisible(false);
                 bingLayers[1].setVisible(true);
+        } else {
+                $('#mapTypeToggle').prop('checked', true);
         }
 }
 
@@ -329,15 +314,11 @@ function populateDefaultValues(){
         document.getElementById("paramKillProb").value = "0.1";
         document.getElementById("paramHphy").value = "40";
         document.getElementById("rangeHphy").value = "5";
-
         document.getElementById("paramTheta").value = "1";
         document.getElementById("paramLowColor").value = "#ffeda0";
         document.getElementById("paramHighColor").value = "#f03b20";
         document.getElementById("diffSamples").value = "1";
-        document.getElementById("imgOpacity").value = "0.8";
         document.getElementById("boundryWidth").value = "10";
-        document.getElementById("debugModeToggle").checked = false;
-
         document.getElementById("paramName").focus();
 }
 
@@ -351,7 +332,7 @@ function checkSettings(){
         }
         //id, min value, max value, isAdvanced
         let intParams = [["paramYears", 0, 200, 0], ['diffSamples', 1, 365, 1], ['boundryWidth', 0, 100, 1]];
-        let floatParams = [['imgOpacity', 0, 1, 1], ['paramTheta', 0, 100, 1], ['rangeHphy', 1, 1000, 0],
+        let floatParams = [['paramTheta', 0, 100, 1], ['rangeHphy', 1, 1000, 0],
                            ['paramHphy', 0, 365, 0], ['paramKillProb', 0, 1, 0], ['paramEncounterRate', 0, 1, 0],
                            ['paramDifRate', 0, 1, 0], ['paramGrowthRate', 0, 1, 0], ['paramCarry', 0, 1000, 0]];
         
@@ -424,16 +405,104 @@ function checkInt(rawValue, min, max){
         return false;
 }
 
-function toggleDebugControl(element){
-        if(element.checked){
-                $("#debugVisControlBox, #debugVisFControlBox").css('visibility', 'visible');
-        } else {
-                $("#debugVisControlBox, #debugVisFControlBox").css('visibility', 'hidden');
-        }
-}
-
 function verifyUpdate(){
         modalConfirmation("Update Avaliable", "Refresh the page to activate the update?.", function(){
                 window.location.reload();
         });
+}
+
+function updateOnlineStatus(isOnline){
+        if(isOnline){
+                $("#satMapContainer").removeClass("hide");
+                if(tabManager.currentPage === pageTabs.MAPS)
+                        bingLayers[1].setVisible(true);
+                bingLayers[1].getSource().refresh();
+        } else {
+                $("#satMapContainer").addClass("hide");
+                $('#mapTypeToggle').prop('checked', true);
+                bingLayers[1].setVisible(false);
+                bingLayers[0].setVisible(true);
+        }
+}
+
+function setupWorkers(){
+        const coreCount = navigator.hardwareConcurrency;
+        if(coreCount > 1){
+                var threadCount = coreCount - 1;
+        } else {
+                var threadCount = 1;
+        }
+        workerPool = {
+                workers: [],
+                active: [],
+                cores: coreCount,
+                threads: threadCount,
+                workQueue: new Queue(),
+        };
+        for (let i = 0; i < coreCount; i++) {
+                workerPool.workers.push(new Worker('js/imgWorker.js'));
+                workerPool.workers[i].postMessage({type:'setNum', number:i});
+                workerPool.workers[i].onmessage = function(oEvent) {receiveWork(oEvent.data);};
+                workerPool.active.push(false);
+        }
+}
+
+function increaseWorkerCount(){
+        if(workerPool.threads < workerPool.cores){
+                if(!workerPool.workQueue.isEmpty())
+                        dispatchWork(workerPool.threads, workerPool.workQueue.dequeue());
+                
+                workerPool.threads++;
+        }
+}
+
+function resetWorkerCount(){
+        if(workerPool.cores > 1){
+                workerPool.threads = workerPool.cores - 1;
+        } else {
+                workerPool.threads = 1;
+        }
+}
+
+function dispatchWork(thread, work){
+        workerPool.active[thread] = true;
+        workerPool.workers[thread].postMessage({type:'genImg', params:work.data, array:work.imgData}, [work.imgData.buffer]);
+}
+
+function processWork(data, imgData){
+        let nextCore = 0;
+        while(workerPool.active[nextCore] && nextCore < workerPool.threads)
+                nextCore++;
+
+        if(nextCore < workerPool.threads){
+                dispatchWork(nextCore, {data:data, imgData:imgData});
+        } else {
+                workerPool.workQueue.enqueue({data:data, imgData:imgData});
+        }
+}
+
+function receiveWork(data){
+        if(!workerPool.workQueue.isEmpty()){
+                dispatchWork(data.threadNum, workerPool.workQueue.dequeue());
+        } else {
+                workerPool.active[data.threadNum] = false;
+        }
+        storeImgURL(data);
+        completedImgCount++;
+        if(completedImgCount === ((simRunData.years + 1) * 3)){
+                tabManager.changeTab(pageTabs.MAPS);
+                closeProgressBar();
+                $('#coverScreen').modal('close');
+                synchPersisObject();
+                simulationTime = performance.now() - simulationTime;
+                simResults.visTime = performance.now() - simResults.visTime;
+                populateOtherInfo();
+                ChartMgr._currentYear = simRunData.years;
+                $("#graphRangeLabel").html("Radius: " + simRunData.huntRange + " km");
+                ChartMgr.changeChart('Local CDF');
+                setTimeout(function(){
+                        $('#activeLegendTab').click();
+                        fitMap(simResults.bounds[0], simResults.bounds[1]);
+                }, 200);
+        }
 }

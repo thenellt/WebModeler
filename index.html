@@ -36,7 +36,7 @@
         
         <div id="changelogPopup" class="modal modal-fixed-footer" style="width: 75%;">
                 <div class="modal-content">
-                        <h4>Project Change Log:</h4>
+                        <h4 style="margin-bottom:8px;">Project Change Log:</h4>
                         <div id="changeLogEntries" style="height: 90%; overflow: scroll; overflow-x: hidden;"></div>
                 </div>
                 <div class="modal-footer">
@@ -55,7 +55,15 @@
                                         </div>
                                         <button id="resultsPageTab" class="tablinks waves-effect waves-light">Visual Results</button>
                                         <button id="statsPageTab" class="tablinks waves-effect waves-light">Statistical Results</button>
+                                        <button id="otherInfoTab" class="tablinks waves-effect waves-light">Other Information</button>
                                 </div>
+                                <a class='dropdown-button btn' style="visibility: hidden; position: absolute; margin-left: 0; margin-top: 0;" data-activates='mapDropdown' id="popDropDown"></a>
+                                <ul id='mapDropdown' class='dropdown-content' style="position: absolute; display: none;">
+                                        <li><a id="dropEditOption">Edit</a></li>
+                                        <li><a id="dropMoveOption" style="color: #424242;">Move</a></li>
+                                        <li class="divider"></li>
+                                        <li><a id="dropDeleteOption" style="color: #ef5350">Delete</a></li>
+                                </ul>
                         </td>
                         <td class="content" id="contentContainer">
                                 <div id="javascriptError" class="center" style="margin-top: 150px;">
@@ -177,9 +185,9 @@
                                         </div>
                                 </div>
                                 <div class="tabcontent" id="popSetup" style="display: none;">
-                                        <div class="row">
+                                        <div class="row" style="margin-bottom: 8px;">
                                                 <div class="col s6"><h4>Setup Populations</h4></div>
-                                                <div class="col s3" style="padding: 16px 0px 0px 0px;"><a class="waves-effect waves-light btn" id="importPopData" onclick="$('#popImportDialog').modal('open')">Import Data</a></div>
+                                                <div class="col s3" style="padding: 16px 0px 0px 0px;"><a class="waves-effect waves-light teal darken-3 btn" id="importPopData" onclick="$('#popImportDialog').modal('open')">Import Data</a></div>
                                                 <div class="col s3" style="padding: 16px 0px 0px 0px;">
                                                         <a class='dropdown-button btn' href='#' data-activates='viewDropdown'>Change View</a>
                                                         <ul id='viewDropdown' class='dropdown-content'>
@@ -189,44 +197,47 @@
                                                 </div>
 
                                         </div>
-                                        <div id="popMapContent" class="hide" style="height: 80%; width: 100%;">
-                                                <div class="row">
-                                                        <div class="col s9"><i>Click on the map to add a population at that location. Click on an existing population to edit it.</i></div>
-                                                        <div class="switch">
+                                        <div id="popMapContent" class="hide" style="height: 80%; width: 100%; margin-bottom: 4px;">
+                                                <div class="row" style="margin-bottom: 4px;">
+                                                        <div class="col s6"><i>Click on the map to add a population. Click on a placed population to edit it.</i></div>
+                                                        <div class="col s3"><a class="waves-effect waves-light teal btn" onclick="requestFitMap()">Fit Map</a></div>
+                                                        <div class="col s3" style="margin-top: 8px;"><div class="switch">
                                                                 <label>
                                                                         Arial Map
                                                                         <input type="checkbox" checked="false" onchange="changeMapView(this.checked)" id="mapTypeToggle">
                                                                         <span class="lever"></span>
                                                                         Road Map
                                                                 </label>
-                                                        </div>
+                                                        </div></div>
                                                 </div>
                                                 <div class="divider" style="margin-bottom: 4px;"></div>
                                                 <div class="row" id="popMapRow" style="margin-bottom: 0px;">
-                                                        <div id="popMapDiv" class="map" style="height: 600px; min-width: 600px;"></div>
+                                                        <div id="popMapDiv" class="map" style="height: 550px; min-width: 600px;"></div>
                                                 </div>
                                                 <div class="divider" style="margin-top: 4px; margin-bottom: 8px;"></div>
-                                                <a class='dropdown-button btn' style="visibility: hidden; position: absolute; margin-left: 0; margin-top: 0;" data-activates='mapDropdown' id="dropDownTest"></a>
-                                                <ul id='mapDropdown' class='dropdown-content' style="position: absolute;">
-                                                        <li><a id="dropEditOption">Edit</a></li>
-                                                        <li><a id="dropMoveOption" style="color: #424242;">Move</a></li>
-                                                        <li class="divider"></li>
-                                                        <li><a id="dropDeleteOption" style="color: #ef5350">Delete</a></li>
-                                                </ul>
-                                                <div id="shapeFileListContainer" style="display: none;">
-                                                        <div class="row">
-                                                                <div class="col s9"><h5>Loaded Shape Files:</h5></div>
-                                                        </div>
-                                                </div>
                                         </div>
                                         <div id="popTableContent" style="min-height: 500px; min-width: 600px;">
-                                                <div class="row">
+                                                <div class="row" style="margin-bottom: 4px;">
                                                         <div class="col s12">
-                                                                <p>Rows will gain a gray background when they are valid. Only valid rows are used when the simulation is run.</p>
-                                                                <p>Kill rate and HPHY are both optional and leaving them blank will use the values from the parameters page.</p>
+                                                                <p style="margin: 8px 0px 4px 0px;">Rows will gain a gray background when they are valid. Only valid rows are used when the simulation is run. Kill rate and HPHY are both optional and leaving them blank will use the values from the parameters page.</p>
                                                         </div>
                                                 </div>
-                                                <div class="row" style="min-height: 450px; max-height: 620px; margin-bottom: 8px;">
+                                                <div class="row">
+                                                        <div class="col s3 offset-s3">
+                                                                <h5 class="right">Add Table Row:</h5>
+                                                        </div>
+                                                        <div class="col s3">
+                                                                <a class="waves-effect waves-light btn" id="addRowButton" onclick='addRow()' style="width: 150px; margin-top: 4px;">
+                                                                        Exponential
+                                                                </a>
+                                                        </div>
+                                                        <div class="col s3">
+                                                                <a class="waves-effect waves-light btn" id="addRowButton" onclick='addYearlyRow()' style="width: 150px; margin-top: 4px;">
+                                                                        Discrete
+                                                                </a>
+                                                        </div>
+                                                </div>
+                                                <div class="row" style="min-height: 450px; max-height: 620px; margin-bottom: 8px; overflow-y: auto;">
                                                         <table class="bordered highlight" id="popTable" style="margin-bottom: 8px;">
                                                                 <thead>
                                                                         <tr>
@@ -243,325 +254,325 @@
                                                                 <tbody id="popTableBody"></tbody>
                                                         </table>
                                                 </div>
-                                                <div class="row" style="bottom: 8px; width: 90%">
-                                                        <div class="col s4">
-                                                                <h5>Add table row:</h5>
-                                                        </div>
-                                                        <div class="col s4" style="margin-top: 8px;">
-                                                                <a class="waves-effect waves-light btn" id="addRowButton" onclick='addYearlyRow()'>
-                                                                        Discrete Settlement
-                                                                </a>
-                                                        </div>
-                                                        <div class="col s4" style="margin-top: 8px;">
-                                                                <a class="waves-effect waves-light btn" id="addRowButton" onclick='addRow()'>
-                                                                        Exponential Settlement
-                                                                </a>
-                                                        </div>
-                                                </div>
                                         </div>
                                 </div>
                                 <div class="tabcontent" id="resultsPage" style="display: none;">
-                                        <div class="row" style="margin-bottom: 8px;">
-                                                <div class="col s6"><h4>Simulation Results</h4></div>
+                                        <div class="row" style="margin: 0px;">
+                                                <div class="col s6" style="margin: 8px 0px 0px 0px;">
+                                                        <h4 style="margin: 8px 0px 8px 0px;">Visual Results</h4>
+                                                </div>
                                         </div>
-                                        <ul class="collapsible" data-collapsible="accordion" id="visualCollapsable">
-                                                <li>
-                                                <div class="collapsible-header active">Heatmap with Sattelite Overlay</div>
-                                                <div class="collapsible-body" style="padding: 12px;">
-                                                        <div class="row" style="margin-bottom: 4px;">
-                                                                <div class="col s7">
-                                                                        The saved image will look as you see it below. Zoom or pan the map preview to select the area to save.
-                                                                </div>
-                                                                <div class="col s2" id="debugVisControlBox" style="visibility: hidden">
-                                                                        Debug View
-                                                                        <div class="switch" style="margin-top: 4px;">
-                                                                                <label>
-                                                                                        Off
-                                                                                        <input type="checkbox" onchange="toggleDebugLayer(this)" checked="true" id="debugViewToggle">
-                                                                                        <span class="lever"></span>
-                                                                                        On
-                                                                                </label>
+                                        <div class="row" id="resultsMapContainer" style="margin-bottom: 8px;">
+                                                <div id="resultMapDiv" onmouseleave="requestUpdateKControl(false)"></div>
+                                        </div>
+                                        <div id="viewControlsContainer" style="min-width: 840px;">
+                                        <div class="row" style="margin-bottom: 0px;" id="viewerControls">
+                                                <div class="col s6" style="margin-top: 8px; height: 40px;">
+                                                        <div style="width: 116px; height: 36px; position: relative; overflow: visible; display: inline-block">
+                                                                <a class="waves-effect waves-light btn teal" id="overlaySelectionBtn" style="width:116px; display: inline-block" onclick="toggleOverlaySelect(this);">Layers</a>
+                                                                <div id="layerSelector" class="scale-transition scale-out arrow_box">
+                                                                        <div class="row parameterRow">
+                                                                                <div class="col s10"><h5>Layers</h5></div>
+                                                                                <div class="col s2">
+                                                                                        <a class="waves-effect waves-light btn red" style="padding: 0px 6px 0px 6px; height: 32px; margin-top: 8px;" onclick="toggleOverlaySelect(this, true)">
+                                                                                                <h5 style="margin: 2px 0px 0px 0px;">X</h5>
+                                                                                        </a>
+                                                                                </div>
                                                                         </div>
-                                                                </div>
-                                                                <div class="col s3">
-                                                                        <a class="waves-effect waves-light btn right" id="mapFullscreenButton" onclick="openFullscreenViewer()">Fullscreen</a>
-                                                                </div>
-                                                        </div>
-                                                        <div class="row" id="resultsMapContainer">
-                                                                <div id="resultMapDiv" onmouseleave="requestUpdateKControl(false)"></div>
-                                                        </div>
-                                                        <div id="viewControlsContainer">
-                                                        <div class="row" style="margin-bottom: 0px;" id="viewerControls">
-                                                                <div class="col s4">
-                                                                        <div id="opacityLabel">
-                                                                                Overlay Opacity:
-                                                                        </div>
-                                                                        <p class="range-field" style="margin: 0px;">
-                                                                                <input type="range" id="opacitySlider" min="0" max="100" scale="1" oninput="updateOutputOpacity(this)" style="border: 0px;"/>
-                                                                        </p>
-                                                                </div>
-                                                                <div class="col s2">
-                                                                        Village Names:
-                                                                        <div class="switch" style="margin-top: 4px;">
-                                                                                <label>
-                                                                                        Off
-                                                                                        <input type="checkbox" onchange="toggleVillageLabels(this)" checked="true" id="popLabelToggle">
-                                                                                        <span class="lever"></span>
-                                                                                        On
-                                                                                </label>
-                                                                        </div>
-                                                                </div>
-                                                                <div class="col s3"><div class="right">
-                                                                        <div id="heatmapYearLabel">
-                                                                                Heatmap Year:
-                                                                        </div>
-                                                                        <div>
-                                                                                <a class="waves-effect waves-light btn" id="overlayUpButton" onclick="changeHeatmapOverlayYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
-                                                                                <a class="waves-effect waves-light btn" id="overlayDownButton" onclick="changeHeatmapOverlayYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
-                                                                                <a class="waves-effect waves-light btn blue lighten-2 tooltipped" id="overlayPlayButton" onclick="heatmapOverlayAnimation(0);"style="display: inline-block;"
-                                                                                        data-position="bottom" data-delay="100" data-tooltip="Cycle through the images for each year with a quarter-second delay.">Play</a>                
-                                                                        </div>
-                                                                </div></div>
-                                                                <div class="col s3" style="margin-top: 8px;">
-                                                                        <a class="waves-effect waves-light btn saveButton right" id="overlaySaveButton" onclick="saveImgToFile();">Save Image</a>
-                                                                </div>
-                                                        </div></div>
-                                                </div>
-                                                </li>
-                                                <li>
-                                                <div class="collapsible-header">Plain Heatmap</div>
-                                                <div class="collapsible-body" style="padding: 12px;">
-                                                        <div class="row">
-                                                                <div class="col s12">
-                                                                        Heatmap images are generated with a resolution of 1 pixel per square kilometer. For small simulations this can lead to a very small resulting picture which is why a scaler is provided. A preview of the the final year is shown below.
-                                                                </div>
-                                                        </div>
-                                                        <div class="row" id="rawHeatmapContainer" style="max-height: 500px; max-width: 1300px; min-width: 300px; overflow: auto;">
+                                                                        <div class="divider" style="margin: 6px 0 8px 0;"></div>
 
-                                                        </div>
-                                                        <div class="row" id="rawHMControlsContainer">
-                                                                <div class="col s4" style="margin-top: 10px;" id="heatmapScaleText"></div>
-                                                                <div class="col s1" style="margin-top: 10px;">
-                                                                        Scale:
-                                                                </div>
-                                                                <div class="col s1">
-                                                                        <input type="number" min="100" max="1000" step="100" value="100" id="heatmapScale" style="margin-bottom: 0px;" onchange="rawHWScaleInput(this.value)">
-                                                                </div>
+                                                                        <div class="row parameterRow">
+                                                                                <div class="col s8">Village Names:</div>
+                                                                                <div class="col s4"><div class="switch" style="margin-top: 0px;">
+                                                                                        <label>
+                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(pointVector, this)" checked="true" id="popLabelToggle">
+                                                                                                <span class="lever"></span>
+                                                                                        </label>
+                                                                                </div></div>
+                                                                        </div>
+                                                                        <div class="divider" style="margin: 8px 0 8px 0;"></div>
 
-                                                                <div class="col s2" style="margin-top: 10px;">
-                                                                        Year:
+                                                                        <div class="row parameterRow">
+                                                                                <div class="col s8">Heatmap:</div>
+                                                                                <div class="col s4"><div class="switch" style="margin-top: 0px;">
+                                                                                        <label>
+                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(heatmapLayer, this)" checked="true" id="heatmapToggle">
+                                                                                                <span class="lever"></span>
+                                                                                        </label>
+                                                                                </div></div>
+                                                                        </div>
+                                                                        <div class="row parameterRow" id="heatmapContainer" style="margin-top: 4px;">
+                                                                                <div class="col s5"><div style="margin-top: 4px;">Opacity:</div></div>
+                                                                                <div class="col s7">
+                                                                                        <p class="range-field range-short" style="margin: 0px;">
+                                                                                                <input type="range" id="heatmapOpacitySlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(heatmapLayer, this.value)" style="border: 0px;"/>
+                                                                                        </p>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div class="divider" style="margin: 8px 0 8px 0;"></div>
+
+                                                                        <div class="row parameterRow">
+                                                                                <div class="col s8">Explotation Index:</div>
+                                                                                <div class="col s4"><div class="switch" style="margin-top: 0px;">
+                                                                                        <label>
+                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(exploitLayer, this)" checked="true" id="exploitationToggle">
+                                                                                                <span class="lever"></span>
+                                                                                        </label>
+                                                                                </div></div>
+                                                                        </div>
+                                                                        <div class="row parameterRow" id="exploitationContainer" style="margin-top: 4px;">
+                                                                                <div class="col s5"><div style="margin-top: 4px;">Opacity:</div></div>
+                                                                                <div class="col s7">
+                                                                                        <p class="range-field range-short" style="margin: 0px;">
+                                                                                                <input type="range" id="exploitationSlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(exploitLayer, this.value)" style="border: 0px;"/>
+                                                                                        </p>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div class="divider" style="margin: 8px 0 8px 0;"></div>
+
+                                                                        <div class="row parameterRow">
+                                                                                <div class="col s8">Debug View:</div>
+                                                                                <div class="col s4"><div class="switch" style="margin-top: 0px;">
+                                                                                        <label>
+                                                                                                <input type="checkbox" onchange="toggleLayerVisibility(debugVector, this)" checked="true" id="debugViewToggle">
+                                                                                                <span class="lever"></span>
+                                                                                        </label>
+                                                                                </div></div>
+                                                                        </div>
+                                                                        <div class="row parameterRow" id="debugViewContainer" style="margin-top: 4px;">
+                                                                                <div class="col s5"><div style="margin-top: 4px;">Opacity:</div></div>
+                                                                                <div class="col s7">
+                                                                                        <p class="range-field range-short" style="margin: 0px;">
+                                                                                                <input type="range" id="debugOpacitySlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(debugVector, this.value)" style="border: 0px;"/>
+                                                                                        </p>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div class="divider" style="margin: 8px 0 8px 0;"></div>
+
+                                                                        <div class="row parameterRow" id="satMapContainer">
+                                                                                <div class="col s5 range-inline">Satellite Map:</div>
+                                                                                <div class="col s7">
+                                                                                                <p class="range-field range-short" style="margin: 0px;">
+                                                                                                        <input type="range" id="satelliteOpacitySlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(bingLayers[1], this.value)" style="border: 0px;"/>
+                                                                                                </p>
+                                                                                        </div>
+                                                                        </div>
+                                                                        <div class="row parameterRow" style="margin-top: 4px;">
+                                                                                <div class="col s5 range-inline">Street Map:</div>
+                                                                                <div class="col s7">
+                                                                                        <p class="range-field range-short" style="margin: 0px;">
+                                                                                                <input type="range" id="streetmapOpacitySlider" min="0" max="100" scale="1" oninput="updateLayerOpacity(bingLayers[0], this.value)" style="border: 0px;"/>
+                                                                                        </p>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div class="divider" style="margin: 8px 0 8px 0;"></div>
                                                                 </div>
-                                                                <div class="col s1">
-                                                                        <input type="number" min="0" step="1" id="rawHeatmapYear" style="margin-bottom: 0px;">
+                                                        </div>
+                                                        <a class="waves-effect waves-light teal btn" id="resultsFitBtn" onclick="fitMap()" style="margin-left: 8px; display: inline-block">Fit Map</a>
+                                                        <a class="waves-effect waves-light teal btn" id="mapFullscreenButton" onclick="openFullscreenViewer()" style="margin-left: 8px; display: inline-block">Fullscreen</a>
+                                                </div>
+                                                <div class="col s3"><div>
+                                                        <div id="overlayYearLabel">
+                                                                Heatmap Year:
+                                                        </div>
+                                                        <div>
+                                                                <a class="waves-effect waves-light btn" id="overlayUpButton" onclick="changeOverlayYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
+                                                                <a class="waves-effect waves-light btn" id="overlayDownButton" onclick="changeOverlayYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
+                                                                <a class="waves-effect waves-light btn blue lighten-2 tooltipped" id="overlayPlayButton" style="display: inline-block;"
+                                                                        data-position="bottom" data-delay="100" data-tooltip="Cycle through the images for each year with a quarter-second delay.">Play</a>                
+                                                        </div>
+                                                </div></div>
+                                                <div class="col s3" style="margin-top: 8px;">
+                                                        <a class="waves-effect waves-light teal darken-3 btn" id="overlaySaveButton" onclick="saveImgToFile();">Save Image</a>
+                                                </div>
+                                        </div></div>
+                                        <div class="row">
+                                                <div class="col s12">
+                                                        <div class="card" style="padding-top: 4px;">
+                                                                <span class="card-title" style="margin-left: 8px;">Layer Information</span>
+                                                                <div class="card-tabs">
+                                                                        <ul class="tabs tabs-fixed-width" style="height: 36px;">
+                                                                                <li class="tab" style="height: 36px;"><a id="activeLegendTab" href="#heatmapInfo">Heatmap</a></li>
+                                                                                <li class="tab" style="height: 36px;"><a href="#exploitInfo">Exploitation Grid</a></li>
+                                                                                <li class="tab" style="height: 36px;"><a href="#debugInfo">Debug View</a></li>
+                                                                        </ul>
                                                                 </div>
-                                                                <div class="col s3" >
-                                                                        <a class="waves-effect waves-light btn" onclick="saveHeatmapToFile(0);" style="margin-top: 4px;">Save Year</a>
+                                                                <div class="card-content grey lighten-4" style="padding: 12px;">
+                                                                        <div id="heatmapInfo">
+                                                                                <div class="row" style="margin: 0px;">
+                                                                                        <div class="col s6">Percentage of carrying capacity</div>
+                                                                                        <div class="col s1">100%</div>
+                                                                                        <div class="col s4" style="height: 24px;">
+                                                                                                <svg id="gradientSVG" style="width: 100%; height: 24px;">
+                                                                                                        <defs></defs>
+                                                                                                        <rect width="100%" height="100%" />
+                                                                                                </svg>
+                                                                                        </div>
+                                                                                        <div class="col s1">0%</div>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div id="exploitInfo">
+                                                                                <div class="row" style="margin: 0px; height: 24px;">
+                                                                                        <div class="col s6">Cell Extinction Index - K is carrying capacity</div>
+                                                                                        <div class="col s2">10-50% K
+                                                                                                <div class="colorBox" style="border-color: rgb(255, 255, 0);"></div>
+                                                                                        </div>
+                                                                                        <div class="col s2">0-10% K
+                                                                                                <div class="colorBox" style="border-color: rgb(255, 0, 0);"></div>
+                                                                                        </div>
+                                                                                        <div class="col s2">0% K
+                                                                                                <div class="colorBox" style="border-color: rgb(128, 0, 0);"></div>
+                                                                                        </div>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div id="debugInfo">Shows the simulation extent, positions of each corner of the grid, the grid cell containing each population, and draws circles centered at each population with a radius equal to the hunting range.</div>
                                                                 </div>
                                                         </div>
                                                 </div>
+                                        </div>
+                                </div>
+                                <div class="tabcontent" id="statsPage" style="display: none;">
+                                        <div class="row" style="margin-bottom: 0px;">
+                                                <div class="col s6" style="margin-bottom: 0px;">
+                                                        <h4>Charts and Statistics</h4>
+                                                </div>
+                                                <div class="col s3" style="margin-top:12px;">
+                                                        <div class="right" style="margin-top:12px;">Select Graph Type:</div>
+                                                </div>
+                                                <div class="col s3" style="margin-top:12px;">
+                                                        <select id="graphTypeSelector">
+                                                                <option value="Local CDF" selected>Local CDF</option>
+                                                                <option value="Entire Map CDF">Entire Map CDF</option>
+                                                                <option value="Settlement Offtake">Settlement Offtake</option>
+                                                                <option value="Settlement Offtake" disabled>Extinction</option>
+                                                                <option value="Catch/Unit Effort">Catch per Unit Effort</option>
+                                                        </select>
+                                                </div>
+                                        </div>
+                                        <ul class="collapsible" data-collapsible="accordion" style="min-width: 830px; margin-top: 0px;">
+                                                <li>
+                                                        <div class="collapsible-header active" id="graphTypeTitle">Single Settlement Spatial Distribution</div>
+                                                        <div class="collapsible-body" style="padding: 12px 12px 0px 12px;">
+                                                                <div class="row" style="margin-bottom: 8px;"><div class="col 12" id="graphHelpText"></div></div>
+                                                                <div class="row" style="margin-bottom: 8px;">
+                                                                        <div class="col s12" style="min-width: 800px; min-height: 400px;"><div style="margin: 0 auto; width: 850px;">
+                                                                                <div id="localAreaPictureContainer" style="width: 250px; height: 500px; display: inline-block; vertical-align:top;">
+                                                                                        <div id="localAreaPicture" style="width: 250px; height: 250px; border:1px solid #a2a3a3; margin-top: 110px;"></div>
+                                                                                        <div class="center-align" style="width: 250px; padding-top: 12px;">
+                                                                                                Local Area Preview
+                                                                                        </div>
+                                                                                </div>
+                                                                                <canvas id="resultsGraph" style="display: inline-block; vertical-align:top;"></canvas>
+                                                                        </div></div>
+                                                                </div>
+                                                                <div class="row" style="margin-bottom: 0px;">
+                                                                        <div class="col s3 input-field" id="graphSelectContainer">
+                                                                                <select id="graphSettlementSelect"></select>
+                                                                                <label>Select a Settlement</label>
+                                                                        </div>
+                                                                        <div class="col s3" id="graphRangeContainer" style="margin-top: 20px;">
+                                                                                <div id="graphRangeLabel" style="display: inline-block; margin-left: 8px;">Radius:</div>
+                                                                                <a class="waves-effect waves-light btn" id="graphDecRange" onclick="ChartMgr.changeRange(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
+                                                                                <a class="waves-effect waves-light btn" id="graphIncRange" onclick="ChartMgr.changeRange(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>           
+                                                                        </div>
+                                                                        <div class="col s3" id="graphYearContainer">
+                                                                                <div id="graphYearLabel">
+                                                                                        Simulation Year:
+                                                                                </div>
+                                                                                <div>
+                                                                                        <a class="waves-effect waves-light btn" id="graphDecYear" onclick="ChartMgr.changeYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
+                                                                                        <a class="waves-effect waves-light btn" id="graphIncYear" onclick="ChartMgr.changeYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
+                                                                                        <a class="waves-effect waves-light btn blue lighten-2 tooltipped" id="graphPlayBtn" style="display: inline-block;"
+                                                                                                data-position="bottom" data-delay="100" data-tooltip="Cycle through the data for each year with a quarter-second delay.">Play</a>                
+                                                                                </div>
+                                                                        </div>
+                                                                        <div class="col s3" style="margin-top: 20px;">
+                                                                                <a class='dropdown-button waves-effect waves-light btn' id="graphSaveBtn" data-activates='graphSaveDrpdwn'>Download</a>
+                                                                                <ul id='graphSaveDrpdwn' class='dropdown-content'>
+                                                                                        <li><a onclick="ChartMgr.saveImg();">Image</a></li>
+                                                                                        <li><a onclick="ChartMgr.saveData();">Data</a></li>
+                                                                                </ul>
+                                                                        </div>
+                                                                </div>
+                                                        </div>
                                                 </li>
                                         </ul>
                                 </div>
-                                <div class="tabcontent" id="statsPage" style="display: none;">
-                                        <div class="row" style="margin-bottom: 8px;">
+                                <div class="tabcontent" id="otherInfo" style="display: none;">
+                                        <div class="row" style="margin-bottom: 0px;">
                                                 <div class="col s12" style="margin-bottom: 0px;">
-                                                        <h4>Statistics</h4>
+                                                        <h4>Other Information</h4>
                                                 </div>
                                         </div>
-                                        <ul class="collapsible" data-collapsible="accordion">
-                                                <li>
-                                                        <div class="collapsible-header active">Entire Map Spatial Distribution</div>
-                                                        <div class="collapsible-body" style="padding: 12px;">
-                                                                <div class="row">
-                                                                        <div class="col s12" id="entireAreaChartContainer" style="resize: both;">
-                                                                                <canvas id="entireMapChart" style="width: 800px; height: 400px; margin: 0 auto;"></canvas>
-                                                                        </div>
-                                                                </div>
-                                                                <div class="row">
-                                                                        <div class="col s4 offset-s5"><div class="right">
-                                                                                <div id="entireCDFYearLabel">
-                                                                                        Simulation Year:
-                                                                                </div>
-                                                                                <div>
-                                                                                        <a class="waves-effect waves-light btn" id="entireCDFdownYear" onclick="changeEntireCDFYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
-                                                                                        <a class="waves-effect waves-light btn" id="entireCDFupYear" onclick="changeEntireCDFYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
-                                                                                        <a class="waves-effect waves-light btn blue lighten-2 tooltipped" id="entireCDFplayButton" onclick="entireCDFAnimation(0);"style="display: inline-block;"
-                                                                                                data-position="bottom" data-delay="100" data-tooltip="Cycle through the data for each year with a quarter-second delay.">Play</a>                
-                                                                                </div>
-                                                                        </div></div>
-                                                                        <div class="col s3" style="margin-top: 20px;">
-                                                                                <a class="waves-effect waves-light btn saveButton right" id="entireCDFSaveButton" onclick="downloadGraph('entireMapChart');">Save Image</a>
-                                                                        </div>
-                                                                </div>
-                                                        </div>
-                                                </li>
-                                                <li>
-                                                        <div class="collapsible-header">Single Settlement Spatial Distribution</div>
-                                                        <div class="collapsible-body" style="padding: 12px;">
-                                                                <div class="row" style="margin-bottom: 8px;"><div class="col 12">Calculates the depletion of terrain within a radius around each population. While the preview is square, the graph only uses data from the cells contained within a circle inscribed in the square piece of terrain shown in the preview.</div></div>
-                                                                <div class="row" style="margin-bottom: 8px;">
-                                                                        <div class="col s12" style="min-width: 800px; min-height: 400px;"><div style="margin: 0 auto; width: 850px;">
-                                                                                <div id="localAreaCDFPictureContainer" style="width: 250px; height: 400px; display: inline-block; vertical-align:top;">
-                                                                                        <div id="localAreaCDFPicture" style="width: 250px; height: 250px; border:1px solid #a2a3a3; margin-top: 68px;"></div>
-                                                                                        <div style="max-width: 250px; padding-top: 12px; padding-left: 40px;">
-                                                                                                Settlement Area Preview
-                                                                                        </div>
-                                                                                </div>
-                                                                                <canvas id="localAreaCDF" style="width: 550px; height: 400px; display: inline-block; vertical-align:top;"></canvas>
-                                                                        </div></div>
-                                                                </div>
-                                                                <div class="row" style="margin-bottom: 0px;">
-                                                                        <div class="col s3 input-field">
-                                                                                <select id="CDFSetSelection"></select>
-                                                                                <label>Select a Settlement</label>
-                                                                        </div>
-                                                                        <div class="col s3" style="margin-top: 20px;">
-                                                                                <div id="singleCDFRangeLabel" style="display: inline-block; margin-left: 8px;">Radius:</div>
-                                                                                <a class="waves-effect waves-light btn" id="localCDFdownRange" onclick="changeLocalCDFRange(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
-                                                                                <a class="waves-effect waves-light btn" id="localCDFupRange" onclick="changeLocalCDFRange(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>           
-                                                                        </div>
-                                                                        <div class="col s3"><div class="right">
-                                                                                <div id="singleCDFYearLabel">
-                                                                                        Simulation Year:
-                                                                                </div>
-                                                                                <div>
-                                                                                        <a class="waves-effect waves-light btn" id="localCDFdownYear" onclick="changeLocalCDFYear(false);"style="padding: 0px 6px 0px 6px; display: inline-block;"><b>&lt;</b></a>
-                                                                                        <a class="waves-effect waves-light btn" id="localCDFupYear" onclick="changeLocalCDFYear(true);"style="padding: 0px 6px 0px 6px; display: inline-block"><b>&gt;</b></a>
-                                                                                        <a class="waves-effect waves-light btn blue lighten-2 tooltipped" id="localCDFplayButton" onclick="localCDFAnimation(0);"style="display: inline-block;"
-                                                                                                data-position="bottom" data-delay="100" data-tooltip="Cycle through the data for each year with a quarter-second delay.">Play</a>                
-                                                                                </div>
-                                                                        </div></div>
-                                                                        <div class="col s3" style="margin-top: 20px;">
-                                                                                <a class="waves-effect waves-light btn saveButton right" id="singleCDFSaveButton" onclick="downloadGraph('localAreaCDF');">Save Chart</a>
-                                                                        </div>
-                                                                </div>
-                                                        </div>
-                                                </li>
-                                                <li>
-                                                        <div class="collapsible-header active">Settlement Offtake</div>
-                                                        <div class="collapsible-body" style="padding: 12px;">
-                                                                <div class="row">
-                                                                        <div class="col s12" id="offtakeChartContainer" style="resize: both;">
-                                                                                <canvas id="offtakeChart" style="width: 800px; height: 400px; margin: 0 auto;"></canvas>
-                                                                        </div>
-                                                                </div>
-                                                                <div class="row" style="margin-bottom: 0px;">
-                                                                        <div class="col s3 input-field">
-                                                                                <select id="offtakeSetSelection"></select>
-                                                                                <label>Select a Settlement</label>
-                                                                        </div>
-                                                                        <div class="col s2" style="visibility: hidden;">
-                                                                                Settlement Legends
-                                                                                <div class="switch" style="margin-top: 4px;">
-                                                                                        <label>
-                                                                                                Off
-                                                                                                <input type="checkbox" onchange="toggleOfftakeLegends(this)" checked="true" id="offtakeLegendToggle">
-                                                                                                <span class="lever"></span>
-                                                                                                On
-                                                                                        </label>
-                                                                                </div>
-                                                                        </div>
-                                                                        <div class="col s3 offset-s4" style="margin-top: 20px;">
-                                                                                <a class="waves-effect waves-light btn saveButton right" id="offtakeSaveButton" onclick="downloadGraph('offtakeChart');">Save Chart</a>
-                                                                        </div>
-                                                                </div>
-                                                        </div>
-                                                </li>
-                                                <li>
-                                                        <div class="collapsible-header active">Explotation Index</div>
-                                                        <div class="collapsible-body" style="padding: 12px;">
-                                                                Not yet complete
-                                                                <div class="row">
-                                                                        <div class="col s12" id="exploitationChartContainer" style="resize: both;">
-                                                                                <canvas id="exploitationChart" style="width: 800px; height: 400px; margin: 0 auto;"></canvas>
-                                                                        </div>
-                                                                </div>
-                                                                <div class="row" style="margin-bottom: 0px;">
-                                                                        <div class="col s3 input-field">
-                                                                                <select id="exploitationSetSelection"></select>
-                                                                                <label>Select a Settlement</label>
-                                                                        </div>
-                                                                        <div class="col s3 offset-s6" style="margin-top: 20px;">
-                                                                                <a class="waves-effect waves-light btn saveButton right" id="exploitationSaveButton">Save Chart</a> <!--onclick="downloadGraph('exploitationChart');"-->
-                                                                        </div>
-                                                                </div>
-                                                        </div>
-                                                </li>
-                                                <li>
-                                                        <div class="collapsible-header active">Additional Results</div>
-                                                        <div class="collapsible-body" style="padding: 12px;">
-                                                                <table class="highlight striped" id="oStatsTable">
-                                                                        <thead>
-                                                                                <tr>
-                                                                                        <th style="padding: 5px 5px 5px 5px;">Statistic</th>
-                                                                                        <th style="padding: 5px 5px 5px 5px;">Value</th>
-                                                                                </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                                <tr>
-                                                                                        <td class="oStatLabel">Simulation Area:</td>
-                                                                                        <td id="oStatsArea"></td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                        <td class="oStatLabel">Width:</td>
-                                                                                        <td id="oStatsWidth"></td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                        <td class="oStatLabel">Height:</td>
-                                                                                        <td id="oStatsHeight"></td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                        <td class="oStatLabel">Left Upper Corner:</td>
-                                                                                        <td id="oStatsLeftCorner"></td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                        <td class="oStatLabel">Right Lower Corner:</td>
-                                                                                        <td id="oStatsRightCorner"></td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                        <td class="oStatLabel">Total Population:</td>
-                                                                                        <td id="oStatsTotalPop"></td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                        <td class="oStatLabel">Running Time:</td>
-                                                                                        <td id="oStatsTime"></td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                        <td class="oStatLabel">Memory Consumption:</td>
-                                                                                        <td id="oStatsMemUsage"></td>
-                                                                                </tr>
-                                                                        </tbody>
-                                                                </table>
-                                                                <div class="divider" style="margin: 12px 0 12px 0;"></div>
-                                                                <div class="row parameterRow">
-                                                                        <div class="col s6" id="csvOptions"><h5>Save depletion data (CSVs):</h5></div>
-                                                                        <div class="col s1" style="margin-top: 10px;">Year</div>
-                                                                        <div class="col s1">
-                                                                                <input type="number" min="0" step="1" value="0" id="csvNumberInput" style="margin-bottom: 8px;">
-                                                                        </div>
-                                                                        <div class="col s2" style="margin-top: 4px;">
-                                                                                <a class="waves-effect waves-light btn saveButton" onclick="csvSingleYear()">Single Year</a>
-                                                                        </div>
-                                                                        <div class="col s2" style="margin-top: 4px;">
-                                                                                <a class="waves-effect waves-light btn saveButton" onclick="csvAllYears()">All Years</a>
-                                                                        </div>
-                                                                </div>
-                                                                <div class="row parameterRow">
-                                                                        <div class="col s9"><h5>Save configuration:</h5></div>
-                                                                        <div class="col s3" style="margin-top: 8px;">
-                                                                                <a class="waves-effect waves-light btn saveButton" onclick="saveSimToFile();">Save Configuration</a>
-                                                                        </div>
-                                                                </div>
-                                                        </div>
-                                                </li>
-                                        </ul>
+                                        <table class="highlight striped" id="oStatsTable">
+                                                <thead>
+                                                        <tr>
+                                                                <th style="padding: 5px 5px 5px 5px;">Statistic</th>
+                                                                <th style="padding: 5px 5px 5px 5px;">Value</th>
+                                                        </tr>
+                                                </thead>
+                                                <tbody>
+                                                        <tr>
+                                                                <td class="oStatLabel">Simulation Area:</td>
+                                                                <td id="oStatsArea"></td>
+                                                        </tr>
+                                                        <tr>
+                                                                <td class="oStatLabel">Width:</td>
+                                                                <td id="oStatsWidth"></td>
+                                                        </tr>
+                                                        <tr>
+                                                                <td class="oStatLabel">Height:</td>
+                                                                <td id="oStatsHeight"></td>
+                                                        </tr>
+                                                        <tr>
+                                                                <td class="oStatLabel">Left Upper Corner:</td>
+                                                                <td id="oStatsLeftCorner"></td>
+                                                        </tr>
+                                                        <tr>
+                                                                <td class="oStatLabel">Right Lower Corner:</td>
+                                                                <td id="oStatsRightCorner"></td>
+                                                        </tr>
+                                                        <tr>
+                                                                <td class="oStatLabel">Ending Total Population:</td>
+                                                                <td id="oStatsTotalPop"></td>
+                                                        </tr>
+                                                        <tr>
+                                                                <td class="oStatLabel">Running Time:</td>
+                                                                <td id="oStatsTime" onclick="showPerformanceDetails()"></td>
+                                                        </tr>
+                                                        <tr>
+                                                                <td class="oStatLabel">Memory Consumption:</td>
+                                                                <td id="oStatsMemUsage"></td>
+                                                        </tr>
+                                                </tbody>
+                                        </table>
+                                        <div class="divider" style="margin: 12px 0 12px 0;"></div>
+                                        <div class="row parameterRow">
+                                                <div class="col s6" id="csvOptions"><h5>Save Raw Simulation Data:</h5></div>
+                                                <div class="col s1" style="margin-top: 10px;">Year</div>
+                                                <div class="col s1">
+                                                        <input type="number" min="0" step="1" value="0" id="csvNumberInput" style="margin-bottom: 8px;">
+                                                </div>
+                                                <div class="col s2" style="margin-top: 4px;">
+                                                        <a class="waves-effect waves-light btn" onclick="requestRawdataCSV(false)">Single Year</a>
+                                                </div>
+                                                <div class="col s2" style="margin-top: 4px;">
+                                                        <a class="waves-effect waves-light btn" onclick="requestRawdataCSV(true)">All Years</a>
+                                                </div>
+                                        </div>
+                                        <div class="row parameterRow">
+                                                <div class="col s9"><h5>Save Configuration:</h5></div>
+                                                <div class="col s3" style="margin-top: 8px;">
+                                                        <a class="waves-effect waves-light btn" onclick="saveSimToFile();">Save Configuration</a>
+                                                </div>
+                                        </div>
                                 </div>
                         </td>
                 </tr>
         </table>
 
         <div id="advancedSettings" class="modal modal-fixed-footer"
-                style="width: 90%; max-height: 80% !important; height: 80% !important; max-width: 1000px;">
+                style="width: 900px; height: 560px;">
                 <div class="modal-content">
                         <h4>Advanced Settings:</h4>
                         <p>Changing these settings can have a <b>huge</b> impact on simulation results and/or runtime.</p>
@@ -615,29 +626,6 @@
                                                 <div class="col s1"><input type="color" value="#f03b20" style="margin-top: 12px;" id="paramHighColor"></div>
                                                 <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode('high');" style="margin-top: 6px;">Reset</a></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Depleted color in the heatmap gradient."><i>?</i></a></div>
-                                        </div>
-                                </li>
-                                <li class="collection-item advancedColItem">
-                                        <div class="row" style="margin-bottom: 0;">
-                                                <div class="col s8"><h5>Heatmap Overlay Opacity (0.0 - 1.0):</h5></div>
-                                                <div class="col s3"><input type="text" id="imgOpacity" style="margin-bottom: 0;"></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Sets how transparent the heatmap overlay is over the background map."><i>?</i></a></div>
-                                        </div>
-                                </li>
-                                <li class="collection-item advancedColItem">
-                                        <div class="row" style="margin-bottom: 0;">
-                                                <div class="col s8"><h5>Project Debug Mode:</h5></div>
-                                                <div class="col s3" style="margin-top: 12px;">
-                                                        <div class="switch">
-                                                                <label>
-                                                                        Off
-                                                                        <input type="checkbox" checked="false" onchange="toggleDebugControl(this)" id="debugModeToggle">
-                                                                        <span class="lever"></span>
-                                                                        On
-                                                                </label>
-                                                        </div>
-                                                </div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Draw extra heatmap allignment information. Used for debugging accuracy."><i>?</i></a></div>
                                         </div>
                                 </li>
                         </ul>
@@ -759,18 +747,7 @@
         <div id="fullScreenMap" class="modal modal-fixed-footer modal-fullscreen">
                 <div class="modal-content">
                         <div class="row">
-                                <div class="col s10"><h4 id="mapViewerTitle">Fullscreen Map Viewer</h4></div>
-                                <div class="col s2" id="debugVisFControlBox" style="visibility: hidden">
-                                        Debug View
-                                        <div class="switch" style="margin-top: 4px;">
-                                                <label>
-                                                        Off
-                                                        <input type="checkbox" onchange="toggleDebugLayer(this)" checked="true" id="debugViewToggleF">
-                                                        <span class="lever"></span>
-                                                        On
-                                                </label>
-                                        </div>
-                                </div>
+                                <div class="col s12"><h4 id="mapViewerTitle">Fullscreen Map Viewer</h4></div>
                         </div>
                         <div id="mapViewerContent">
                                 <div id="viewerMapContainer"></div>
@@ -782,7 +759,7 @@
                         <a class="waves-effect waves-green btn" style="margin-right: 8px;" onclick="closeFullscreenViewer()">Done</a>
                 </div>
         </div>
-        <div id="popImportDialog" class="modal modal-fixed-footer" style="max-width: 80%; width: 80%; max-height: 90%; height: 90% !important;">
+        <div id="popImportDialog" class="modal modal-fixed-footer">
                 <div class="modal-content" id="importDialogContent">
                         <h4>Import Population Data</h4>
                         <div class="row" style="margin-bottom: 8px;">
@@ -907,31 +884,10 @@
                         </div>
                 </div>
         </div>
-        <div class="card small z-depth-3 blue-grey lighten-2 scale-transition scale-out" id="popInfoCard">
-                <div class="card-content white-text" style="padding-top: 0px; padding-left: 0px; padding-right: 0px;">
-                        <span class="card-title" id="popInfoCardHeader" style="padding-top: 8px; margin-bottom: 0px; padding-bottom: 8px;">
-                                <div id="infoCardName" style="padding-left: 12px; width: 350px; display: inline-block; cursor: move;"></div>
-                                <a class="waves-effect waves-light btn red" style="padding: 0px 6px 0px 6px; display: inline-block; height: 32px;" onclick="closePopInfoCard()">
-                                        <i class="material-icons" style="width: 20px;">close</i>
-                                </a>
-                        </span>
-                        <div class="divider"></div>
-                        <div class="row">
-                                <div class="col s6">
-
-                                </div>
-                                <div class="col s3">
-
-                                </div>
-                                <div class="col s3">
-
-                                </div>
-                        </div>
-                </div>
-        </div>
         <div id="coverScreen" class="modal" style="visibility:hidden;"></div>
         
         <script src="keys.js" type="text/javascript"></script>
+        <script src="js/Queue.js" type="text/javascript"></script>
         <script src="js/jquery-3.2.1.min.js" type="text/javascript"></script>
         <script src="js/materialize.min.js" type="text/javascript"></script>
         <script src="js/floatingContent.js" type="text/javascript"></script>
@@ -944,6 +900,8 @@
         <script src="js/jszip.min.js" type="text/javascript"></script>
         <script src="js/proj4js.js" type="text/javascript"></script>
         <script src="js/ol.js" type="text/javascript"></script>
+        <script src="js/chartManager.js" type="text/javascript"></script>
+        <script src="js/chartSetup.js" type="text/javascript"></script>
         <script src="js/dataProcessing.js" type="text/javascript"></script>
         <script src="js/mapFunctionality.js" type="text/javascript"></script>
         <script src="js/simulationSetup.js" type="text/javascript"></script>

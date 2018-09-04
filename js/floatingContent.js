@@ -1,7 +1,7 @@
 var popEditorID;
 var popEditorType;
 var popEditorTempPopulation;
-var yearlyEditorId = -1;
+var yearlyEditorId = false;
 var advSettingsBackup;
 var advSettingsFnc;
 
@@ -80,10 +80,17 @@ function showPopEditor(position, existingPopID){
         popupEvntFunction = function(e){
                 e = e || window.event;
                 if(e.keyCode == 27){
-                        closePopEditor(1);
-                }
-                else if(e.keyCode == 13){
-                        closePopEditor(0);
+                        if(yearlyEditorId){
+                                closeYearlyEditor('clear');
+                        } else {
+                                closePopEditor(1);
+                        }
+                } else if(e.keyCode == 13) {
+                        if(yearlyEditorId){
+                                closeYearlyEditor('save');
+                        } else {
+                                closePopEditor(0);
+                        }
                 }
         };
 
@@ -231,10 +238,14 @@ function checkPopEditor(){
 }
 
 function openYearlyEditor(id){
-        if(id === 'popEditor')
-                id = popEditorID;
-        let data = uiData[id];
         var showName = "No Name";
+        if(id === 'popEditor'){
+                id = popEditorID;
+                const tempName = $('#floatPopName').val();
+                if(tempName && tempName.length > 0)
+                        showName = tempName;
+        }
+        let data = uiData[id];
         if(typeof(data) !== "undefined"){
                 if(data.name && data.name.length > 0)
                         showName = data.name;
@@ -282,6 +293,7 @@ function closeYearlyEditor(mode){
                 }
         }
 
+        yearlyEditorId = false;
         $('#yearlyPopEditor').modal('close');
 }
 
@@ -322,7 +334,6 @@ function showAdvancedSettings(){
                 paramLowColor: document.getElementById("paramLowColor").value,
                 paramHighColor: document.getElementById("paramHighColor").value,
                 diffSamples: document.getElementById("diffSamples").value,
-                imgOpacity: document.getElementById("imgOpacity").value,
                 boundryWidth: document.getElementById("boundryWidth").value
         }
 
@@ -341,7 +352,6 @@ function closeAdvancedSettings(clear){
                 document.getElementById("paramLowColor").value = advSettingsBackup.paramLowColor;
                 document.getElementById("paramHighColor").value = advSettingsBackup.paramHighColor;
                 document.getElementById("diffSamples").value = advSettingsBackup.diffSamples;
-                document.getElementById("imgOpacity").value = advSettingsBackup.imgOpacity;
                 document.getElementById("boundryWidth").value = advSettingsBackup.boundryWidth;
                 if(advSettingsBackup.threeColorMode){
                         document.getElementById("enable3ColorMode").checked = true;
@@ -362,6 +372,7 @@ function openFullscreenViewer(){
         document.getElementById("viewerMapContainer").appendChild(document.getElementById("popMapDiv"));
         document.getElementById("viewerControlsContainer").appendChild(document.getElementById("viewerControls"));
         $('#fullScreenMap').modal('open');
+        $('#mapFullscreenButton').addClass('hide');
         $('#popMapDiv').css('height', $(window).height() * 0.7 + "px");
         map.updateSize();
 }
@@ -369,9 +380,9 @@ function openFullscreenViewer(){
 function closeFullscreenViewer(){
         document.getElementById("resultsMapContainer").appendChild(document.getElementById("popMapDiv"));
         document.getElementById("viewControlsContainer").appendChild(document.getElementById("viewerControls"));
-
+        $('#mapFullscreenButton').removeClass('hide');
         $('#fullScreenMap').modal('close');
-        $('#popMapDiv').css('height', '500px');
+        $('#popMapDiv').css('height', '550px');
         map.updateSize();
 }
 
@@ -392,23 +403,33 @@ readLocalFile("./changelog.txt", 'GET', function(responseText) {
         list.className = "collection";
 
         for(let i = 0; i < splitLog.length - 1; i++){
-                var content = splitLog[i].split('-');
+                let content = splitLog[i].split('-');
 
-                var item = document.createElement('li');
+                let item = document.createElement('li');
                 item.className = "collection-item";
 
-                var title = document.createElement('span');
+                let title = document.createElement('span');
                 title.className = "title";
                 title.appendChild(document.createTextNode(content[0].slice(0, -1)));
 
-                var innerText = document.createElement('p');
+                let innerText = document.createElement('p');
                 innerText.appendChild(document.createTextNode(content[1].slice(0, -3)));
 
                 item.appendChild(title);
                 item.appendChild(innerText);
-
                 list.appendChild(item);
         }
 
         document.getElementById('changeLogEntries').appendChild(list);
 });
+
+function toggleOverlaySelect(btn, isClose){
+        if(!isClose && btn.parentNode.querySelector('#layerSelector').classList.contains('scale-out')){
+                $('#layerSelector').addClass("scale-in").removeClass('scale-out');
+                $('#overlaySelectionBtn').css('background-color', '#9e9e9e');
+
+        } else {
+                $('#layerSelector').addClass("scale-out").removeClass('scale-in');
+                $('#overlaySelectionBtn').css('background-color', '#26a69a');
+        }
+}

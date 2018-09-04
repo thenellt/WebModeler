@@ -13,6 +13,8 @@ var fileNames = [
         './js/mapFunctionality.js',
         './js/saveLoad.js',
         './js/dataProcessing.js',
+        './js/chartManager.js',
+        './js/chartSetup.js',
         './js/floatingContent.js',
         './js/main.js',
         './js/table.js',
@@ -25,6 +27,9 @@ var fileNames = [
         './js/jquery-3.2.1.min.js',
         './js/jszip.min.js',
         './js/FileSaver.min.js',
+        './js/jimp.min.js',
+        './js/imgWorker.js',
+        './js/Queue.js',
         './css/materialize.min.css',
         './css/otherStyle.css',
         './css/table.css',
@@ -66,10 +71,12 @@ self.addEventListener('install', function (evt) {
         self.skipWaiting();
         evt.waitUntil(precache().then(function(){
                 caches.open('tile-cache').then(function(tileCache){
-                        tileCache.keys().then(function(keyList) {
-                                if(keyList.length)
-                                        tileCount = keyList.length;
-                        });
+                        if(tileCache){
+                                tileCache.keys().then(function(keyList) {
+                                        if(keyList.length && typeof keyList.length == 'number')
+                                                tileCount = keyList.length;
+                                });
+                        }
                 });
         }));
 });
@@ -183,6 +190,7 @@ function precache() {
 }
 
 function queryUpdates(loadedVersion, responsePort){
+        updateGlobals();
         if(!navigator.onLine){
                 responsePort.postMessage("noUpdate");
         } else {
@@ -201,6 +209,22 @@ function queryUpdates(loadedVersion, responsePort){
                         });
                 }).catch(function(){
 
+                });
+        }
+}
+
+function updateGlobals(){
+        if(!earthCacheAge)
+                earthCacheAge = false;
+        if(!tileCount || isNaN(tileCount)){
+                tileCount = 0;
+                caches.open('tile-cache').then(function(tileCache){
+                        if(tileCache){
+                                tileCache.keys().then(function(keyList) {
+                                        if(keyList.length && typeof keyList.length == 'number')
+                                                tileCount = keyList.length;
+                                });
+                        }
                 });
         }
 }

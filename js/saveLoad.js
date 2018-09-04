@@ -33,7 +33,8 @@ function setupServiceWorker(){
                 setupMapping();
         } else {
                 navigator.serviceWorker.register('../serviceWorker.js').then(function (registration) {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        console.log('ServiceWorker registration successful ');
+                        window.location.reload();
                         registration.addEventListener('updatefound', function () {
                                 var activeWorker = registration.installing;
                                 activeWorker.addEventListener('statechange', function(e) {
@@ -111,7 +112,7 @@ function addConfigFromFile(fileData){
                 msg += "<br>Select <b>CANCEL</b> to give the config being loaded a new ID.";
         
                 modalConfirmation(title, msg, function(){
-                        deleteConfigByID(config.simID)
+                        deleteConfigByID(config.simID);
                         synchPersisObject(config);
                         populatePersistSaves();
                         setupPersistConfigs();
@@ -178,14 +179,12 @@ function loadSimConfig(fileData){
         document.getElementById("paramLowColor").value = simData.lowColorCode;
         document.getElementById("paramHighColor").value = simData.highColorCode;
         document.getElementById("diffSamples").value = simData.diffusionSamples;
-        document.getElementById("imgOpacity").value = simData.opacity;
         document.getElementById("boundryWidth").value = simData.boundryWidth;
         if(simData.threeColorMode){
                 document.getElementById("enable3ColorMode").checked = true;
                 document.getElementById("midColorReset").classList.remove("disabled");
                 document.getElementById("paramMidColor").value = simData.midColorCode;
-        }
-        else{
+        } else {
                 document.getElementById("enable3ColorMode").checked = false;
                 document.getElementById("paramMidColor").classList.add("disabled");
                 document.getElementById("midColorReset").classList.add("disabled");
@@ -269,17 +268,17 @@ function generateConfigObject(){
 function saveImgToFile(){
         map.once('postcompose', function(event) {
                 event.context.canvas.toBlob(function(blob) {
-                        saveAs(blob, simData.simName + '_year' + heatMapYear + '_map.png');
+                        saveAs(blob, simData.simName + '_year' + overlayYear + '_map.png');
                 });
         });
         map.renderSync();
 }
 
 function saveHeatmapToFile(){
-        const requestYear = document.getElementById('rawHeatmapYear').value;
+        const requestYear = overlayYear;
         const requestScale = document.getElementById('heatmapScale').value / 100;
         if(requestScale === 1){ 
-                heatMapImages.images[requestYear].toBlob(function(blob) {
+                heatMapImages[requestYear].toBlob(function(blob) {
                         saveAs(blob, simData.simName + '_year' + requestYear + '_heatmap.png');
                 });
         } else{
@@ -302,7 +301,7 @@ function generatePersistObject(config){
 
 function synchPersisObject(config){
         var saveObject = config ? generatePersistObject(config) : generatePersistObject();
-        let oldConfig = simData.simID ? findConfig(simData.simID) : false;
+        let oldConfig = saveObject.id ? findConfig(saveObject.id) : false;
 
         if(!oldConfig){
                 let entryIDs = JSON.parse(localStorage.getItem('entryIDs'));
@@ -528,9 +527,8 @@ function copyConfigByID(persistID){
 
 function populatePersistSaves(){
         var saveContainer = document.getElementById("persistSaveContainer");
-        while (saveContainer.firstChild){
+        while (saveContainer.firstChild)
                         saveContainer.removeChild(saveContainer.firstChild);
-        }
 
         var saves = getPersistObjects();
         if(saves){

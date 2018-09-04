@@ -5,16 +5,19 @@ workerThread.onmessage = function(oEvent) {
 };
 
 const workerFunctions = {
-        'progress':      function(data) {updateProgressBar(data.statusMsg, data.statusValue);},
-        'entireCDFData': function(data) {storeCDFData('entire', data.year, data.densities);},
-        'localCDFData':  function(data) {storeCDFData('single', data.year, data.densities, data.id);},
+        'progress':      function(data) {updateProgressBar(data.statusMsg, 100 * (data.statusValue / simRunData.years));},
+        'entireCDFData': function(data) {storeCDFData('entire', data.densities);},
+        'localCDFData':  function(data) {storeCDFData('single', data.densities, data.id);},
         'offtakeData':   function(data) {storeOfftakeData(data.dataString);},
+        'CPUEdata':      function(data) {storeCPUEdata(data.dataString);},
         'extentDebug':   function(data) {drawDebugBounds(data.data.points, data.data.color);},
         'circleDebug':   function(data) {drawDebugCircle(data.data.points, data.data.color);},
         'pointDebug':    function(data) {drawDebugPoint(data.data.point, data.data.color);},
         'singleCSV':     function(data) {saveSingleCSV(data.csvString, data.year);},
         'allYearsCSV':   function(data) {saveAllYearsCSV(data.csvString, data.year);},
-        'posKUpdate':    function(data) {updateKControl(data.text);},
+        'posKUpdate':    function(data) {$('#mouseKText').html(data.text);},
+        'storeGradient': function(data) {simRunData.gradient = data.gradient; createGradient();},
+        'boundsCheck':   function(data) {fitMap(data.bounds[0], data.bounds[1]);}
 };
 
 function setupSimDefaults(){
@@ -31,19 +34,19 @@ function setupSimDefaults(){
         simData.lowColorCode = "ffeda0";
         simData.highColorCode = "f03b20";
         simData.simName = "defaultName";
-        simData.opacity = 0.8;
+        simData.opacity = 1.0;
         simData.boundryWidth = 10;
 }
 
 function readUserParameters(){
-        simData.years = parseInt(document.getElementById("paramYears").value, 10) || simData.years;
-        simData.carryCapacity = parseFloat(document.getElementById("paramCarry").value) || simData.carryCapacity;
-        simData.animalDiffRate = parseFloat(document.getElementById("paramDifRate").value) || simData.animalDiffRate;
-        simData.animalGrowthRate = parseFloat(document.getElementById("paramGrowthRate").value) || simData.animalGrowthRate;
-        simData.encounterRate = parseFloat(document.getElementById("paramEncounterRate").value) || simData.encounterRate;
-        simData.killProb = parseFloat(document.getElementById("paramKillProb").value) || simData.killProb;
-        simData.HpHy = parseInt(document.getElementById("paramHphy").value, 10) || simData.HpHy;
-        simData.huntRange = parseInt(document.getElementById("rangeHphy").value, 10) || 10;
+        simData.years = checkParam('paramYears', simData.years, false);
+        simData.carryCapacity = checkParam('paramCarry', simData.carryCapacity, true);
+        simData.animalDiffRate = checkParam('paramDifRate', simData.animalDiffRate, true);
+        simData.animalGrowthRate = checkParam('paramGrowthRate', simData.animalGrowthRate, true);
+        simData.encounterRate = checkParam('paramEncounterRate', simData.encounterRate, true);
+        simData.killProb = checkParam('paramKillProb', simData.killProb, true);
+        simData.HpHy = checkParam('paramHphy', simData.HpHy, false);
+        simData.huntRange = checkParam('rangeHphy', simData.huntRange, false);
 
         var tempLow = document.getElementById("paramLowColor").value;
         if(tempLow.length > 0){
@@ -60,7 +63,7 @@ function readUserParameters(){
                 console.log("readUserParameters::detected 3 color mode");
                 simData.threeColorMode = true;
                 simData.midColorCode = document.getElementById("paramMidColor").value;
-        } else{
+        } else {
                 simData.threeColorMode = false;
         }
 
@@ -69,10 +72,20 @@ function readUserParameters(){
                 simData.simName = tempName;
         }
 
-        simData.theta = parseFloat(document.getElementById("paramTheta").value) || simData.theta;
-        simData.diffusionSamples = parseInt(document.getElementById("diffSamples").value, 10) || simData.diffusionSamples;
-        simData.opacity = parseFloat(document.getElementById("imgOpacity").value) || simData.opacity;
-        simData.boundryWidth = parseInt(document.getElementById("boundryWidth").value, 10) || simData.boundryWidth;
+        simData.theta = checkParam('paramTheta', simData.theta, true);
+        simData.diffusionSamples = checkParam('diffSamples', simData.diffusionSamples, false);
+        simData.boundryWidth = checkParam('boundryWidth', simData.boundryWidth, false);
+}
+
+function checkParam(id, backup, isFloat){
+        var parse;
+        if(isFloat){
+                parse = parseFloat(document.getElementById(id).value);
+        } else {
+                parse = parseInt(document.getElementById(id).value, 10);
+        }
+
+        return isNaN(parse) ? backup : parse;
 }
 
 function setupTowns(){
@@ -102,7 +115,7 @@ function checkYearlyPopDuration(){
                 if(village.type === "yearly" && village.population.length < simData.years){
                         if(!nameString.length){
                                 nameString = village.name;
-                        } else{
+                        } else {
                                 nameString += ", " + village.name;
                         }
                 }
@@ -114,7 +127,7 @@ function checkYearlyPopDuration(){
                 msg += nameString + "</i> have less than <b>" + simData.years + "</b> years worth of data. </br></br>Please adjust the simulation duration or provide additional data.";
                 modalDialog(title, msg);
                 return false;
-        } else{
+        } else {
                 return true;
         }
 }
@@ -132,13 +145,13 @@ function sanitizeTownData(uiTown){
 
         if(data.killRate && !isNaN(parseFloat(data.killRate))){
                 data.killRate = parseFloat(data.killRate);
-        } else{
+        } else {
                 data.killRate = simData.killProb;
         }
 
         if(data.HPHY && !isNaN(parseFloat(data.HPHY))){
                 data.HPHY = parseFloat(data.HPHY);
-        } else{
+        } else {
                 data.HPHY = simData.HpHy;
         }
 
@@ -148,26 +161,23 @@ function sanitizeTownData(uiTown){
 function setupSimulation(){
         if(!checkSettings())
                 return;
-
-        var cleanup = document.getElementById("rawHeatmapContainer");
-        while (cleanup.firstChild) {
-                cleanup.removeChild(cleanup.firstChild);
-        }
         
         setupSimDefaults();
         readUserParameters();
-        const debugMode = document.getElementById("debugModeToggle").checked;
 
         let townData = setupTowns();
         if(!townData)
                 return;
         
-        simulationTime = getTime();
+        resetWorkerCount();
+        completedImgCount = 0;
+        debugVector.setVisible(false);
+        simulationTime = performance.now();
         $('#coverScreen').modal('open');
-        geoGridFeatures.clear(true);
         debugSource.clear(true);
 
-        heatMapImages = {images:new Array(simData.years + 1), pos:false};
+        heatMapImages = new Array(simData.years + 1);
+        exploitImages = new Array(simData.years + 1);
         entireAreaData = [];
         localAreaData = [];
         simRunData = JSON.parse(JSON.stringify(simData));
@@ -176,10 +186,10 @@ function setupSimulation(){
                 if(uiData[settlement].valid)
                         simRunData.townsByID[uiData[settlement].id] = sanitizeTownData(uiData[settlement]);
         simRunData.towns = JSON.parse(JSON.stringify(townData));
-        setupStatsPage();
+        setupResultsPages();
 
         showProgressBar("Setting up simulation", 0);
-        workerThread.postMessage({type:"newSim", params:simData, towns:townData, debug:debugMode});
+        workerThread.postMessage({type:"newSim", params:simData, towns:townData});
 }
 
 function handleWorkerMessage(data){
@@ -189,14 +199,8 @@ function handleWorkerMessage(data){
                 break;
         case 'finished':
                 simResults = data.paramData;
-                synchPersisObject();
-                tabManager.changeTab(pageTabs.MAPS);
-                rawHWScaleInput(100);
-                populateSelectionsFields();
-                simulationTime = getTime() - simulationTime;
-                populateOtherInfo();
-                closeProgressBar();
-                $('#coverScreen').modal('close');
+                simResults.visTime = performance.now();
+                increaseWorkerCount();
                 break;
         case 'debug':
                 console.log("Worker::" + data.statusMsg);
@@ -210,10 +214,7 @@ function handleWorkerMessage(data){
                 modalDialog(title, msg, changeToPopulations);
                 break;
         case 'imgData':
-                generateCanvas(data);
-                break;
-        case 'singleCDFImages':
-                storeLocalCDFPictures(data);
+                processWork(data.params, data.data);
                 break;
         }
 }
