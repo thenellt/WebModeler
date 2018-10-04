@@ -16,6 +16,8 @@ function setupResultsPages(){
         localAreaPictures = new Array(simRunData.years + 1);
         document.getElementById("heatmapOpacitySlider").value = simRunData.opacity * 100;
         $("#overlayPlayButton").off('click').click(overlayAnimation);
+        if(ChartMgr && ChartMgr._resultsChart)
+                ChartMgr._resultsChart.destroy();
         ChartMgr = new chartMgr();
         registerCharts();
 }
@@ -555,7 +557,7 @@ function offtakeCSV(){
 
         for(let i = 0; i < datasets.length; i++){
                 for(let j = 0; j < simRunData.years; j++)
-                        temp[j] = datasets[i].data[j].toFixed(3);
+                        temp[j] = datasets[i].data[j] ? datasets[i].data[j].toFixed(3) : ' ';
                 
                 data += datasets[i].label + ',' + temp.toString() + "\r\n";
         }
@@ -574,7 +576,7 @@ function CPUEcsv(){
 
         for(let i = 0; i < datasets.length; i++){
                 for(let j = 0; j < simRunData.years; j++)
-                        temp[j] = datasets[i].data[j].toFixed(5);
+                        temp[j] = datasets[i].data[j] ? datasets[i].data[j].toFixed(5) : ' ';
                 
                 data += datasets[i].label + ',' + temp.toString() + "\r\n";
         }
@@ -612,6 +614,7 @@ function getRandomColor(){
 }
 
 function refreshCanvas(){
+        /*
         if(simulationRun && ChartMgr._resultsChart)
                 ChartMgr._resultsChart.update();
 
@@ -624,4 +627,5 @@ function refreshCanvas(){
                 heatmapLayer.getSource().refresh();
 
         map.updateSize();
+        */
 }

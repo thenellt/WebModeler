@@ -123,14 +123,14 @@ class chartMgr {
                         name += "_range" + this._currentConfig.range + "_localCDF.png"
                         break;
                 case "Settlement Offtake":
-                        let temp = selected in simRunData.townsByID ? simRunData.townsByID[selected].name : selected;
-                        name = temp + "_offtake.png";
+                        name = selected in simRunData.townsByID ? simRunData.townsByID[selected].name : selected;
+                        name += "_offtake.png";
                         break;
                 case "Exploitation":
                         return;
                 case "Catch/Unit Effort":
-                        let temp = selected in simRunData.townsByID ? simRunData.townsByID[selected].name : selected;
-                        name = temp + "_CPUE.png";
+                        name = selected in simRunData.townsByID ? simRunData.townsByID[selected].name : selected;
+                        name += "_CPUE.png";
                         break;
                 }
 

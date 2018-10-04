@@ -81,10 +81,18 @@ self.addEventListener('install', function (evt) {
         }));
 });
 
+caches.open('app-cache').then(function(appCache){
+        appCache.keys().then(function(keyList) {
+                console.log("length: " + keyList.length);
+        });
+});
+
+/*
 self.addEventListener('activate', function(event){
         console.log("The service worker is activating.");
         event.waitUntil(self.clients.claim());
 });
+*/
 
 self.addEventListener('fetch', function (evt) {
         const url = new URL(evt.request.url);
@@ -117,11 +125,20 @@ self.addEventListener('fetch', function (evt) {
                         });
                 }));
         } else {
+                console.log("app-cache attempt: " + url);
                 evt.respondWith(caches.open('app-cache').then(function (appCache) {
                         return appCache.match(evt.request).then(function (response) {
                                 if(response) {
                                         console.log('app-cache: ' + evt.request.url);
                                         return response;
+                                } else if(fileNames.includes(url)){
+                                        return precache().then(function(){      
+                                                return appCache.match(evt.request).then(function (response) {
+                                                        return response || Promise.reject("app cache retry failed");
+                                                });
+                                        }).catch(function(){
+                                                return Promise.reject('cache miss and offline'); 
+                                        });
                                 } else {
                                         return fetch(evt.request).then(function (response) {
                                                 console.log('fetch: ' + evt.request.url);
@@ -141,7 +158,7 @@ function accessEarthCache(request){
         if(!earthCacheAge || ((new Date) - earthCacheAge > ONE_DAY) && navigator.onLine){
                 earthCacheAge = new Date();
                 return caches.open('earth-cache').then(function (earthCache) {
-                        earthCache.keys().then(function(keyList) {
+                        return earthCache.keys().then(function(keyList) {
                                 return Promise.all(keyList.map(function(key) {
                                         return earthCache.delete(key);
                                 }));
@@ -158,7 +175,6 @@ function accessEarthCache(request){
                                 }
                         });
                 });
-                
         } else if(earthCacheAge){
                 return caches.open('earth-cache').then(function (earthCache) {
                         return earthCache.match(request).then(function (response) {
@@ -184,8 +200,17 @@ function accessEarthCache(request){
 }
 
 function precache() {
-        return caches.open('app-cache').then(function (cache) {
-                return cache.addAll(fileNames);
+        return caches.open('app-cache').then(function(appCache){
+                return appCache.keys().then(function(keyList) {
+                        return Promise.all(keyList.map(function(key) {
+                                return appCache.delete(key);
+                        }));
+                }).then(function () {
+                        return appCache.addAll(fileNames);
+                });
+        }).catch(function(e){
+                console.log("there was a problem filling the app-cache: " + e);
+                return Promise.reject('network problem');      
         });
 }
 

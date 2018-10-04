@@ -214,7 +214,28 @@ function handleWorkerMessage(data){
                 modalDialog(title, msg, changeToPopulations);
                 break;
         case 'imgData':
-                processWork(data.params, data.data);
+                processWork(data.params);
+                break;
+        case 'testImgData':
+                //console.log({dest:data.params.dest, year:data.params.year, url:data.url});
+                storeImgURL({dest:data.params.dest, year:data.params.year, url:data.url});
+                completedImgCount++;
+                if(completedImgCount === ((simRunData.years + 1) * 1)){
+                        tabManager.changeTab(pageTabs.MAPS);
+                        closeProgressBar();
+                        $('#coverScreen').modal('close');
+                        synchPersisObject();
+                        simulationTime = performance.now() - simulationTime;
+                        simResults.visTime = performance.now() - simResults.visTime;
+                        populateOtherInfo();
+                        ChartMgr._currentYear = simRunData.years;
+                        $("#graphRangeLabel").html("Radius: " + simRunData.huntRange + " km");
+                        ChartMgr.changeChart('Local CDF');
+                        setTimeout(function(){
+                                $('#activeLegendTab').click();
+                                fitMap(simResults.bounds[0], simResults.bounds[1]);
+                        }, 200);
+                }
                 break;
         }
 }

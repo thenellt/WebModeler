@@ -19,6 +19,8 @@ var popStorageMap = {};
 var mouseKControl;
 var mouseKListner;
 var mouseLastPosition;
+var heatmap;
+var heatmapSource;
 
 function setupMapping(){
         proj4.defs('espg4326', viewProjection);
@@ -86,7 +88,7 @@ function setupMapping(){
                         debugVector
                 ],
                 view: new ol.View({
-                        projection: 'EPSG:4326', //9835', 3410
+                        projection: 'EPSG:4326',
                         center: [37.41, 8.82],
                         zoom: 2
                 }),
@@ -95,6 +97,13 @@ function setupMapping(){
         heatmapLayer = new ol.layer.Image();
         heatmapLayer.setZIndex(2);
         heatmapLayer.set('name', 'imgLayer');
+        heatmapLayer.on('precompose', function(event) {
+                var ctx = event.context;
+                ctx.mozImageSmoothingEnabled = 
+                ctx.webkitImageSmoothingEnabled = 
+                ctx.msImageSmoothingEnabled = 
+                ctx.imageSmoothingEnabled = false;
+        });
         map.addLayer(heatmapLayer);
 
         exploitLayer = new ol.layer.Image();
@@ -120,6 +129,16 @@ function setupMapping(){
         bingLayers[0].setVisible(true);
         bingLayers[1].setVisible(false);
         isPopMoving = false;
+
+        /*
+        map.on('precompose', function(evt) {
+                evt.context.imageSmoothingEnabled = false;
+                evt.context.webkitImageSmoothingEnabled = false;
+                evt.context.mozImageSmoothingEnabled = false;
+                evt.context.msImageSmoothingEnabled = false;
+                evt.context.oImageSmoothingEnabled = false;
+        });
+        */
 }
 
 function setupCustomMouseControl(){
@@ -371,6 +390,16 @@ function generateCircleCoords(origCenter, radius){
         return translatedCoordinates;
 }
 
+function generateHeatmap(){
+        heatmapSource = new ol.source.Vector({
+
+        });
+        heatmap = new ol.layer.Heatmap({
+                source: heatmapSource,
+        });
+        map.addLayer(heatmap);
+}
+
 function storeImgURL(data){
         switch(data.dest){
         case 'heatmapImages':
@@ -392,6 +421,46 @@ function storeImgURL(data){
 }
 
 function drawCanvasToMap(imageURL, target){
+        /*
+        var canvas = document.createElement("canvas");
+        var ctx = canvas.getContext("2d");
+        ctx.mozImageSmoothingEnabled = 
+        ctx.webkitImageSmoothingEnabled = 
+        ctx.msImageSmoothingEnabled = 
+        ctx.imageSmoothingEnabled = false;
+        var canvasCopy = document.createElement("canvas");
+        var copyContext = canvasCopy.getContext("2d");
+        copyContext.mozImageSmoothingEnabled = 
+        copyContext.webkitImageSmoothingEnabled = 
+        copyContext.msImageSmoothingEnabled = 
+        copyContext.imageSmoothingEnabled = false;
+        var img = new Image();
+        img.onload = function(){
+                console.log("width and height: " + img.width + ", " + img.height);
+                canvasCopy.width = img.width;
+                canvasCopy.height = img.height;
+                copyContext.drawImage(img, 0, 0);
+                console.log("canvas copy: " + canvasCopy.toDataURL());
+                canvas.width = img.width * 3;
+                canvas.height = img.height * 3;
+                ctx.drawImage(canvasCopy, 0, 0, canvasCopy.width, canvasCopy.height, 0, 0, canvas.width, canvas.height);
+                let newurl = canvas.toDataURL();
+                let img2 = new Image();
+                img2.onload = function(){
+                        document.body.appendChild(img2);
+                };
+                img2.src = newurl;
+                console.log("new url: " + newurl);
+                target.setSource(
+                        new ol.source.ImageStatic({
+                                url: newurl,
+                                projection: 'mollweide',
+                                imageExtent: simResults.simPosition
+                        })
+                );
+        };
+        img.src = imageURL;
+        */
         target.setSource(
                 new ol.source.ImageStatic({
                         url: imageURL,
@@ -474,7 +543,6 @@ function setMapResultsMode(isFirstRun){
 }
 
 function requestFitMap(){
-        if(isFinal)
         if(!uiData && uiData.length)
                 return;
         

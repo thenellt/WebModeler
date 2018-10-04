@@ -1,4 +1,5 @@
 self.importScripts('./proj4js.js');
+self.importScripts('./jimp.min.js');
 
 const eaProjection = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
 const viewProjection = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs ";
@@ -34,7 +35,7 @@ onmessage = function(oEvent) {
                 generateCSV(oEvent.data.year, 'allYearsCSV');
                 break;
         case 'getSingleCDFPictures':
-                generateCDFPictureData(oEvent.data.id, oEvent.data.range);
+                //generateCDFPictureData(oEvent.data.id, oEvent.data.range);
                 break;
         case 'getSingleCDFData':
                 generateSingleCDFData(oEvent.data.id, oEvent.data.range);
@@ -54,6 +55,12 @@ onmessage = function(oEvent) {
 function runSimulation(parameters){
         unpackParams(parameters);
         let bounds = generateBounds(simData.huntRange, simData.boundryWidth);
+        let gradient = setupGradient();
+        let rgbaGradient = [];
+        for(let i = 0; i < gradient.length; i++){
+                rgbaGradient.push(Jimp.rgbaToInt(gradient[i][0],gradient[i][1],gradient[i][2],gradient[i][3]));
+        }
+        self.postMessage({type:'mapped', fnc:'storeGradient', gradient:gradient});
         generategeoGrid(bounds);
         try{
                 allocateMemory();
@@ -62,14 +69,14 @@ function runSimulation(parameters){
                 return;
         }
         placeLocations();
-        calculateModel();
+        calculateModel(rgbaGradient);
         const posArray = [geoGrid[ySize - 1][0][0], geoGrid[ySize - 1][0][1], geoGrid[0][xSize - 1][0], geoGrid[0][xSize - 1][1]];
         self.postMessage({type:'finished', paramData:{name: simData.simName, duration:simData.years,
                 xSize:xSize, ySize:ySize, townData:towns, bounds: bounds, simPosition:posArray, perfData:calcTimes}});
         self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Visualizing Data", statusValue: 100});
         generateCDFBins();
         generateSingleCDFData(towns[0].id, simData.huntRange);
-        generateCDFPictureData(towns[0].id, simData.huntRange);
+        //generateCDFPictureData(towns[0].id, simData.huntRange);
         generateOfftakeData();
         generateCPUEdata();
 }
@@ -147,16 +154,16 @@ function generateBounds(huntRange, boundryWidth, newPoints){
 }
 
 function generategeoGrid(extremePoints){
-        geoGrid = [];
-
-        const width = 1 + Math.abs(extremePoints[1][0] - extremePoints[0][0]) / 1000;
-        const height = 1 + Math.abs(extremePoints[0][1] - extremePoints[1][1]) / 1000;
+        const width = Math.ceil(1 + Math.abs(extremePoints[1][0] - extremePoints[0][0]) / 1000);
+        const height = Math.ceil(1 + Math.abs(extremePoints[0][1] - extremePoints[1][1]) / 1000);
         logMessage("generategeoGrid: geoGrid size: " + width + " x " + height);
+        geoGrid = new Array(height + 1);
+        for(let i = 0; i < height + 1; i++)
+                geoGrid[i] = new Array(width + 1);
 
         for(let i = 0; i < height + 1; i++){
-                geoGrid.push([]);
                 for(let j = 0; j < width + 1; j++){
-                        geoGrid[i].push([extremePoints[0][0] + 1000 * j, extremePoints[0][1] - 1000 * i]);
+                        geoGrid[i][j] = [extremePoints[0][0] + 1000 * j, extremePoints[0][1] - 1000 * i];
                 }
         }
 
@@ -206,12 +213,11 @@ function placeLocations(){
         }
 }
 
-function calculateModel(){
+function calculateModel(gradient){
         logMessage("calculateModel: Starting run. Years: " + simData.years + " samples: " + simData.diffusionSamples);
-        let gradient = setupGradient();
-        self.postMessage({type:'mapped', fnc:'storeGradient', gradient:gradient});
         let xEnd = xSize - 1;
         let yEnd = ySize - 1;
+        var params = {grid:"", year:0, carryCapacity:simData.carryCapacity, xSize:xSize, ySize:ySize, gradient:gradient};
         var startTime, val, i, y, x, locationValue, top, bot, effortValue, offtakeValue, gridValue, settleNum;
         const TWO_PI = 2*Math.PI;
 
@@ -261,17 +267,54 @@ function calculateModel(){
                                 grid[curYear + 1][y][x] = gridValue > 0 ? gridValue : 0.0;
                         }
                 }
-                genHeatmapImg(3, curYear, gradient);
-                genExploitationImg(curYear);
+                //genHeatmapImg(3, curYear, gradient);
+                //genExploitationImg(curYear);
                 self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Finished Year " + curYear, statusValue: curYear});
+                params.grid = grid[curYear];
+                params.year = curYear;
+                self.postMessage({type:'imgData', params:params});
                 calcTimes[curYear] = performance.now() - startTime;
         }
-        genHeatmapImg(3, simData.years, gradient);
-        genExploitationImg(simData.years);
+
+        params.grid = grid[simData.years];
+        params.year = simData.years;
+        self.postMessage({type:'imgData', params:params});
+        //genHeatmapImg(3, simData.years, gradient);
+        //genExploitationImg(simData.years);
+
+}
+
+function processHeatmapImgs(year, gradient){
+        const scale = 3;
+        let img = genHeatmapImg(scale, year, gradient);
+        const params = {width:(xSize - 1) * scale, height:(ySize - 1) * scale, year:year, dest:'heatmapImages'};
+        img.getBase64(Jimp.MIME_PNG, function(err, result){
+                self.postMessage({type:'testImgData', params:params, url:result});
+                if(year < simData.years)
+                        processHeatmapImgs(year + 1, gradient);
+        }); 
+
 }
 
 function genHeatmapImg(scale, year, gradient){
         const gradientSteps = Math.floor(simData.carryCapacity) - 1;
+        let img = new Jimp(((xSize - 1) * scale), ((ySize - 1) * scale));
+        for(let y = 0; y < ySize - 1; y++){
+                for(let x = 0; x < xSize - 1; x++){
+                        let gradientPosition = Math.ceil(gradientSteps * (1 - (grid[year][y][x] / simData.carryCapacity)));
+
+                        if(gradientPosition < 0 || !gradientPosition){
+                                j_fillPixel(img, x, y, gradient[0], scale);
+                        } else {
+                                j_fillPixel(img, x, y, gradient[gradientPosition], scale);
+                        }
+                }
+        }
+
+        return img;
+        
+        //const gradientSteps = Math.floor(simData.carryCapacity) - 1;
+        /*
         let imgData = new Uint8ClampedArray(((xSize - 1) * scale) * ((ySize - 1) * scale) * 4);
         for(let y = 0; y < ySize - 1; y++){
                 for(let x = 0; x < xSize - 1; x++){
@@ -286,6 +329,21 @@ function genHeatmapImg(scale, year, gradient){
 
         const params = {width:(xSize - 1) * scale, height:(ySize - 1) * scale, year:year, dest:'heatmapImages'};
         self.postMessage({type:'imgData', params:params, data:imgData}, [imgData.buffer]);
+        */
+}
+
+function j_fillPixel(img, xPos, yPos, color, scale){
+        //const rowWidth = (xSize - 1) * scale * 4;
+        //const offset = (yPos * scale) * rowWidth;
+        //const xStart = (xPos * scale) * 4;
+        const yEnd = yPos * scale + scale;
+        const xEnd = xPos * scale + scale;
+
+        for(let y = yPos * scale; y < yEnd; y++){
+                for(let x = xPos * scale; x < xEnd; x++){
+                        img.setPixelColor(color, x, y);
+                }
+        }
 }
 
 function setupGradient(){
@@ -361,9 +419,9 @@ function setupGradient(){
 }
 
 function generateCDFPictureData(id, range){
-        for(elmnt in towns)
-                if(towns[elmnt].id === id){
-                        var selectedTown = towns[elmnt];
+        for(const town of towns)
+                if(town.id === id){
+                        var selectedTown = town;
                 }
 
         let gradient = setupGradient();

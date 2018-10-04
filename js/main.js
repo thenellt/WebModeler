@@ -7,7 +7,6 @@ var simRunData;
 var simResults = {};
 var progBarDet;
 var workerPool;
-var completedImgCount;
 
 $(document).ready(function() {
         $('#projBackground, #changelogPopup, #popImportDialog').modal();
@@ -465,31 +464,41 @@ function resetWorkerCount(){
 }
 
 function dispatchWork(thread, work){
+        //console.log("dispatching year: " + work.data.year);
         workerPool.active[thread] = true;
-        workerPool.workers[thread].postMessage({type:'genImg', params:work.data, array:work.imgData}, [work.imgData.buffer]);
+        workerPool.workers[thread].postMessage({type:'genImgs', params:work.data});
 }
 
-function processWork(data, imgData){
+function processWork(data){
         let nextCore = 0;
         while(workerPool.active[nextCore] && nextCore < workerPool.threads)
                 nextCore++;
 
         if(nextCore < workerPool.threads){
-                dispatchWork(nextCore, {data:data, imgData:imgData});
+                dispatchWork(nextCore, {data:data});
         } else {
-                workerPool.workQueue.enqueue({data:data, imgData:imgData});
+                workerPool.workQueue.enqueue({data:data});
+                //console.log("work queue length: " + workerPool.workQueue.getLength());
         }
 }
 
 function receiveWork(data){
+        //console.log("Thread " + data.threadNum + " finished year: " + data.year);
         if(!workerPool.workQueue.isEmpty()){
                 dispatchWork(data.threadNum, workerPool.workQueue.dequeue());
         } else {
                 workerPool.active[data.threadNum] = false;
         }
-        storeImgURL(data);
-        completedImgCount++;
-        if(completedImgCount === ((simRunData.years + 1) * 3)){
+        storeImgURL({dest:'heatmapImages', year:data.year, url:data.heatmapData});
+        storeImgURL({dest:'expImages', year:data.year, url:data.exploitData});
+        if(data.year == simRunData.years){
+                /*
+                let ctx = $('canvas.ol-unselectable')[0].getContext('2d');
+                ctx.mozImageSmoothingEnabled = 
+                ctx.webkitImageSmoothingEnabled = 
+                ctx.msImageSmoothingEnabled = 
+                ctx.imageSmoothingEnabled = false;
+                */
                 tabManager.changeTab(pageTabs.MAPS);
                 closeProgressBar();
                 $('#coverScreen').modal('close');
