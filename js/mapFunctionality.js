@@ -474,7 +474,6 @@ function setMapResultsMode(isFirstRun){
 }
 
 function requestFitMap(){
-        if(isFinal)
         if(!uiData && uiData.length)
                 return;
         

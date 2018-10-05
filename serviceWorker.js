@@ -20,6 +20,8 @@ var fileNames = [
         './js/table.js',
         './js/tabs.js',
         './js/ol.js',
+        './js/osmtogeojson.js',
+        './js/turf.min.js',
         './js/proj4js.js',
         './js/Chart.min.js',
         './js/chartjs-plugin-datalabels.min.js',

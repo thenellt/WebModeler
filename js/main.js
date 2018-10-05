@@ -56,6 +56,7 @@ function newSimulation(){
         document.getElementById("resetButton").classList.remove("hide");
         document.getElementById("newSimButton").classList.add("hide");
         document.getElementById("quickSaveButton").classList.remove("hide");
+        document.getElementById("startSimText").innerHTML = "Current simulation:";
 
         tabManager.enableTab(pageTabs.PARAMS);
         tabManager.enableTab(pageTabs.POPS);
@@ -111,6 +112,7 @@ function resetSimulation(){
         document.getElementById("resetButton").classList.add("hide");
         document.getElementById("quickSaveButton").classList.add("hide");
         document.getElementById("newSimButton").classList.remove("hide");
+        document.getElementById("startSimText").innerHTML = "Start new simulation:";
 
         map.getView().animate({zoom: 2}, {center: [0, 0]});
         emptyTable();
@@ -169,6 +171,14 @@ function changeToOutput(){
         setTimeout(function(){
                 map.updateSize();
         }, 50);
+}
+
+function toggleRiverSim(value){
+        if(value){
+                document.getElementById("riverSimStrength").disabled = false;
+        } else {
+                document.getElementById("riverSimStrength").disabled = true;
+        }
 }
 
 function toggleThirdColorMode(isEnabled){
@@ -504,5 +514,79 @@ function receiveWork(data){
                         $('#activeLegendTab').click();
                         fitMap(simResults.bounds[0], simResults.bounds[1]);
                 }, 200);
+
+                /*
+                        let riverRequest = new XMLHttpRequest();
+        riverRequest.addEventListener('load', function() {
+                let jsonResult = osmtogeojson(JSON.parse(riverRequest.responseText));
+                let vectorSource = new ol.source.Vector({
+                        features: new ol.format.GeoJSON().readFeatures(jsonResult)
+                });
+
+                let OSMfeatureVector = new ol.layer.Vector({
+                        source: vectorSource,
+                        style: new ol.style.Style({ 
+                                stroke: new ol.style.Stroke({
+                                        color: 'rgba(0, 0, 0, 1.0)',
+                                        width: 2
+                                })
+                        })
+                });
+
+                OSMfeatureVector.setZIndex(6);
+                map.addLayer(OSMfeatureVector);
+        });
+        riverRequest.open('POST', 'https://overpass.kumi.systems/api/interpreter');
+        let leftCorner = proj4(proj4('mollweide'), proj4('espg4326'), [simPosition[0], simPosition[3]]);
+        let rightCorner = proj4(proj4('mollweide'), proj4('espg4326'), [simPosition[2], simPosition[1]]);
+        let posString = '(' + rightCorner[1] + ',' + leftCorner[0] + ',' + leftCorner[1] + ',' + rightCorner[0] + ');'
+        let query = '[out:json][timeout:25];' +
+                        '(node["waterway"="river"]' + posString +
+                        'way["waterway"="river"]' + posString + 
+                        'relation["waterway"="river"]' + posString +
+                        ');out body;>;out skel qt;';
+        console.log("query string: " + query);
+        riverRequest.send(query);
+                */
+                
+                /*
+                var vectorSource = new ol.source.Vector({
+                        format: new ol.format.OSMXML(),
+                        loader: function(extent, resolution, projection) {
+                                var client = new XMLHttpRequest();
+                                client.open('POST', 'https://overpass.kumi.systems/api/interpreter');
+                                client.addEventListener('load', function() {
+                                        console.log(client.responseText);
+                                        var features = new ol.format.OSMXML().readFeatures(client.responseText);
+                                        console.log(features);
+                                        vectorSource.addFeatures(features);
+                                        //console.log(vectorSource);
+                                });
+                                let leftCorner = proj4(proj4('mollweide'), proj4('espg4326'), [simResults.simPosition[0], simResults.simPosition[3]]);
+                                let rightCorner = proj4(proj4('mollweide'), proj4('espg4326'), [simResults.simPosition[2], simResults.simPosition[1]]);
+                                let posString = '(' + rightCorner[1] + ',' + leftCorner[0] + ',' + leftCorner[1] + ',' + rightCorner[0] + ');'
+                                let query = '(node["waterway"="river"]' + posString +
+                                        'way["waterway"="river"]' + posString + 
+                                        'relation["waterway"="river"]' + posString +
+                                        ');out body;>;out skel qt;';
+                                console.log(query);
+                                client.send(query);
+                        },
+                        strategy: ol.loadingstrategy.bbox
+                });
+                
+                OSMfeatureVector = new ol.layer.Vector({
+                        source: vectorSource,
+                        style: new ol.style.Style({ 
+                                stroke: new ol.style.Stroke({
+                                        color: 'rgba(0, 0, 0, 1.0)',
+                                        width: 2
+                                })
+                        })
+                });
+
+                OSMfeatureVector.setZIndex(6);
+                map.addLayer(OSMfeatureVector);
+                */
         }
 }

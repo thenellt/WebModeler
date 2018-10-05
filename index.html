@@ -87,9 +87,9 @@
                                         <div class="divider" style="margin-bottom: 10px;"></div>
 
                                         <div class="row">
-                                                <div class="col s6"><h5>Start new simulation:</h5></div>
+                                                <div class="col s6"><h5 id="startSimText">Start new simulation:</h5></div>
                                                 <div class="col s3">
-                                                        <a class="waves-effect waves-light btn red darken-2 hide" id="resetButton" onclick="promptForReset()">Clear Simulation</a>
+                                                        <a class="waves-effect waves-light btn red darken-2 hide" id="resetButton" onclick="promptForReset()">Clear</a>
                                                 </div>
                                                 <div class="col s3" id="newSimButton">
                                                         <a class="waves-effect waves-light btn" onclick="newSimulation()">New Simulation</a>
@@ -121,7 +121,7 @@
                                 </div>
                                 <div class="tabcontent" id="parameterSetup" style="display: none;">
                                         <div class="row">
-                                                <div class="col s8"><h4>Enter Simulation Parameters</h4></div>
+                                                <div class="col s8"><h4>Simulation Parameters</h4></div>
                                                 <div class="col s4" style="margin-top: 16.5px">
                                                         <a class="waves-effect waves-light btn tooltipped" onclick="promptForDefaults()"
                                                                 data-position="bottom" data-delay="100" data-tooltip="Populates all fields with reasonable values. Overwrites prior settings!">
@@ -132,38 +132,10 @@
                                                 <div class="col s8"><h5>Simulation Name:</h5></div>
                                                 <div class="col s3"><input type="text" id="paramName" class="parameterInputText"></div>
                                         </div>
-                                        <div class="divider" style="margin-bottom: 8px;"></div>
                                         <div class="row parameterRow" >
                                                 <div class="col s8"><h5>Duration (Years):</h5></div>
                                                 <div class="col s3"><input type="text" id="paramYears" class="parameterInputText"></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Number of years over which the simulation will be run."><i>?</i></a></div>
-                                        </div>
-                                        <div class="row parameterRow" >
-                                                <div class="col s8"><h5>Carrying Capacity:</h5></div>
-                                                <div class="col s3"><input type="text" id="paramCarry" class="parameterInputText"></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Number of animals the landscape can support per square kilometer."><i>?</i></a></div>
-                                        </div>
-                                        <div class="divider" style="margin-bottom: 8px;"></div>
-                                        <div class="row parameterRow" >
-                                                <div class="col s8"><h5>Animal Diffusion Rate:</h5></div>
-                                                <div class="col s3"><input type="text" id="paramDifRate" class="parameterInputText"></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Impacts that rate at which animals migrate from higher to lower population areas."><i>?</i></a></div>
-                                        </div>
-                                        <div class="row parameterRow" >
-                                                <div class="col s8"><h5>Animal Growth Rate:</h5></div>
-                                                <div class="col s3"><input type="text" id="paramGrowthRate" class="parameterInputText"></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Maximum intrinsic growth rate for exponential growth formula."><i>?</i></a></div>
-                                        </div>
-                                        <div class="row parameterRow" >
-                                                <div class="col s8"><h5>Animal Encounter Rate:</h5></div>
-                                                <div class="col s3"><input type="text" id="paramEncounterRate" class="parameterInputText"></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Encounter rate constant. Ex: 0.02"><i>?</i></a></div>
-                                        </div>
-                                        <div class="divider" style="margin-bottom: 8px;"></div>
-                                        <div class="row parameterRow" >
-                                                <div class="col s8"><h5>Encounter Kill Probability:</h5></div>
-                                                <div class="col s3"><input type="text" id="paramKillProb" class="parameterInputText"></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Probability that an animal encounter results in a kill."><i>?</i></a></div>
                                         </div>
                                         <div class="row parameterRow" >
                                                 <div class="col s8"><h5>Hunts per Hunter per Year:</h5></div>
@@ -174,6 +146,37 @@
                                                 <div class="col s8"><h5>Hunter Range (km):</h5></div>
                                                 <div class="col s3"><input type="text" id="rangeHphy" class="parameterInputText"></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Distance that simulated hunts extend from a village."><i>?</i></a></div>
+                                        </div>
+                                        <div class="row parameterRow" >
+                                                <div class="col s8"><h5>Encounter Kill Probability:</h5></div>
+                                                <div class="col s3"><input type="text" id="paramKillProb" class="parameterInputText"></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Probability that an animal encounter results in a kill."><i>?</i></a></div>
+                                        </div>
+                                        <div class="divider" style="margin-bottom: 0px;"></div>
+                                        <div class="row parameterRow" >
+                                                <div class="col s12">
+                                                        <h4>Animal Parameters</h4>
+                                                </div>
+                                        </div>
+                                        <div class="row parameterRow" >
+                                                <div class="col s8"><h5>Carrying Capacity:</h5></div>
+                                                <div class="col s3"><input type="text" id="paramCarry" class="parameterInputText"></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Number of animals the landscape can support per square kilometer."><i>?</i></a></div>
+                                        </div>
+                                        <div class="row parameterRow" >
+                                                <div class="col s8"><h5>Diffusion Rate:</h5></div>
+                                                <div class="col s3"><input type="text" id="paramDifRate" class="parameterInputText"></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Impacts that rate at which animals migrate from higher to lower population areas."><i>?</i></a></div>
+                                        </div>
+                                        <div class="row parameterRow" >
+                                                <div class="col s8"><h5>Growth Rate:</h5></div>
+                                                <div class="col s3"><input type="text" id="paramGrowthRate" class="parameterInputText"></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Maximum intrinsic growth rate for exponential growth formula."><i>?</i></a></div>
+                                        </div>
+                                        <div class="row parameterRow" >
+                                                <div class="col s8"><h5>Encounter Rate:</h5></div>
+                                                <div class="col s3"><input type="text" id="paramEncounterRate" class="parameterInputText"></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Encounter rate constant. Ex: 0.02"><i>?</i></a></div>
                                         </div>
                                         <div class="divider" style="margin-bottom: 8px;"></div>
                                         <div class="row">
@@ -572,7 +575,7 @@
         </table>
 
         <div id="advancedSettings" class="modal modal-fixed-footer"
-                style="width: 900px; height: 560px;">
+                style="width: 900px; height: 590px;">
                 <div class="modal-content">
                         <h4>Advanced Settings:</h4>
                         <p>Changing these settings can have a <b>huge</b> impact on simulation results and/or runtime.</p>
@@ -602,6 +605,17 @@
                                 </li>
                                 <li class="collection-item advancedColItem">
                                         <div class="row" style="margin-bottom: 0;">
+                                                <div class="col s6"><h5>River Falloff (Experimental):</h5></div>
+                                                <div class="col s2" style="margin-top: 12px;">
+                                                        <input type="checkbox" id="enableRiverSim" onchange="toggleRiverSim(this.checked)"/>
+                                                        <label for="enableRiverSim">Enabled</label>
+                                                </div>
+                                                <div class="col s3"><input type="text" id="riverSimStrength" style="margin-bottom: 0;" disabled></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Amount of linear effort falloff experienced along river features."><i>?</i></a></div>
+                                        </div>
+                                </li>
+                                <li class="collection-item advancedColItem">
+                                        <div class="row" style="margin-bottom: 0;">
                                                 <div class="col s8"><h5>Heatmap Saturated Color:</h5></div>
                                                 <div class="col s1"><input type="color" value="#ffeda0" style="margin-top: 12px;" id="paramLowColor"></div>
                                                 <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode('low');" style="margin-top: 6px;">Reset</a></div>
@@ -610,12 +624,12 @@
                                 </li>
                                 <li class="collection-item advancedColItem">
                                         <div class="row" style="margin-bottom: 0;">
-                                                <div class="col s6"><h5>Heatmap Mid Color (Optional):</h5></div>
+                                                <div class="col s6"><h5>Heatmap Mid Color:</h5></div>
                                                 <div class="col s2" style="margin-top: 12px;">
                                                         <input type="checkbox" id="enable3ColorMode" onchange="toggleThirdColorMode(this.checked)"/>
                                                         <label for="enable3ColorMode">Enabled</label>
                                                 </div>
-                                                <div class="col s1"><input type="color" value="#ffeda0" style="margin-top: 12px;" id="paramMidColor"></div>
+                                                <div class="col s1"><input type="color" value="#ffeda0" style="margin-top: 12px;" id="paramMidColor" disabled></div>
                                                 <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode('mid');" id="midColorReset" style="margin-top: 6px;">Reset</a></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Color of the middle of the heatmap gradient."><i>?</i></a></div>
                                         </div>
@@ -900,6 +914,7 @@
         <script src="js/jszip.min.js" type="text/javascript"></script>
         <script src="js/proj4js.js" type="text/javascript"></script>
         <script src="js/ol.js" type="text/javascript"></script>
+        <script src='js/osmtogeojson.js' type="text/javascript"></script>
         <script src="js/chartManager.js" type="text/javascript"></script>
         <script src="js/chartSetup.js" type="text/javascript"></script>
         <script src="js/dataProcessing.js" type="text/javascript"></script>

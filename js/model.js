@@ -1,4 +1,6 @@
 self.importScripts('./proj4js.js');
+self.importScripts('./osmtogeojson.js');
+self.importScripts('./turf.min.js');
 
 const eaProjection = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
 const viewProjection = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs ";
@@ -18,11 +20,12 @@ var visStartTime;
 var eaPointSet;
 var points;
 var geoGrid;
+var spatialEffort;
 
 onmessage = function(oEvent) {
         switch(oEvent.data.type){
         case 'newSim':
-                runSimulation(oEvent.data);
+                setupSim(oEvent.data);
                 break;
         case 'genImage':
                 generateImageData(oEvent.data);
@@ -43,15 +46,14 @@ onmessage = function(oEvent) {
                 checkPositionInformation(oEvent.data.pos, oEvent.data.year);
                 break;
         case 'requestBounds':
-                {
-                        let bounds = generateBounds(oEvent.data.range, oEvent.data.width, oEvent.data.towns);
-                        self.postMessage({type:'mapped', fnc:'boundsCheck', bounds:bounds});
-                }
+                self.postMessage({type:'mapped', fnc:'boundsCheck', bounds:
+                        generateBounds(oEvent.data.range, oEvent.data.width, oEvent.data.towns)
+                });
                 break;
         }
 };
 
-function runSimulation(parameters){
+function setupSim(parameters){
         unpackParams(parameters);
         let bounds = generateBounds(simData.huntRange, simData.boundryWidth);
         generategeoGrid(bounds);
@@ -62,6 +64,15 @@ function runSimulation(parameters){
                 return;
         }
         placeLocations();
+        if(simData.riverSim){
+                self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Tracing Rivers", statusValue: 100});
+                requestRiverFeatures(bounds);
+        } else {
+                runSimulation(bounds);
+        }
+}
+
+function runSimulation(bounds){
         calculateModel();
         const posArray = [geoGrid[ySize - 1][0][0], geoGrid[ySize - 1][0][1], geoGrid[0][xSize - 1][0], geoGrid[0][xSize - 1][1]];
         self.postMessage({type:'finished', paramData:{name: simData.simName, duration:simData.years,
@@ -164,7 +175,7 @@ function generategeoGrid(extremePoints){
         const ySize = geoGrid.length - 1;
 
         self.postMessage({type:'mapped', fnc:'extentDebug', data:{
-                points:[geoGrid[0][0], geoGrid[0][xSize], geoGrid[ySize][xSize], geoGrid[ySize][0]], color:[255, 0, 0, .5]
+                points:[geoGrid[0][0], geoGrid[0][xSize], geoGrid[ySize][xSize], geoGrid[ySize][0]], color:[255, 0, 0, .05]
         }});
         self.postMessage({type:'mapped', fnc:'extentDebug', data:{
                 points:[geoGrid[ySize - 1][xSize - 1], geoGrid[ySize - 1][xSize], geoGrid[ySize][xSize], geoGrid[ySize][xSize - 1]], color:[255, 0, 0, 1]
@@ -212,8 +223,8 @@ function calculateModel(){
         self.postMessage({type:'mapped', fnc:'storeGradient', gradient:gradient});
         let xEnd = xSize - 1;
         let yEnd = ySize - 1;
-        var startTime, val, i, y, x, locationValue, top, bot, effortValue, offtakeValue, gridValue, settleNum;
-        const TWO_PI = 2*Math.PI;
+        var startTime, val, i, y, x, effortValue, offtakeValue, gridValue, settleNum;
+        var effortFunc = getStaticEffort;//simData.riverSim ? getDynamicEffort : getStaticEffort;
 
         for(let curYear = 0; curYear < simData.years; curYear++){
                 startTime = performance.now();
@@ -247,10 +258,7 @@ function calculateModel(){
                         for(x = 1; x < xEnd; x++){
                                 offtake[y][x] = 0.0;
                                 for(settleNum = 0; settleNum < towns.length; settleNum++){
-                                        locationValue = Math.pow(towns[settleNum].x - x, 2) + Math.pow(towns[settleNum].y - y, 2);
-                                        top = Math.exp((-1)/(2*Math.pow(simData.huntRange, 2)) * locationValue);
-                                        bot = TWO_PI*Math.sqrt(locationValue + 1);
-                                        effortValue = (towns[settleNum].HPHY * getTownPop(towns[settleNum], curYear) * top) / bot;
+                                        effortValue = effortFunc(towns[settleNum], x, y, curYear);
                                         offtakeValue = towns[settleNum].killRate * simData.encounterRate * effortValue * grid[curYear][y][x];
                                         offtake[y][x] += offtakeValue;
                                         towns[settleNum].offtake[curYear] += offtakeValue;
@@ -270,6 +278,29 @@ function calculateModel(){
         genExploitationImg(simData.years);
 }
 
+function getStaticEffort(town, x, y, year){
+        const locationValue = Math.pow(town.x - x, 2) + Math.pow(town.y - y, 2);
+        const top = Math.exp((-1)/(2 * Math.pow(simData.huntRange, 2)) * locationValue);
+        const bot = (2 * Math.PI) * Math.sqrt(locationValue + 1);
+        return (town.HPHY * getTownPop(town, year) * top) / bot;
+}
+
+function getDynamicEffort(town, x, y, year){
+        const effortBase = spatialEffort[town.id][y][x];
+        return getTownPop(town, year) * effortBase;
+}
+
+function calculateSpatialEffort(riverGrid){ //bake in town.HPHY multiplier to grid values
+        //get rivers 
+        //generate grid with cells containing rivers marked. Maybe with direction?
+        //per town, generate grid of 0's, run recursive findEffort
+        
+}
+
+function findEffort(){
+
+}
+
 function genHeatmapImg(scale, year, gradient){
         const gradientSteps = Math.floor(simData.carryCapacity) - 1;
         let imgData = new Uint8ClampedArray(((xSize - 1) * scale) * ((ySize - 1) * scale) * 4);
@@ -286,6 +317,88 @@ function genHeatmapImg(scale, year, gradient){
 
         const params = {width:(xSize - 1) * scale, height:(ySize - 1) * scale, year:year, dest:'heatmapImages'};
         self.postMessage({type:'imgData', params:params, data:imgData}, [imgData.buffer]);
+}
+
+function requestRiverFeatures(bounds){
+        const simPosition = [geoGrid[ySize - 1][0][0], geoGrid[ySize - 1][0][1], geoGrid[0][xSize - 1][0], geoGrid[0][xSize - 1][1]];
+        let riverRequest = new XMLHttpRequest();
+        riverRequest.addEventListener('load', function() {
+                let bbox = [simPosition[0], simPosition[1], simPosition[2], simPosition[3]];
+                let jsonResult = osmtogeojson(JSON.parse(riverRequest.responseText));
+                let reprojectResult = [];
+                for(let feature of jsonResult.features){
+                        let temp = [];
+                        turf.meta.coordEach(feature, function(cord){
+                                temp.push(proj4(proj4('espg4326'), proj4('mollweide'), cord));
+                        });
+                        let clippedFeature = turf.bboxClip(turf.helpers.lineString(temp), bbox);
+                        if(clippedFeature.geometry.coordinates.length){
+                                reprojectResult.push(clippedFeature);
+                        }
+                }
+                let riverGrid = findRiverCells(turf.helpers.featureCollection(reprojectResult));
+                calculateSpatialEffort(riverGrid);
+                runSimulation(bounds);
+        });
+        riverRequest.open('POST', 'https://overpass.kumi.systems/api/interpreter');
+        let leftCorner = proj4(proj4('mollweide'), proj4('espg4326'), [simPosition[0], simPosition[3]]);
+        let rightCorner = proj4(proj4('mollweide'), proj4('espg4326'), [simPosition[2], simPosition[1]]);
+        let posString = '(' + rightCorner[1] + ',' + leftCorner[0] + ',' + leftCorner[1] + ',' + rightCorner[0] + ');'
+        let query = '[out:json][timeout:25];' +
+                        '(node["waterway"="river"]' + posString +
+                        'way["waterway"="river"]' + posString + 
+                        'relation["waterway"="river"]' + posString +
+                        ');out body;>;out skel qt;';
+        console.log("query string: " + query);
+        riverRequest.send(query);
+}
+
+function findRiverCells(riverJSON){
+        let riverGrid = new Array(ySize);
+        for(let i = 0; i < ySize; i++)
+                riverGrid[i] = new Uint8Array(xSize).fill(0);
+
+       let cell = turf.helpers.polygon([[
+                [0,0],
+                [0,0],
+                [0,0],
+                [0,0],
+                [0,0]
+        ]]);
+        for(let y = 0; y < ySize - 1; y++){
+                for(let x = 0; x < xSize - 1; x++){
+                        if(riverGrid[y][x])
+                                continue;
+                        
+                        cell.geometry.coordinates[0][0] = geoGrid[y][x];
+                        cell.geometry.coordinates[0][1] = geoGrid[y][x+1];
+                        cell.geometry.coordinates[0][2] = geoGrid[y+1][x+1];
+                        cell.geometry.coordinates[0][3] = geoGrid[y+1][x];
+                        cell.geometry.coordinates[0][4] = geoGrid[y][x];
+                        /*
+                         = turf.helpers.polygon([[
+                                geoGrid[y][x],
+                                geoGrid[y][x+1],
+                                geoGrid[y+1][x+1],
+                                geoGrid[y+1][x],
+                                geoGrid[y][x]
+                        ]]);
+                        */
+
+                        for(let feature of riverJSON.features){        
+                                if(turf.booleanCrosses(cell, feature)){
+                                        riverGrid[y][x] = 1;
+                                        self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                                                points:[geoGrid[y][x], geoGrid[y][x+1], geoGrid[y+1][x+1], geoGrid[y+1][x]], color:[255, 255, 0, .5]
+                                        }});
+                                        break;
+                                }
+
+                        }
+                }
+        }
+
+        return riverGrid;
 }
 
 function setupGradient(){

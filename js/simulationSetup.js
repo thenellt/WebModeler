@@ -36,6 +36,7 @@ function setupSimDefaults(){
         simData.simName = "defaultName";
         simData.opacity = 1.0;
         simData.boundryWidth = 10;
+        simData.riverSim = false;
 }
 
 function readUserParameters(){
@@ -48,12 +49,12 @@ function readUserParameters(){
         simData.HpHy = checkParam('paramHphy', simData.HpHy, false);
         simData.huntRange = checkParam('rangeHphy', simData.huntRange, false);
 
-        var tempLow = document.getElementById("paramLowColor").value;
+        let tempLow = document.getElementById("paramLowColor").value;
         if(tempLow.length > 0){
                 simData.lowColorCode = tempLow;
         }
 
-        var tempHigh = document.getElementById("paramHighColor").value;
+        let tempHigh = document.getElementById("paramHighColor").value;
         if(tempHigh.length > 0){
                 simData.highColorCode = tempHigh;
         }
@@ -67,9 +68,14 @@ function readUserParameters(){
                 simData.threeColorMode = false;
         }
 
-        var tempName = document.getElementById("paramName").value;
+        let tempName = document.getElementById("paramName").value;
         if(tempName.length > 0){
                 simData.simName = tempName;
+        }
+
+        if(!document.getElementById("riverSimStrength").disabled){
+                simData.riverSim = checkParam('riverSimStrength', simData.riverSim, true);
+                console.log("river sim enabled: " + simData.riverSim);
         }
 
         simData.theta = checkParam('paramTheta', simData.theta, true);
@@ -171,7 +177,7 @@ function setupSimulation(){
         
         resetWorkerCount();
         completedImgCount = 0;
-        debugVector.setVisible(false);
+        //debugVector.setVisible(false);
         simulationTime = performance.now();
         $('#coverScreen').modal('open');
         debugSource.clear(true);
