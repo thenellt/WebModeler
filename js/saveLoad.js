@@ -151,6 +151,7 @@ function loadSimConfig(fileData){
         simData.diffusionSamples = config.diffusionSamples;
         simData.opacity = config.opacity || 1.0;
         simData.threeColorMode = config.threeColorMode;
+        
         if(simData.threeColorMode)
                 simData.midColorCode = config.midColorCode;
 
@@ -188,6 +189,12 @@ function loadSimConfig(fileData){
                 document.getElementById("enable3ColorMode").checked = false;
                 document.getElementById("paramMidColor").classList.add("disabled");
                 document.getElementById("midColorReset").classList.add("disabled");
+        }
+
+        if(simData.riverSim){
+                document.getElementById("riverSimStrength").value = simData.riverSim;
+                document.getElementById("enableRiverSim").checked = true;
+                document.getElementById("riverSimStrength").classList.remove("disabled");
         }
 }
 
@@ -252,6 +259,7 @@ function generateConfigObject(){
         saveObject.lowColorCode = simData.lowColorCode;
         saveObject.highColorCode = simData.highColorCode;
         saveObject.threeColorMode = simData.threeColorMode;
+        saveObject.riverSim = simData.riverSim;
         if(simData.threeColorMode)
                 saveObject.midColorCode = simData.midColorCode;
         saveObject.opacity = simData.opacity;

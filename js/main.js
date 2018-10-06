@@ -79,6 +79,9 @@ function resetSimulation(){
         document.getElementById("paramHighColor").value = "#f03b20";
         document.getElementById("diffSamples").value = "1";
         document.getElementById("boundryWidth").value = "10";
+        document.getElementById("riverSimStrength").value = "0.9";
+        document.getElementById("enableRiverSim").checked = false;
+        document.getElementById("riverSimStrength").classList.add("disabled");
 
         if(simulationRun){
                 simulationRun = 0;
@@ -177,6 +180,7 @@ function toggleRiverSim(value){
         if(value){
                 document.getElementById("riverSimStrength").disabled = false;
         } else {
+                simData.riverSim = false;
                 document.getElementById("riverSimStrength").disabled = true;
         }
 }

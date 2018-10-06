@@ -76,6 +76,8 @@ function readUserParameters(){
         if(!document.getElementById("riverSimStrength").disabled){
                 simData.riverSim = checkParam('riverSimStrength', simData.riverSim, true);
                 console.log("river sim enabled: " + simData.riverSim);
+        } else {
+                simData.riverSim = false;
         }
 
         simData.theta = checkParam('paramTheta', simData.theta, true);

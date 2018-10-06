@@ -1,6 +1,7 @@
 self.importScripts('./proj4js.js');
 self.importScripts('./osmtogeojson.js');
 self.importScripts('./turf.min.js');
+self.importScripts('./Queue.js');
 
 const eaProjection = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
 const viewProjection = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs ";
@@ -21,6 +22,7 @@ var eaPointSet;
 var points;
 var geoGrid;
 var spatialEffort;
+var riverGrid;
 
 onmessage = function(oEvent) {
         switch(oEvent.data.type){
@@ -224,7 +226,7 @@ function calculateModel(){
         let xEnd = xSize - 1;
         let yEnd = ySize - 1;
         var startTime, val, i, y, x, effortValue, offtakeValue, gridValue, settleNum;
-        var effortFunc = getStaticEffort;//simData.riverSim ? getDynamicEffort : getStaticEffort;
+        var effortFunc = simData.riverSim ? getDynamicEffort : getStaticTownEffort;
 
         for(let curYear = 0; curYear < simData.years; curYear++){
                 startTime = performance.now();
@@ -278,7 +280,7 @@ function calculateModel(){
         genExploitationImg(simData.years);
 }
 
-function getStaticEffort(town, x, y, year){
+function getStaticTownEffort(town, x, y, year){
         const locationValue = Math.pow(town.x - x, 2) + Math.pow(town.y - y, 2);
         const top = Math.exp((-1)/(2 * Math.pow(simData.huntRange, 2)) * locationValue);
         const bot = (2 * Math.PI) * Math.sqrt(locationValue + 1);
@@ -287,18 +289,93 @@ function getStaticEffort(town, x, y, year){
 
 function getDynamicEffort(town, x, y, year){
         const effortBase = spatialEffort[town.id][y][x];
-        return getTownPop(town, year) * effortBase;
+        return town.HPHY * getTownPop(town, year) * effortBase;
 }
 
-function calculateSpatialEffort(riverGrid){ //bake in town.HPHY multiplier to grid values
+function calculateSpatialEffort(){ //bake in town.HPHY multiplier to grid values
         //get rivers 
         //generate grid with cells containing rivers marked. Maybe with direction?
         //per town, generate grid of 0's, run recursive findEffort
+        /*
+        for each town
+                run spatial distribution adding to queue each river tile encountered
+        */
+        spatialEffort = {};
+        for(let town of towns){
+                spatialEffort[town.id] = new Array(ySize);
+                for(let i = 0; i < ySize - 1; i++)
+                        spatialEffort[town.id][i] = new Float32Array(xSize).fill(0.0);
+
+                //processRiverTiles(town, spatialEffort[town.id]);
+                let riverTileQueue = new Queue();
+                let startingStrenght = 1.0;
+                traceTown(startingStrenght, town.x, town.y, spatialEffort[town.id], riverTileQueue);
+                while(!riverTileQueue.isEmpty()){
+                        let temp = riverTileQueue.pop();
+                        traceTown(temp.strength, temp.x, temp.y, spatialEffort[town.id], riverTileQueue);
+                }
+        }
+}
+/*
+function processRiverTiles(town, effortGrid){
+        let riverTileQueue = new Queue();
+        let startingStrenght = 1.0;
+        traceTown(startingStrenght, town.x, town.y, effortGrid, riverTileQueue);
+        while(!riverTileQueue.isEmpty()){
+                let temp = riverTileQueue.pop();
+                traceTown(temp.strength, temp.x, temp.y, effortGrid, riverTileQueue);
+        }
+}
+*/
+function traceTown(strength, x, y, effortGrid, workQueue){
+        if(strength <= effortGrid[y][x])
+                return;
+        if(riverGrid[y+1][x] && strength * 0.9 > effortGrid[y+1][x]){
+                workQueue.push({x:x, y:y+1, strength:strength * 0.9})
+        }
+        if(riverGrid[y-1][x] && strength * 0.9 > effortGrid[y-1][x]){
+                workQueue.push({x:x, y:y-1, strength:strength * 0.9})
+        }
+        if(riverGrid[y][x+1] && strength * 0.9 > effortGrid[y][x+1]){
+                workQueue.push({x:x+1, y:y, strength:strength * 0.9})
+        }
+        if(riverGrid[y][x-1] && strength * 0.9 > effortGrid[y][x-1]){
+                workQueue.push({x:x-1, y:y, strength:strength * 0.9})
+        }
         
+        let r = simData.huntRange;
+        let str = strength;
+        /*
+        while(str > .05){
+
+        }
+        */
+        for (let i = y-r; i < y+r; i++) {
+                let condition = Math.pow(r, 2);
+                for (let j = x; Math.pow(j - x, 2) + Math.pow(i - y, 2) <= condition; j--) {
+                        let val = getCDFValue(x, y, j, i) / getCDFValue(x, y, x, y);
+                        if(riverGrid[i][j] && val > effortGrid[i][j]){
+                                workQueue.push({x:j, y:i, strength:val})
+                        } else {
+                                effortGrid[y][x] = val;
+                        }
+                }
+                for (let j = x + 1; (j - x) * (j - x) + (i - y) * (i - y) <= condition; j++) {
+                        let val = getCDFValue(x, y, j, i) / getCDFValue(x, y, x, y);
+                        if(riverGrid[i][j] && val > effortGrid[i][j]){
+                                workQueue.push({x:j, y:i, strength:val})
+                        } else {
+                                effortGrid[y][x] = val;
+                        }
+                }
+        }
 }
 
-function findEffort(){
-
+function getCDFValue(tx, ty, x, y){
+        const locationValue = Math.pow(tx - x, 2) + Math.pow(ty - y, 2);
+        const top = Math.exp((-1)/(2 * Math.pow(simData.huntRange, 2)) * locationValue);
+        const bot = (2 * Math.PI) * Math.sqrt(locationValue + 1);
+        return top / bot;
 }
 
 function genHeatmapImg(scale, year, gradient){
@@ -336,8 +413,8 @@ function requestRiverFeatures(bounds){
                                 reprojectResult.push(clippedFeature);
                         }
                 }
-                let riverGrid = findRiverCells(turf.helpers.featureCollection(reprojectResult));
-                calculateSpatialEffort(riverGrid);
+                findRiverCells(turf.helpers.featureCollection(reprojectResult));
+                calculateSpatialEffort();
                 runSimulation(bounds);
         });
         riverRequest.open('POST', 'https://overpass.kumi.systems/api/interpreter');
@@ -354,7 +431,7 @@ function requestRiverFeatures(bounds){
 }
 
 function findRiverCells(riverJSON){
-        let riverGrid = new Array(ySize);
+        riverGrid = new Array(ySize);
         for(let i = 0; i < ySize; i++)
                 riverGrid[i] = new Uint8Array(xSize).fill(0);
 
@@ -397,8 +474,6 @@ function findRiverCells(riverJSON){
                         }
                 }
         }
-
-        return riverGrid;
 }
 
 function setupGradient(){
