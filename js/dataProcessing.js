@@ -16,6 +16,8 @@ function setupResultsPages(){
         localAreaPictures = new Array(simRunData.years + 1);
         document.getElementById("heatmapOpacitySlider").value = simRunData.opacity * 100;
         $("#overlayPlayButton").off('click').click(overlayAnimation);
+        if(ChartMgr && ChartMgr._resultsChart)
+                ChartMgr._resultsChart.destroy();
         ChartMgr = new chartMgr();
         registerCharts();
 }

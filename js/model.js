@@ -67,10 +67,31 @@ function setupSim(parameters){
         }
         placeLocations();
         if(simData.riverSim){
-                self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Tracing Rivers", statusValue: 100});
-                requestRiverFeatures(bounds);
+                runRiverSimulation(bounds);
         } else {
                 runSimulation(bounds);
+        }
+}
+
+function runRiverSimulation(bounds){
+        self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Tracing Rivers", statusValue: 100});
+        if(riverGrid && simData.old && doParamsMatch()){
+                for(let y = 0; y < ySize - 1; y++){
+                        for(let x = 0; x < xSize - 1; x++){
+                                if(riverGrid[y][x]){
+                                        self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                                                points:[geoGrid[y][x], geoGrid[y][x+1], geoGrid[y+1][x+1], geoGrid[y+1][x]], color:[255, 255, 0, .5]
+                                        }});
+                                }
+                        }
+                }
+
+                calculateSpatialEffort();
+                runSimulation(bounds);
+        } else {
+                let newBounds = generateBounds(simData.huntRange, simData.boundryWidth);
+                generategeoGrid(newBounds);
+                requestRiverFeatures(newBounds);
         }
 }
 
@@ -88,9 +109,17 @@ function runSimulation(bounds){
 }
 
 function unpackParams(data){
-        //unpack towns and reproject them
         points = [];
-        simData = data.params;
+        if(simData){
+                let old = {
+                        params:JSON.parse(JSON.stringify(simData)),
+                        towns:JSON.parse(JSON.stringify(towns)),
+                };
+                simData = data.params;
+                simData.old = old;
+        } else {
+                simData = data.params;
+        }
         towns = data.towns;
         for(var g = 0; g < towns.length; g++)
                 points.push([towns[g].long, towns[g].lat]);
@@ -98,6 +127,33 @@ function unpackParams(data){
         eaPointSet = [];
         for(let i = 0; i < points.length; i++)
                 eaPointSet.push(proj4(proj4('espg4326'), proj4('mollweide'), points[i]));
+}
+
+function doParamsMatch(){
+        if(simData.boundryWidth != simData.old.params.boundryWidth)
+                return false;
+
+        let oldTowns = simData.old.towns;
+        if(towns.length != oldTowns.length)
+                return false;
+
+        for(let i = 0; i < towns.length; i++){
+                let match = false;
+                for(let j = 0; j < oldTowns.length; j++){
+                        if(towns[i].id == oldTowns[j].id){
+                                if(towns[i].long == oldTowns[j].long && towns[i].lat == oldTowns[j].lat){
+                                        match = true;
+                                } else {
+                                        return false;
+                                }
+                        }
+                }
+
+                if(!match)
+                        return false;
+        }
+
+        return true;
 }
 
 function allocateMemory(){
@@ -208,7 +264,7 @@ function placeLocations(){
                 x -= 1;
 
                 const coordinates = generateCircleCoords([geoGrid[y][x][0] + 500, geoGrid[y][x][1] - 500], simData.huntRange);
-                self.postMessage({type:'mapped', fnc:'circleDebug', data: {points:coordinates, color: [0, 0, 255, 1]}});
+                self.postMessage({type:'mapped', fnc:'circleDebug', data: {points:coordinates, color: [0, 0, 255, .4]}});
 
                 self.postMessage({type:'mapped', fnc:'extentDebug', data:{
                         points:[geoGrid[y][x], geoGrid[y][x+1], geoGrid[y+1][x+1], geoGrid[y+1][x]], color:[66, 134, 244, 1]
@@ -289,86 +345,96 @@ function getStaticTownEffort(town, x, y, year){
 
 function getDynamicEffort(town, x, y, year){
         const effortBase = spatialEffort[town.id][y][x];
-        return town.HPHY * getTownPop(town, year) * effortBase;
+        return town.HPHY * getTownPop(town, year) * effortBase * town.effortNormalizer;
 }
 
-function calculateSpatialEffort(){ //bake in town.HPHY multiplier to grid values
-        //get rivers 
-        //generate grid with cells containing rivers marked. Maybe with direction?
-        //per town, generate grid of 0's, run recursive findEffort
-        /*
-        for each town
-                run spatial distribution adding to queue each river tile encountered
-        */
+function calculateSpatialEffort(){
         spatialEffort = {};
         for(let town of towns){
                 spatialEffort[town.id] = new Array(ySize);
                 for(let i = 0; i < ySize - 1; i++)
                         spatialEffort[town.id][i] = new Float32Array(xSize).fill(0.0);
 
-                //processRiverTiles(town, spatialEffort[town.id]);
+                let effortTotal = 0.0;
+                for(y = 1; y < ySize - 1; y++){
+                        for(x = 1; x < xSize - 1; x++){
+                                const locationValue = Math.pow(town.x - x, 2) + Math.pow(town.y - y, 2);
+                                const top = Math.exp((-1)/(2 * Math.pow(simData.huntRange, 2)) * locationValue);
+                                const bot = (2 * Math.PI) * Math.sqrt(locationValue + 1);
+                                effortTotal += top / bot;
+                        }
+                }
+
                 let riverTileQueue = new Queue();
-                let startingStrenght = 1.0;
-                traceTown(startingStrenght, town.x, town.y, spatialEffort[town.id], riverTileQueue);
+                let riverEffortTotal = traceTown(1.0, town.x, town.y, spatialEffort[town.id], riverTileQueue);
+                
                 while(!riverTileQueue.isEmpty()){
-                        let temp = riverTileQueue.pop();
-                        traceTown(temp.strength, temp.x, temp.y, spatialEffort[town.id], riverTileQueue);
+                        let temp = riverTileQueue.dequeue();
+                        riverEffortTotal += traceTown(temp.strength, temp.x, temp.y, spatialEffort[town.id], riverTileQueue);
+                }
+                
+                town.effortNormalizer = effortTotal / riverEffortTotal;
+        }
+}
+
+function traceTown(strength, x, y, effortGrid, workQueue){
+        if(strength < 0.05 || strength < (effortGrid[y][x] * 0.9)){
+                return 0.0;
+        }
+
+        self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                points:[geoGrid[y][x], geoGrid[y][x+1], geoGrid[y+1][x+1], geoGrid[y+1][x]], color:[255, 0, 0, .6]
+        }});
+
+        let totalEffort = 0.0;
+        const rStrength = strength - (simData.riverSim / 100);
+        for(let i = y - 1; i < y + 2; i++){
+                for(let j = x - 1; j < x + 2; j++){
+                        if(i === y && j === x)
+                                continue;
+
+                        if(riverGrid[i][j] && rStrength > effortGrid[i][j]){
+                                totalEffort += rStrength;
+                                effortGrid[i][j] = rStrength;
+                                workQueue.enqueue({x:j, y:i, strength:rStrength});
+                        }
                 }
         }
-}
-/*
-function processRiverTiles(town, effortGrid){
-        let riverTileQueue = new Queue();
-        let startingStrenght = 1.0;
-        traceTown(startingStrenght, town.x, town.y, effortGrid, riverTileQueue);
-        while(!riverTileQueue.isEmpty()){
-                let temp = riverTileQueue.pop();
-                traceTown(temp.strength, temp.x, temp.y, effortGrid, riverTileQueue);
-        }
-}
-*/
-function traceTown(strength, x, y, effortGrid, workQueue){
-        if(strength <= effortGrid[y][x])
-                return;
-        if(riverGrid[y+1][x] && strength * 0.9 > effortGrid[y+1][x]){
-                workQueue.push({x:x, y:y+1, strength:strength * 0.9})
-        }
-        if(riverGrid[y-1][x] && strength * 0.9 > effortGrid[y-1][x]){
-                workQueue.push({x:x, y:y-1, strength:strength * 0.9})
-        }
-        if(riverGrid[y][x+1] && strength * 0.9 > effortGrid[y][x+1]){
-                workQueue.push({x:x+1, y:y, strength:strength * 0.9})
-        }
-        if(riverGrid[y][x-1] && strength * 0.9 > effortGrid[y][x-1]){
-                workQueue.push({x:x-1, y:y, strength:strength * 0.9})
-        }
-        
-        let r = simData.huntRange;
-        let str = strength;
-        /*
-        while(str > .05){
 
-        }
-        */
+        let r = Math.ceil(simData.huntRange * (1.8 * strength));
         for (let i = y-r; i < y+r; i++) {
+                if(i < 0 || i >= ySize)
+                        continue;
                 let condition = Math.pow(r, 2);
                 for (let j = x; Math.pow(j - x, 2) + Math.pow(i - y, 2) <= condition; j--) {
-                        let val = getCDFValue(x, y, j, i) / getCDFValue(x, y, x, y);
-                        if(riverGrid[i][j] && val > effortGrid[i][j]){
-                                workQueue.push({x:j, y:i, strength:val})
-                        } else {
-                                effortGrid[y][x] = val;
+                        if(j < 0 || j >= xSize)
+                                continue;
+                        let val = getCDFValue(x, y, j, i) * strength;
+                        if(riverGrid[i][j] && val >= effortGrid[i][j]){
+                                workQueue.enqueue({x:j, y:i, strength:val})
+                        }
+                        
+                        if(val > effortGrid[i][j]){
+                                effortGrid[i][j] = val;
+                                totalEffort += val;
                         }
                 }
                 for (let j = x + 1; (j - x) * (j - x) + (i - y) * (i - y) <= condition; j++) {
-                        let val = getCDFValue(x, y, j, i) / getCDFValue(x, y, x, y);
-                        if(riverGrid[i][j] && val > effortGrid[i][j]){
-                                workQueue.push({x:j, y:i, strength:val})
-                        } else {
-                                effortGrid[y][x] = val;
+                        if(j < 0 || j >= xSize)
+                                continue;
+                        let val = getCDFValue(x, y, j, i) * strength;
+                        if(riverGrid[i][j] && val >= effortGrid[i][j]){
+                                workQueue.enqueue({x:j, y:i, strength:val})
+                        } 
+                        
+                        if(val > effortGrid[i][j]){ //effortGrid[i][j] = val > effortGrid[i][j] ? val : effortGrid[i][j];
+                                effortGrid[i][j] = val;
+                                totalEffort += val;
                         }
                 }
         }
+
+        return totalEffort;
 }
 
 function getCDFValue(tx, ty, x, y){
@@ -409,7 +475,13 @@ function requestRiverFeatures(bounds){
                                 temp.push(proj4(proj4('espg4326'), proj4('mollweide'), cord));
                         });
                         let clippedFeature = turf.bboxClip(turf.helpers.lineString(temp), bbox);
-                        if(clippedFeature.geometry.coordinates.length){
+                        if(clippedFeature.geometry.type == "MultiLineString" && clippedFeature.geometry.coordinates.length){
+                                for(let line of clippedFeature.geometry.coordinates){
+                                        if(line.length > 1)
+                                                reprojectResult.push(turf.helpers.lineString(line));
+                                }
+                        }
+                        else if(clippedFeature.geometry.coordinates.length){
                                 reprojectResult.push(clippedFeature);
                         }
                 }
@@ -421,12 +493,10 @@ function requestRiverFeatures(bounds){
         let leftCorner = proj4(proj4('mollweide'), proj4('espg4326'), [simPosition[0], simPosition[3]]);
         let rightCorner = proj4(proj4('mollweide'), proj4('espg4326'), [simPosition[2], simPosition[1]]);
         let posString = '(' + rightCorner[1] + ',' + leftCorner[0] + ',' + leftCorner[1] + ',' + rightCorner[0] + ');'
-        let query = '[out:json][timeout:25];' +
-                        '(node["waterway"="river"]' + posString +
-                        'way["waterway"="river"]' + posString + 
-                        'relation["waterway"="river"]' + posString +
-                        ');out body;>;out skel qt;';
-        console.log("query string: " + query);
+        let query = '[out:json][timeout:25];' + '(node["waterway"="river"]' + posString +
+                    'way["waterway"="river"]' + posString + 'relation["waterway"="river"]' + 
+                    posString + ');out body;>;out skel qt;';
+        logMessage("Overpass query string: " + query);
         riverRequest.send(query);
 }
 

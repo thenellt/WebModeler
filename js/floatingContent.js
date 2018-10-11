@@ -334,7 +334,9 @@ function showAdvancedSettings(){
                 paramLowColor: document.getElementById("paramLowColor").value,
                 paramHighColor: document.getElementById("paramHighColor").value,
                 diffSamples: document.getElementById("diffSamples").value,
-                boundryWidth: document.getElementById("boundryWidth").value
+                boundryWidth: document.getElementById("boundryWidth").value,
+                riverSimEnable: document.getElementById("enableRiverSim").checked,
+                riverSim: document.getElementById("riverSimStrength").value,
         }
 
         if(document.getElementById("enable3ColorMode").checked){
@@ -361,6 +363,27 @@ function closeAdvancedSettings(clear){
                         document.getElementById("enable3ColorMode").checked = false;
                         document.getElementById("paramMidColor").classList.add("disabled");
                         document.getElementById("midColorReset").classList.add("disabled");
+                }
+
+                if(advSettingsBackup.riverSimEnable){
+                        document.getElementById("enableRiverSim").checked = true;
+                        document.getElementById("riverSimStrength").disabled = false;
+                        document.getElementById("riverSimStrength").value = advSettingsBackup.riverSim;
+                } else {
+                        document.getElementById("enableRiverSim").checked = false;
+                        document.getElementById("riverSimStrength").disabled = true;
+                        document.getElementById("riverSimStrength").value = 6;
+                }
+        } else if(document.getElementById("enableRiverSim").checked){
+                let temp = parseFloat(document.getElementById("riverSimStrength").value);
+                if(temp < 2){
+                        let title = "River Strength Warning";
+                        let msg = "River falloff values below 2 usually result in a crash if there are any populated rivers which run past the edges of the simulation bounds.";
+                        modalDialog(title, msg);
+                } else if(temp > 30){
+                        let title = "River Strength Warning";
+                        let msg = "River falloff values above 30 typically produce the same distributions as when river simulation is disabled except with less accurate results.";
+                        modalDialog(title, msg);
                 }
         }
         

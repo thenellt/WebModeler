@@ -219,7 +219,12 @@ function resultsMapClick(e){
         var tempFeatures = [];
         map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
                 tempFeatures.push(feature);
-        }, {hitTolerance: 3});
+        }, {
+                hitTolerance: 3,
+                layerFilter: function(layer){
+                        return layer === pointVector;
+                }
+        });
 
         if(tempFeatures.length){
                 map.getView().animate({center:tempFeatures[0].getGeometry().getCoordinates(), zoom: 11, duration:500});

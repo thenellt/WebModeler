@@ -62,23 +62,25 @@ class chartMgr {
                 if(this._resultsChart)
                         this._resultsChart.destroy();
 
-                if(this._currentConfig.isSplit){
-                        $('#localAreaPictureContainer').css('display', 'inline-block');
-                        chartElement.width = 550;
-                        chartElement.height = 500;
-                } else {
-                        $('#localAreaPictureContainer').css('display', 'none');
-                        chartElement.width = 800;
-                        chartElement.height = 500;
-                }
-                let ctx = chartElement.getContext('2d');
-                this._resultsChart = this._currentConfig.createGraph(ctx);
-                if(this._currentConfig.changeSelection){
-                        this.changeSelected();
-                } else if(this._currentConfig.changeYear){
-                        this._currentYear -= 1;
-                        this.changeYear(true);
-                }
+                setTimeout(function(ref){
+                        if(ref._currentConfig.isSplit){
+                                $('#localAreaPictureContainer').css('display', 'inline-block');
+                                chartElement.width = 550;
+                                chartElement.height = 500;
+                        } else {
+                                $('#localAreaPictureContainer').css('display', 'none');
+                                chartElement.width = 800;
+                                chartElement.height = 500;
+                        }
+                        let ctx = chartElement.getContext('2d');
+                        ref._resultsChart = ref._currentConfig.createGraph(ctx);
+                        if(ref._currentConfig.changeSelection){
+                                ref.changeSelected();
+                        } else if(ref._currentConfig.changeYear){
+                                ref._currentYear -= 1;
+                                ref.changeYear(true);
+                        }
+                }, 50, this);
         }
 
         playAnimation(){
@@ -113,7 +115,8 @@ class chartMgr {
 
         saveImg(){
                 const selected = this._currentConfig.selected;
-                var name;
+                let name;
+                let temp;
                 switch(this._currentConfigType){
                 case "Entire Map CDF":
                         name = "year" + this._currentYear + "_entireMapCDF.png";
@@ -123,13 +126,13 @@ class chartMgr {
                         name += "_range" + this._currentConfig.range + "_localCDF.png"
                         break;
                 case "Settlement Offtake":
-                        let temp = selected in simRunData.townsByID ? simRunData.townsByID[selected].name : selected;
+                        temp = selected in simRunData.townsByID ? simRunData.townsByID[selected].name : selected;
                         name = temp + "_offtake.png";
                         break;
                 case "Exploitation":
                         return;
                 case "Catch/Unit Effort":
-                        let temp = selected in simRunData.townsByID ? simRunData.townsByID[selected].name : selected;
+                        temp = selected in simRunData.townsByID ? simRunData.townsByID[selected].name : selected;
                         name = temp + "_CPUE.png";
                         break;
                 }

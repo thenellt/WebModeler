@@ -179,7 +179,7 @@ function setupSimulation(){
         
         resetWorkerCount();
         completedImgCount = 0;
-        //debugVector.setVisible(false);
+        debugVector.setVisible(false);
         simulationTime = performance.now();
         $('#coverScreen').modal('open');
         debugSource.clear(true);

@@ -151,6 +151,7 @@ function loadSimConfig(fileData){
         simData.diffusionSamples = config.diffusionSamples;
         simData.opacity = config.opacity || 1.0;
         simData.threeColorMode = config.threeColorMode;
+        simData.riverSim = config.riverSim;
         
         if(simData.threeColorMode)
                 simData.midColorCode = config.midColorCode;
@@ -193,8 +194,8 @@ function loadSimConfig(fileData){
 
         if(simData.riverSim){
                 document.getElementById("riverSimStrength").value = simData.riverSim;
+                document.getElementById("riverSimStrength").disabled = false;
                 document.getElementById("enableRiverSim").checked = true;
-                document.getElementById("riverSimStrength").classList.remove("disabled");
         }
 }
 

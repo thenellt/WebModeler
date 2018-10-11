@@ -1,3 +1,4 @@
+10/9/18 v34 - Experimental support for simulating the impact of rivers on effort distribution. \n
 9/4/18 v33a & b - Redesigned and added more graphs as well as moved the other info table. \n
 8/20/18 v32 - Start/stop for all animations and layer information panel. \n
 8/19/18 v31 - Image generation is now multithreaded. \n
