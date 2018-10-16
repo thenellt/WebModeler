@@ -380,6 +380,13 @@ function closeAdvancedSettings(clear){
                         let title = "River Strength Warning";
                         let msg = "River falloff values below 2 usually result in a crash if there are any populated rivers which run past the edges of the simulation bounds.";
                         modalDialog(title, msg);
+                } else if(temp < 10) {
+                        let boundry = parseInt(document.getElementById("boundryWidth").value, 10);
+                        if(boundry && boundry <= 10){
+                                let title = "River Strength Warning";
+                                let msg = "Using river falloff values below 10 without a larger Boundry Width is not recommended and often results in a crash.";
+                                modalDialog(title, msg);
+                        }
                 } else if(temp > 30){
                         let title = "River Strength Warning";
                         let msg = "River falloff values above 30 typically produce the same distributions as when river simulation is disabled except with less accurate results.";
@@ -454,5 +461,70 @@ function toggleOverlaySelect(btn, isClose){
         } else {
                 $('#layerSelector').addClass("scale-out").removeClass('scale-in');
                 $('#overlaySelectionBtn').css('background-color', '#26a69a');
+        }
+}
+
+function populatePresets(){
+        let container = document.getElementById('presetsContainer');
+
+        for(let preset of presets){
+                let containerDiv = document.createElement('li');
+                
+                let topRowContainer = document.createElement('div');
+                topRowContainer.className = "collapsible-header";
+                topRowContainer.style.cssText = "padding: 2px 2px 0px 2px;";
+                
+                let topRow = document.createElement('div');
+                topRow.className = "row";
+                topRow.style.marginTop = "8px";
+                topRow.style.marginBottom = "8px";
+                
+                let animalContainer = document.createElement('div');
+                animalContainer.className = "col s4";
+                animalContainer.innerHTML = "<strong> Species: </strong>" + preset.species;
+                
+                let locationContainer = document.createElement('div');
+                locationContainer.className = "col s4";
+                locationContainer.innerHTML = "<strong> Location: </strong>" + preset.location;
+                
+                let yearContainer = document.createElement('div');
+                yearContainer.className = "col s2";
+                yearContainer.innerHTML = "<strong> Year: </strong>" + preset.year;
+
+                let loadContainer = document.createElement('div');
+                loadContainer.className = "col s2";
+                let loadButton = document.createElement('a');
+                loadButton.className = "waves-effect waves-light btn";
+                loadButton.innerHTML = "Load";
+                loadButton.onclick = function() {confirmPresetLoad(preset.name);};
+                loadContainer.appendChild(loadButton);
+
+                topRow.appendChild(animalContainer);
+                topRow.appendChild(locationContainer);
+                topRow.appendChild(yearContainer);
+                topRow.appendChild(loadContainer);
+                topRowContainer.appendChild(topRow);
+
+                let botRowContainer = document.createElement('div');
+                botRowContainer.className = "collapsible-body";
+                botRowContainer.style.cssText = "padding: 8px 2px 0px 2px;";
+
+                let botRow = document.createElement('div');
+                botRow.className = "row";
+                botRow.style.cssText = "margin-bottom: 8px;";
+
+                let sourceContainer = document.createElement('div');
+                sourceContainer.className = "col s12";
+                sourceContainer.style.marginTop = '8px';
+                sourceContainer.innerHTML = '<strong> Source: <a href="' + preset.sourceAddress;
+                sourceContainer.innerHTML += '" target="_blank">'+ preset.sourceName + '</a></strong>';
+                
+                botRow.appendChild(sourceContainer);
+                botRowContainer.appendChild(botRow);
+
+                containerDiv.appendChild(topRowContainer);
+                containerDiv.appendChild(botRowContainer);
+
+                container.appendChild(containerDiv);
         }
 }

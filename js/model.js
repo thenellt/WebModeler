@@ -390,6 +390,8 @@ function traceTown(strength, x, y, effortGrid, workQueue){
         const rStrength = strength - (simData.riverSim / 100);
         for(let i = y - 1; i < y + 2; i++){
                 for(let j = x - 1; j < x + 2; j++){
+                        if(i < 0 || i >=ySize || j < 0 || j >= xSize)
+                                continue;
                         if(i === y && j === x)
                                 continue;
 

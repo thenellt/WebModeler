@@ -26,6 +26,7 @@ $(document).ready(function() {
         setupTabSystem();
         checkCompatibility();
         setupWorkers();
+        populatePresets();
 });
 
 function initApp(fullSupport){
