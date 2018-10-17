@@ -32,6 +32,7 @@ var fileNames = [
         './js/jimp.min.js',
         './js/imgWorker.js',
         './js/Queue.js',
+        './js/presets.json',
         './css/materialize.min.css',
         './css/otherStyle.css',
         './css/table.css',
@@ -126,7 +127,6 @@ self.addEventListener('fetch', function (evt) {
                                         return response;
                                 } else {
                                         return fetch(evt.request).then(function (response) {
-                                                console.log('fetch: ' + evt.request.url);
                                                 if(response.status === 200 || response.type == "opaque"){
                                                         return response;
                                                 } else {

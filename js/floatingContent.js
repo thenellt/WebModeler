@@ -465,66 +465,120 @@ function toggleOverlaySelect(btn, isClose){
 }
 
 function populatePresets(){
-        let container = document.getElementById('presetsContainer');
+        let processFunction = function(presets){
+                let container = document.getElementById('presetsContainer');
 
-        for(let preset of presets){
-                let containerDiv = document.createElement('li');
-                
-                let topRowContainer = document.createElement('div');
-                topRowContainer.className = "collapsible-header";
-                topRowContainer.style.cssText = "padding: 2px 2px 0px 2px;";
-                
-                let topRow = document.createElement('div');
-                topRow.className = "row";
-                topRow.style.marginTop = "8px";
-                topRow.style.marginBottom = "8px";
-                
-                let animalContainer = document.createElement('div');
-                animalContainer.className = "col s4";
-                animalContainer.innerHTML = "<strong> Species: </strong>" + preset.species;
-                
-                let locationContainer = document.createElement('div');
-                locationContainer.className = "col s4";
-                locationContainer.innerHTML = "<strong> Location: </strong>" + preset.location;
-                
-                let yearContainer = document.createElement('div');
-                yearContainer.className = "col s2";
-                yearContainer.innerHTML = "<strong> Year: </strong>" + preset.year;
+                for(let preset of presets){
+                        let containerDiv = document.createElement('li');
+                        
+                        let topRowContainer = document.createElement('div');
+                        topRowContainer.className = "collapsible-header";
+                        topRowContainer.style.cssText = "padding: 2px 2px 0px 2px;";
+                        
+                        let topRow = document.createElement('div');
+                        topRow.className = "row";
+                        topRow.style.marginBottom = "0px";
 
-                let loadContainer = document.createElement('div');
-                loadContainer.className = "col s2";
-                let loadButton = document.createElement('a');
-                loadButton.className = "waves-effect waves-light btn";
-                loadButton.innerHTML = "Load";
-                loadButton.onclick = function() {confirmPresetLoad(preset.name);};
-                loadContainer.appendChild(loadButton);
+                        let descriptContainer = document.createElement('div');
+                        descriptContainer.className = "col s12";
+                        let description = document.createElement('h5');
+                        description.innerHTML = preset.info;
+                        descriptContainer.appendChild(description);
 
-                topRow.appendChild(animalContainer);
-                topRow.appendChild(locationContainer);
-                topRow.appendChild(yearContainer);
-                topRow.appendChild(loadContainer);
-                topRowContainer.appendChild(topRow);
+                        let infoRow = document.createElement('div');
+                        infoRow.className = "row";
+                        infoRow.style.marginTop = "0px";
+                        infoRow.style.marginBottom = "0px";
+                        
+                        let animalContainer = document.createElement('div');
+                        animalContainer.className = "col s5";
+                        animalContainer.innerHTML = "<strong> Species: </strong>" + preset.species;
+                        
+                        let locationContainer = document.createElement('div');
+                        locationContainer.className = "col s5";
+                        locationContainer.innerHTML = "<strong> Location: </strong>" + preset.location;
+                        
+                        let yearContainer = document.createElement('div');
+                        yearContainer.className = "col s2";
+                        yearContainer.innerHTML = "<strong> Year: </strong>" + preset.year;
 
-                let botRowContainer = document.createElement('div');
-                botRowContainer.className = "collapsible-body";
-                botRowContainer.style.cssText = "padding: 8px 2px 0px 2px;";
+                        topRow.appendChild(descriptContainer);
+                        infoRow.appendChild(animalContainer);
+                        infoRow.appendChild(locationContainer);
+                        infoRow.appendChild(yearContainer);
+                        topRowContainer.appendChild(topRow);
+                        topRowContainer.appendChild(infoRow);
 
-                let botRow = document.createElement('div');
-                botRow.className = "row";
-                botRow.style.cssText = "margin-bottom: 8px;";
+                        let botRowContainer = document.createElement('div');
+                        botRowContainer.className = "collapsible-body";
+                        botRowContainer.style.cssText = "padding: 8px 2px 0px 2px;";
 
-                let sourceContainer = document.createElement('div');
-                sourceContainer.className = "col s12";
-                sourceContainer.style.marginTop = '8px';
-                sourceContainer.innerHTML = '<strong> Source: <a href="' + preset.sourceAddress;
-                sourceContainer.innerHTML += '" target="_blank">'+ preset.sourceName + '</a></strong>';
-                
-                botRow.appendChild(sourceContainer);
-                botRowContainer.appendChild(botRow);
+                        if(preset.notes){
+                                let noteRow = document.createElement('div');
+                                noteRow.className = "row";
+                                noteRow.style.cssText = "margin-bottom: 12px;";
 
-                containerDiv.appendChild(topRowContainer);
-                containerDiv.appendChild(botRowContainer);
+                                let notes = document.createElement('div');
+                                notes.className = "col s12";
+                                notes.innerHTML = '<strong>Notes: </strong>' + preset.notes;
+                                
+                                noteRow.appendChild(notes);
+                                botRowContainer.appendChild(noteRow);
+                        }
 
-                container.appendChild(containerDiv);
+                        for(let configNum in preset.configs){
+                                let configRow = document.createElement('div');
+                                configRow.className = "row";
+                                configRow.style.cssText = "margin-bottom: 8px;";
+
+                                let nameContainer = document.createElement('div');
+                                nameContainer.className = "col s10";
+                                nameContainer.innerHTML = preset.configNames[configNum];
+
+                                let loadContainer = document.createElement('div');
+                                loadContainer.className = "col s2";
+                                let loadButton = document.createElement('a');
+                                loadButton.className = "waves-effect waves-light btn";
+                                loadButton.innerHTML = "Load";
+                                loadButton.onclick = function() {promptForPreset(preset.configs[configNum]);};
+                                loadContainer.appendChild(loadButton);
+
+                                configRow.appendChild(nameContainer);
+                                configRow.appendChild(loadContainer);
+                                botRowContainer.appendChild(configRow);
+                        }
+
+                        let sourceRow = document.createElement('div');
+                        sourceRow.className = "row";
+                        sourceRow.style.cssText = "margin-bottom: 8px;";
+
+                        let sourceContainer = document.createElement('div');
+                        sourceContainer.className = "col s12";
+                        sourceContainer.style.marginTop = '8px';
+                        let source = document.createElement('a');
+                        source.setAttribute('href', preset.sourceAddress);
+                        source.setAttribute('target', "_blank");
+                        source.appendChild(document.createTextNode(preset.sourceName));
+                        sourceContainer.appendChild(source);
+                        
+                        sourceRow.appendChild(sourceContainer);
+                        botRowContainer.appendChild(sourceRow);
+
+                        containerDiv.appendChild(topRowContainer);
+                        containerDiv.appendChild(botRowContainer);
+
+                        container.appendChild(containerDiv);
+                }
         }
+
+        let xobj = new XMLHttpRequest();
+        xobj.overrideMimeType("application/json");
+        xobj.open('GET', './js/presets.json', true);
+        xobj.onreadystatechange = function () {
+                if (xobj.readyState == 4 && xobj.status == "200") {
+                        console.log("got presets");
+                        processFunction(JSON.parse(xobj.responseText));
+                }
+        };
+        xobj.send(null);  
 }

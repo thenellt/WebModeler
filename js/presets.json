@@ -1,3 +1,67 @@
-{
-    
-}
+[
+    {
+        "species":"Black Spider Monkeys",
+        "location":"South-Eastern Peru",
+        "year":"2009",
+        "info":"Manu National Park",
+        "sourceName":"Levi, T. , Shepard Jr, G. H., Ohl‐Schacherer, J. , Peres, C. A. and Yu, D. W. (2009), Modelling the long‐term sustainability of indigenous hunting in Manu National Park, Peru: landscape‐scale management implications for Amazonia.",
+        "sourceAddress":"https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/j.1365-2664.2009.01661.x",
+        "configNames":["Bow Hunting", "Gun Hunting - Low Estimate", "Gun Hunting - High Estimate"],
+        "configs":[{
+            "paramCarry":25.0,
+            "paramDifRate":0.1,
+            "paramGrowthRate":0.07,
+            "paramEncounterRate":0.02043,
+            "paramKillProb":0.1,
+            "paramHphy":40,
+            "rangeHphy":5,
+            "paramTheta":1
+        },{
+            "paramCarry":25.0,
+            "paramDifRate":0.1,
+            "paramGrowthRate":0.07,
+            "paramEncounterRate":0.02043,
+            "paramKillProb":0.9,
+            "paramHphy":40,
+            "rangeHphy":5,
+            "paramTheta":1
+        },{
+            "paramCarry":25.0,
+            "paramDifRate":0.1,
+            "paramGrowthRate":0.07,
+            "paramEncounterRate":0.02043,
+            "paramKillProb":1.7,
+            "paramHphy":40,
+            "rangeHphy":5,
+            "paramTheta":1
+        }]
+    },{
+        "species":"Multiple",
+        "location":"Southern Guyana",
+        "year":"2017",
+        "info":"Konashen Community‐Owned Conservation Area",
+        "sourceName":"Shaffer, C. A., Milstein, M. S., Yukuma, C. , Marawanaru, E. and Suse, P. (2017), Sustainability and comanagement of subsistence hunting in an indigenous reserve in Guyana.",
+        "sourceAddress":"https://onlinelibrary.wiley.com/doi/full/10.1111/cobi.12891",
+        "notes":"The observed kill rate of 0.9 is used but 1.5 is the conservative estimate.",
+        "configNames":["Bearded Sakis (<i>Chiropotes sagulatus</i>)", "Spider Monkeys (<i>Ateles paniscus</i>)"],
+        "configs":[{
+            "paramCarry":25.0,
+            "paramDifRate":0.2,
+            "paramGrowthRate":0.12,
+            "paramEncounterRate":0.02043,
+            "paramKillProb":0.9,
+            "paramHphy":24,
+            "rangeHphy":6,
+            "paramTheta":1
+        },{
+            "paramCarry":10.0,
+            "paramDifRate":0.1,
+            "paramGrowthRate":0.07,
+            "paramEncounterRate":0.02043,
+            "paramKillProb":0.9,
+            "paramHphy":24,
+            "rangeHphy":6,
+            "paramTheta":1
+        }]
+    }
+]

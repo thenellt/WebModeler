@@ -10,7 +10,7 @@ var workerPool;
 var completedImgCount;
 
 $(document).ready(function() {
-        $('#projBackground, #changelogPopup, #popImportDialog').modal();
+        $('#projBackground, #changelogPopup, #popImportDialog, #presetDialog').modal();
         $('#yearlyPopEditor, #coverScreen, #fullScreenMap, #sysDialog').modal({dismissible: false});
         $('#advancedSettings').modal({dismissible: false, ready: showAdvancedSettings});
         $('#popDropDown').dropdown({inDuration: 75, outDuration: 25,});
@@ -241,7 +241,6 @@ function showProgressBar(message, value){
 
 function updateProgressBar(message, value){
         document.getElementById("progressText").innerHTML = message;
-        document.getElementById("progressBar").style.width = value + "%";
         if(value === 100 && progBarDet){
                 progBarDet = false;
                 $('#progressBar').css({'width': ""}).removeClass('determinate').addClass('indeterminate');
@@ -316,22 +315,14 @@ function promptForReset(){
         modalConfirmation(title, msg, resetSimulation);
 }
 
-function promptForDefaults(){
-        const title = "Confirm Overwriting all Settings";
-        const msg = "Selecting OK will result in all settings and advanced settings being overwritten with default values. This does not impact population data."
-        modalConfirmation(title, msg, populateDefaultValues);
+function promptForPreset(config){
+        const title = "Overwrite Simulation Parameters";
+        const msg = "Upon confirmation all parameters will be overwritten. This does not impact populations.";
+        modalConfirmation(title, msg, function(){populateDefaultValues(config)});
 }
 
-function populateDefaultValues(){
+function populateDefaultValues(config){
         document.getElementById("paramYears").value = "10";
-        document.getElementById("paramCarry").value = "25.0";
-        document.getElementById("paramDifRate").value = "0.1";
-        document.getElementById("paramGrowthRate").value = "0.07";
-        document.getElementById("paramEncounterRate").value = "0.02043";
-        document.getElementById("paramKillProb").value = "0.1";
-        document.getElementById("paramHphy").value = "40";
-        document.getElementById("rangeHphy").value = "5";
-        document.getElementById("paramTheta").value = "1";
         document.getElementById("paramLowColor").value = "#ffeda0";
         document.getElementById("paramHighColor").value = "#f03b20";
         document.getElementById("diffSamples").value = "1";
@@ -340,6 +331,12 @@ function populateDefaultValues(){
         document.getElementById("riverSimStrength").value ="6";
         document.getElementById("riverSimStrength").disabled = true;
         document.getElementById("enableRiverSim").checked = false;
+
+        for(let param of Object.keys(config)){
+                document.getElementById(param).value = config[param];
+        }
+
+        $('#presetDialog').modal('close');
 }
 
 function checkSettings(){
@@ -423,12 +420,6 @@ function checkInt(rawValue, min, max){
         }
         
         return false;
-}
-
-function verifyUpdate(){
-        modalConfirmation("Update Avaliable", "Refresh the page to activate the update?.", function(){
-                window.location.reload();
-        });
 }
 
 function updateOnlineStatus(isOnline){

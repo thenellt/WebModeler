@@ -329,7 +329,7 @@ function calculateModel(){
                 }
                 genHeatmapImg(3, curYear, gradient);
                 genExploitationImg(curYear);
-                self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Finished Year " + curYear, statusValue: curYear});
+                self.postMessage({type:'mapped', fnc:'progress', statusMsg:"Simulating Year " + curYear, statusValue: 100 * (curYear / simData.years)});
                 calcTimes[curYear] = performance.now() - startTime;
         }
         genHeatmapImg(3, simData.years, gradient);
@@ -366,18 +366,18 @@ function calculateSpatialEffort(){
                 }
 
                 let riverTileQueue = new Queue();
-                let riverEffortTotal = traceTown(1.0, town.x, town.y, spatialEffort[town.id], riverTileQueue);
+                let riverEffortTotal = processSquare(1.0, town.x, town.y, spatialEffort[town.id], riverTileQueue);
                 
                 while(!riverTileQueue.isEmpty()){
                         let temp = riverTileQueue.dequeue();
-                        riverEffortTotal += traceTown(temp.strength, temp.x, temp.y, spatialEffort[town.id], riverTileQueue);
+                        riverEffortTotal += processSquare(temp.strength, temp.x, temp.y, spatialEffort[town.id], riverTileQueue);
                 }
                 
                 town.effortNormalizer = effortTotal / riverEffortTotal;
         }
 }
 
-function traceTown(strength, x, y, effortGrid, workQueue){
+function processSquare(strength, x, y, effortGrid, workQueue){
         if(strength < 0.05 || strength < (effortGrid[y][x] * 0.9)){
                 return 0.0;
         }
