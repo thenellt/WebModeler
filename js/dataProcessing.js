@@ -34,7 +34,7 @@ function createGradient(){
         const lowColor = 'rgb(' + grad[0][0] + ',' + grad[0][1] + ',' + grad[0][2] + ')';
         var stops = [{offset:'0%', 'stop-color':lowColor}];
         if(simRunData.threeColorMode){
-                const pos = (Math.floor(simData.carryCapacity) - 1)/2;
+                const pos = Math.floor((simData.carryCapacity - 1)/2);
                 const midColor = 'rgb(' + grad[pos][0] + ',' + grad[pos][1] + ',' + grad[pos][2] + ')';
                 stops.push({offset:'50%','stop-color':midColor});
         }

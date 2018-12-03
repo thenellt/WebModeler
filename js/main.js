@@ -180,10 +180,10 @@ function changeToOutput(){
 
 function toggleRiverSim(isEnabled){
         if(isEnabled){
-                $('#riverFalloffContainer, #effortDistContainer').removeClass("hide");
+                $('#riverFalloffContainer, #effortDistContainer, #riverSpeedContainer').removeClass("hide");
         } else {
-                simData.riverSim = false;
-                $('#riverFalloffContainer, #effortDistContainer').addClass("hide");
+                simData.maxRDist = false;
+                $('#riverFalloffContainer, #effortDistContainer, #riverSpeedContainer').addClass("hide");
         }
 }
 
@@ -327,9 +327,10 @@ function populateDefaultValues(config){
         document.getElementById("diffSamples").value = "1";
         document.getElementById("boundryWidth").value = "10";
         document.getElementById("paramName").focus();
-        document.getElementById("riverSimStrength").value ="6";
-        document.getElementById("riverSimStrength").disabled = true;
+        document.getElementById("riverSimRange").value ="6";
+        document.getElementById("effortDistSlider").value = 50;
         document.getElementById("enableRiverSim").checked = false;
+        toggleRiverSim(false);
 
         for(let param of Object.keys(config)){
                 document.getElementById(param).value = config[param];

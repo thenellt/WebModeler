@@ -66,7 +66,7 @@ function setupSim(parameters){
                 return;
         }
         placeLocations();
-        if(simData.riverSim){
+        if(simData.maxRDist){
                 runRiverSimulation(bounds);
         } else {
                 runSimulation(bounds);
@@ -85,8 +85,8 @@ function runRiverSimulation(bounds){
                                 }
                         }
                 }
-
-                calculateSpatialEffort();
+                calcNewSpatialEffort();
+                //calculateSpatialEffort();
                 runSimulation(bounds);
         } else {
                 let newBounds = generateBounds(simData.huntRange, simData.boundryWidth);
@@ -282,7 +282,7 @@ function calculateModel(){
         let xEnd = xSize - 1;
         let yEnd = ySize - 1;
         var startTime, val, i, y, x, effortValue, offtakeValue, gridValue, settleNum;
-        var effortFunc = simData.riverSim ? getDynamicEffort : getStaticTownEffort;
+        var effortFunc = simData.maxRDist ? getDynamicEffort : getStaticTownEffort;
 
         for(let curYear = 0; curYear < simData.years; curYear++){
                 startTime = performance.now();
@@ -344,9 +344,7 @@ function getStaticTownEffort(town, x, y, year){
 }
 
 function getDynamicEffort(town, x, y, year){
-        const walkEffect = getStaticTownEffort(town, x, y, year);
-        const riverEffect = town.HPHY * getTownPop(town, year) * spatialEffort[town.id][y][x];
-        return (walkEffect * (simData.effortDist / 100)) + riverEffect; 
+        return town.HPHY * getTownPop(town, year) * spatialEffort[town.id][y][x];
 }
 
 function calcNewSpatialEffort(){
@@ -357,24 +355,51 @@ function calcNewSpatialEffort(){
                         spatialEffort[town.id][i] = new Float32Array(xSize).fill(0.0);
 
                 let cellRecord = findAdjRiverCells(town.x, town.y); 
-                let cellList = new Array(simData.maxDistance);
-                for(let lookupY in cellRecord){
-                        for(let lookupX in cellRecord[lookupY]){
-                                if(!cellList[cellRecord[lookupY][lookupX]]){
-                                        cellList[cellRecord[lookupY][lookupX]] = new Array();
+                let cellList = new Array(simData.maxRDist);
+                for(const [yKey, yValue] of cellRecord){
+                        for(const [xKey, xValue] of yValue){
+                                if(!cellList[xValue]){
+                                        cellList[xValue] = new Array();
                                 }
-                                cellList[cellRecord[lookupY][lookupX]].push({x:lookupX, y:lookupY});
+                                cellList[xValue].push({x:xKey, y:yKey});
                         }
                 }
 
-                for(let dist in cellList){
-                        const length = cellList[dist].length;
-                        for(let item of cellList[dist]){
-                                const distFactor = 1;
-                                calcRiverEffect(item.x, item.y, distFactor, town);
+                let dynamicEffortTotal = 0.0;
+                //add walking effect to hunting lookup table
+                dynamicEffortTotal += applyTownEffect(town.x, town.y, simData.effortDist, town, simData.huntRange);
+
+                const sigma = Math.sqrt((-1 * simData.maxRDist * simData.maxRDist) / (2 * Math.log(.05)));
+                //add river hunting effects
+                for(let distance = 1; distance < cellList.length; distance++){
+                        const cellCountFactor = 1 / cellList[distance].length;
+                        const distFactor = rayleighCDF(sigma, distance) - rayleighCDF(sigma, distance - 1);
+                        const strengthMultiplier = cellCountFactor * distFactor * (1 - simData.effortDist);
+                        const landRange = (((simData.huntRange * simData.speedRatio) - distance) / (simData.huntRange * simData.speedRatio)) * simData.huntRange;
+                        for(let item of cellList[distance]){
+                                dynamicEffortTotal += applyTownEffect(item.x, item.y, strengthMultiplier, town, landRange);
                         }
                 }
+
+                //old method to check conservation of effort
+                let staticEffortTotal = 0.0;
+                for(y = 1; y < ySize - 1; y++){
+                        for(x = 1; x < xSize - 1; x++){
+                                const locationValue = Math.pow(town.x - x, 2) + Math.pow(town.y - y, 2);
+                                const top = Math.exp((-1)/(2 * Math.pow(simData.huntRange, 2)) * locationValue);
+                                const bot = (2 * Math.PI) * Math.sqrt(locationValue + 1);
+                                staticEffortTotal += (top / bot);
+                        }
+                }
+
+                console.log("Town " + town.id + ": ");
+                console.log("Static Effort:  " + staticEffortTotal);
+                console.log("Dynamic Effort: " + dynamicEffortTotal);
         }
+}
+
+function rayleighCDF(sigma, x){
+        return 1.0 - Math.exp((-1 * x * x) / (2 * sigma * sigma));
 }
 
 function findAdjRiverCells(xStart, yStart){
@@ -392,8 +417,11 @@ function findAdjRiverCells(xStart, yStart){
                                         continue;
 
                                 const dist = cell.dist + 1;
-                                if(riverGrid[i][j] && (dist < simData.maxDistance) && cellInsertion(cellRecord, j, i, dist)){
-                                        riverTileQueue.enqueue({x:j, y:i, dist:cell.dist + 1});
+                                if(riverGrid[i][j] && (dist < simData.maxRDist) && cellInsertion(cellRecord, j, i, dist)){
+                                        self.postMessage({type:'mapped', fnc:'extentDebug', data:{
+                                                points:[geoGrid[i][j], geoGrid[i][j+1], geoGrid[i+1][j+1], geoGrid[i+1][j]], color:[0, 0, 255, 1 - ((dist - 1)/simData.maxRDist)]
+                                        }});
+                                        riverTileQueue.enqueue({x:j, y:i, dist:dist});
                                 }
                         }
                 }
@@ -402,38 +430,44 @@ function findAdjRiverCells(xStart, yStart){
         return cellRecord;
 }
 
-function calcRiverEffect(cellX, cellY, distFactor, town){
-        let effortGrid = spatialEffort[town.id];
-        let fakeTown = {
-                x:cellX,
-                y:cellY,
-                HPHY:town.HPHY,
-        };
+function applyTownEffect(cellX, cellY, strengthFactor, town, range){
+        let totalEffort = 0.0;
         for(y = 1; y < ySize - 1; y++){
                 for(x = 1; x < xSize - 1; x++){
-
+                        const locationValue = Math.pow(cellX - x, 2) + Math.pow(cellY - y, 2);
+                        const top = Math.exp((-1)/(2 * Math.pow(range, 2)) * locationValue);
+                        const bot = (2 * Math.PI) * Math.sqrt(locationValue + 1);
+                        const eff = strengthFactor * (top / bot);
+                        spatialEffort[town.id][y][x] += eff;
+                        totalEffort += eff;
                 }
         }
+
+        //console.log("x: " + cellX + " y: " + cellY + " str: " + strengthFactor + " id: " + town.id + " range: " + range);
+        return totalEffort;
 }
 
 function cellInsertion(cellRecord, x, y, dist){
         let lookupY = cellRecord.get(y);
         if(lookupY){
                 let lookupX = lookupY.get(x);
-                if(lookupX && lookupX.dist <= dist){
+                if(lookupX && lookupX <= dist){
                         return false;
                 } else {
                         lookupY.set(x, dist);
+                        //console.log("cellInserted: " + x + ", " + y + " dist: " + dist);
                 }
         } else {
                 cellRecord.set(y, new Map());
                 let temp = cellRecord.get(y);
-                temp.set(x, 1);
+                temp.set(x, dist);
+                //console.log("cellInserted: " + x + ", " + y + " dist: " + dist);
         }
 
         return true;
 }
 
+/*
 function calculateSpatialEffort(){
         spatialEffort = {};
         for(let town of towns){
@@ -467,11 +501,11 @@ function processSquare(strength, x, y, effortGrid, workQueue){
         if(strength < 0.05 || strength < (effortGrid[y][x] * 0.9)){
                 return 0.0;
         }
-
+        
         self.postMessage({type:'mapped', fnc:'extentDebug', data:{
                 points:[geoGrid[y][x], geoGrid[y][x+1], geoGrid[y+1][x+1], geoGrid[y+1][x]], color:[255, 0, 0, .6]
         }});
-
+        
         let totalEffort = 0.0;
         const rStrength = strength - (simData.riverSim / 100);
         for(let i = y - 1; i < y + 2; i++){
@@ -525,12 +559,14 @@ function processSquare(strength, x, y, effortGrid, workQueue){
         return totalEffort;
 }
 
+
 function getCDFValue(tx, ty, x, y){
         const locationValue = Math.pow(tx - x, 2) + Math.pow(ty - y, 2);
         const top = Math.exp((-1)/(2 * Math.pow(simData.huntRange, 2)) * locationValue);
         const bot = (2 * Math.PI) * Math.sqrt(locationValue + 1);
         return top / bot;
 }
+*/
 
 function genHeatmapImg(scale, year, gradient){
         const gradientSteps = Math.floor(simData.carryCapacity) - 1;
@@ -574,7 +610,8 @@ function requestRiverFeatures(bounds){
                         }
                 }
                 findRiverCells(turf.helpers.featureCollection(reprojectResult));
-                calculateSpatialEffort();
+                calcNewSpatialEffort();
+                //calculateSpatialEffort();
                 runSimulation(bounds);
         });
         riverRequest.open('POST', 'https://overpass.kumi.systems/api/interpreter');

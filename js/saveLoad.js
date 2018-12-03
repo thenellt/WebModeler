@@ -151,8 +151,14 @@ function loadSimConfig(fileData){
         simData.diffusionSamples = config.diffusionSamples;
         simData.opacity = config.opacity || 1.0;
         simData.threeColorMode = config.threeColorMode;
-        simData.riverSim = config.riverSim;
-        
+        simData.maxRDist = config.maxRDist;
+        simData.effortDist = config.effortDist;
+        if(config.speedRatio){
+                simData.speedRatio = config.speedRatio;
+        } else {
+                simData.speedRatio = 3;
+        }
+
         if(simData.threeColorMode)
                 simData.midColorCode = config.midColorCode;
 
@@ -192,10 +198,12 @@ function loadSimConfig(fileData){
                 document.getElementById("midColorReset").classList.add("disabled");
         }
 
-        if(simData.riverSim){
-                document.getElementById("riverSimStrength").value = simData.riverSim;
-                document.getElementById("riverSimStrength").disabled = false;
+        if(simData.maxRDist){
+                toggleRiverSim(true);
+                document.getElementById("riverSimRange").value = simData.maxRDist;
                 document.getElementById("enableRiverSim").checked = true;
+                document.getElementById('effortDistSlider').value = simData.effortDist * 100;
+                document.getElementById('riverSpeedRatio').value = simData.speedRatio;
         }
 }
 
@@ -260,7 +268,13 @@ function generateConfigObject(){
         saveObject.lowColorCode = simData.lowColorCode;
         saveObject.highColorCode = simData.highColorCode;
         saveObject.threeColorMode = simData.threeColorMode;
-        saveObject.riverSim = simData.riverSim;
+        if(simData.maxRDist){
+                saveObject.maxRDist = simData.maxRDist;
+                saveObject.effortDist = simData.effortDist;
+                saveObject.speedRatio = simData.speedRatio;
+        } else {
+                saveObject.maxRDist = false;
+        }
         if(simData.threeColorMode)
                 saveObject.midColorCode = simData.midColorCode;
         saveObject.opacity = simData.opacity;

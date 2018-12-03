@@ -36,7 +36,7 @@ function setupSimDefaults(){
         simData.simName = "defaultName";
         simData.opacity = 1.0;
         simData.boundryWidth = 10;
-        simData.riverSim = false;
+        simData.maxRDist = false;
 }
 
 function readUserParameters(){
@@ -74,12 +74,14 @@ function readUserParameters(){
         }
 
         if(document.getElementById("enableRiverSim").checked){
-                simData.riverSim = checkParam('riverSimRange', simData.riverSim, true);
-                simData.effortDist = parseInt(document.getElementById('effortDistSlider').value, 10);
-                console.log("river sim enabled: " + simData.riverSim);
+                simData.maxRDist = checkParam('riverSimRange', simData.riverSim, true);
+                simData.effortDist = parseInt(document.getElementById('effortDistSlider').value, 10) / 100.0;
+                simData.speedRatio = checkParam('riverSpeedRatio', 3, false);
+                console.log("river sim enabled: " + simData.maxRDist);
                 console.log('river sim effort dist: ' + simData.effortDist);
+                console.log('river sim speed ratio: ' + simData.speedRatio);
         } else {
-                simData.riverSim = false;
+                simData.maxRDist = false;
         }
 
         simData.theta = checkParam('paramTheta', simData.theta, true);
