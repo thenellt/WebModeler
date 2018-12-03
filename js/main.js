@@ -58,6 +58,7 @@ function newSimulation(){
         document.getElementById("newSimButton").classList.add("hide");
         document.getElementById("quickSaveButton").classList.remove("hide");
         document.getElementById("startSimText").innerHTML = "Current simulation:";
+        toggleRiverSim(false);
 
         tabManager.enableTab(pageTabs.PARAMS);
         tabManager.enableTab(pageTabs.POPS);
@@ -81,9 +82,10 @@ function resetSimulation(){
         document.getElementById("diffSamples").value = "1";
         document.getElementById("boundryWidth").value = "10";
         document.getElementById("enableRiverSim").checked = false;
-        $('#riverFalloffContainer, #effortDistContainer').addClass("hide");
-        document.getElementById("riverSimRange").value = 6;
+        $('#riverFalloffContainer, #effortDistContainer, #riverSpeedContainer').addClass("hide");
+        document.getElementById("riverSimRange").value = 10;
         document.getElementById('effortDistSlider').value = 50;
+        document.getElementById('riverSpeedRatio').value = 3
 
         if(simulationRun){
                 simulationRun = 0;
@@ -327,8 +329,9 @@ function populateDefaultValues(config){
         document.getElementById("diffSamples").value = "1";
         document.getElementById("boundryWidth").value = "10";
         document.getElementById("paramName").focus();
-        document.getElementById("riverSimRange").value ="6";
+        document.getElementById("riverSimRange").value ="10";
         document.getElementById("effortDistSlider").value = 50;
+        document.getElementById("riverSpeedRatio").value = 3;
         document.getElementById("enableRiverSim").checked = false;
         toggleRiverSim(false);
 

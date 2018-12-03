@@ -377,7 +377,7 @@ function calcNewSpatialEffort(){
                         const strengthMultiplier = cellCountFactor * distFactor * (1 - simData.effortDist);
                         const landRange = (((simData.huntRange * simData.speedRatio) - distance) / (simData.huntRange * simData.speedRatio)) * simData.huntRange;
                         for(let item of cellList[distance]){
-                                dynamicEffortTotal += applyTownEffect(item.x, item.y, strengthMultiplier, town, landRange);
+                                dynamicEffortTotal += applyTownEffect(item.x, item.y, strengthMultiplier, town, (landRange > 0 ? landRange : 0));
                         }
                 }
 
