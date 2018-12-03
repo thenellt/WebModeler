@@ -604,17 +604,6 @@
                                 </li>
                                 <li class="collection-item advancedColItem">
                                         <div class="row" style="margin-bottom: 0;">
-                                                <div class="col s6"><h5>River Falloff (2% - 30%):</h5></div>
-                                                <div class="col s2" style="margin-top: 12px;">
-                                                        <input type="checkbox" id="enableRiverSim" onchange="toggleRiverSim(this.checked)"/>
-                                                        <label for="enableRiverSim">Enabled</label>
-                                                </div>
-                                                <div class="col s3"><input type="text" id="riverSimStrength" style="margin-bottom: 0;" disabled></div>
-                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Amount of linear effort falloff experienced along river features."><i>?</i></a></div>
-                                        </div>
-                                </li>
-                                <li class="collection-item advancedColItem">
-                                        <div class="row" style="margin-bottom: 0;">
                                                 <div class="col s8"><h5>Heatmap Saturated Color:</h5></div>
                                                 <div class="col s1"><input type="color" value="#ffeda0" style="margin-top: 12px;" id="paramLowColor"></div>
                                                 <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode('low');" style="margin-top: 6px;">Reset</a></div>
@@ -639,6 +628,36 @@
                                                 <div class="col s1"><input type="color" value="#f03b20" style="margin-top: 12px;" id="paramHighColor"></div>
                                                 <div class="col s2"><a class="btn waves-effect waves-light" onclick="resetColorCode('high');" style="margin-top: 6px;">Reset</a></div>
                                                 <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Depleted color in the heatmap gradient."><i>?</i></a></div>
+                                        </div>
+                                </li>
+                                <li class="collection-item advancedColItem">
+                                        <div class="row" style="margin-bottom: 0;">
+                                                <div class="col s6"><h5>Enable River Simulation:</h5></div>
+                                                <div class="col s3 offset-s2" style="margin-top: 12px;">
+                                                        <input type="checkbox" id="enableRiverSim" onchange="toggleRiverSim(this.checked)"/>
+                                                        <label for="enableRiverSim">Enabled</label>
+                                                </div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Enable experimental river simulation process."><i>?</i></a></div>
+                                        </div>
+                                </li>
+                                <li class="collection-item advancedColItem" id="riverFalloffContainer">
+                                        <div class="row" style="margin-bottom: 0;">
+                                                <div class="col s8"><h5>River Range:</h5></div>
+                                                <div class="col s3"><input type="text" id="riverSimRange" style="margin-bottom: 0;"></div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Amount of linear effort falloff experienced along river features."><i>?</i></a></div>
+                                        </div>
+                                </li>
+                                <li class="collection-item advancedColItem" id="effortDistContainer">
+                                        <div class="row" style="margin-bottom: 0;">
+                                                <div class="col s6"><h5>Effort Distribution:</h5></div>
+                                                <div class="col s1" style="margin-top: 12px;">Land</div>
+                                                <div class="col s3" style="margin-top: 12px;">
+                                                        <p class="range-field range-short" style="margin: 0px;">
+                                                                <input type="range" id="effortDistSlider" min="0" max="100" scale="1" style="border: 0px;"/>
+                                                        </p>
+                                                </div>
+                                                <div class="col s1" style="margin-top: 12px;">River</div>
+                                                <div class="col s1"><a class="btn-floating waves-effect waves-light tooltipped" data-position="left" data-delay="50" data-tooltip="Amount of linear effort falloff experienced along river features."><i>?</i></a></div>
                                         </div>
                                 </li>
                         </ul>

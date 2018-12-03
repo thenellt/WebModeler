@@ -344,8 +344,94 @@ function getStaticTownEffort(town, x, y, year){
 }
 
 function getDynamicEffort(town, x, y, year){
-        const effortBase = spatialEffort[town.id][y][x];
-        return town.HPHY * getTownPop(town, year) * effortBase * town.effortNormalizer;
+        const walkEffect = getStaticTownEffort(town, x, y, year);
+        const riverEffect = town.HPHY * getTownPop(town, year) * spatialEffort[town.id][y][x];
+        return (walkEffect * (simData.effortDist / 100)) + riverEffect; 
+}
+
+function calcNewSpatialEffort(){
+        spatialEffort = {};
+        for(let town of towns){
+                spatialEffort[town.id] = new Array(ySize);
+                for(let i = 0; i < ySize - 1; i++)
+                        spatialEffort[town.id][i] = new Float32Array(xSize).fill(0.0);
+
+                let cellRecord = findAdjRiverCells(town.x, town.y); 
+                let cellList = new Array(simData.maxDistance);
+                for(let lookupY in cellRecord){
+                        for(let lookupX in cellRecord[lookupY]){
+                                if(!cellList[cellRecord[lookupY][lookupX]]){
+                                        cellList[cellRecord[lookupY][lookupX]] = new Array();
+                                }
+                                cellList[cellRecord[lookupY][lookupX]].push({x:lookupX, y:lookupY});
+                        }
+                }
+
+                for(let dist in cellList){
+                        const length = cellList[dist].length;
+                        for(let item of cellList[dist]){
+                                const distFactor = 1;
+                                calcRiverEffect(item.x, item.y, distFactor, town);
+                        }
+                }
+        }
+}
+
+function findAdjRiverCells(xStart, yStart){
+        let cellRecord = new Map();
+        let riverTileQueue = new Queue();
+        riverTileQueue.enqueue({x:xStart, y:yStart, dist:0});
+        
+        while(riverTileQueue.getLength()){
+                let cell = riverTileQueue.dequeue();
+                for(let i = cell.y - 1; i < cell.y + 2; i++){
+                        for(let j = cell.x - 1; j < cell.x + 2; j++){
+                                if(i < 0 || i >= ySize || j < 0 || j >= xSize)
+                                        continue;
+                                if(i === cell.y && j === cell.x)
+                                        continue;
+
+                                const dist = cell.dist + 1;
+                                if(riverGrid[i][j] && (dist < simData.maxDistance) && cellInsertion(cellRecord, j, i, dist)){
+                                        riverTileQueue.enqueue({x:j, y:i, dist:cell.dist + 1});
+                                }
+                        }
+                }
+        }
+
+        return cellRecord;
+}
+
+function calcRiverEffect(cellX, cellY, distFactor, town){
+        let effortGrid = spatialEffort[town.id];
+        let fakeTown = {
+                x:cellX,
+                y:cellY,
+                HPHY:town.HPHY,
+        };
+        for(y = 1; y < ySize - 1; y++){
+                for(x = 1; x < xSize - 1; x++){
+
+                }
+        }
+}
+
+function cellInsertion(cellRecord, x, y, dist){
+        let lookupY = cellRecord.get(y);
+        if(lookupY){
+                let lookupX = lookupY.get(x);
+                if(lookupX && lookupX.dist <= dist){
+                        return false;
+                } else {
+                        lookupY.set(x, dist);
+                }
+        } else {
+                cellRecord.set(y, new Map());
+                let temp = cellRecord.get(y);
+                temp.set(x, 1);
+        }
+
+        return true;
 }
 
 function calculateSpatialEffort(){
@@ -524,15 +610,6 @@ function findRiverCells(riverJSON){
                         cell.geometry.coordinates[0][2] = geoGrid[y+1][x+1];
                         cell.geometry.coordinates[0][3] = geoGrid[y+1][x];
                         cell.geometry.coordinates[0][4] = geoGrid[y][x];
-                        /*
-                         = turf.helpers.polygon([[
-                                geoGrid[y][x],
-                                geoGrid[y][x+1],
-                                geoGrid[y+1][x+1],
-                                geoGrid[y+1][x],
-                                geoGrid[y][x]
-                        ]]);
-                        */
 
                         for(let feature of riverJSON.features){        
                                 if(turf.booleanCrosses(cell, feature)){

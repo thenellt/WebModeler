@@ -73,9 +73,11 @@ function readUserParameters(){
                 simData.simName = tempName;
         }
 
-        if(!document.getElementById("riverSimStrength").disabled){
-                simData.riverSim = checkParam('riverSimStrength', simData.riverSim, true);
+        if(document.getElementById("enableRiverSim").checked){
+                simData.riverSim = checkParam('riverSimRange', simData.riverSim, true);
+                simData.effortDist = parseInt(document.getElementById('effortDistSlider').value, 10);
                 console.log("river sim enabled: " + simData.riverSim);
+                console.log('river sim effort dist: ' + simData.effortDist);
         } else {
                 simData.riverSim = false;
         }

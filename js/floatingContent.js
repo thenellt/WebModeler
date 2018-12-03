@@ -336,7 +336,8 @@ function showAdvancedSettings(){
                 diffSamples: document.getElementById("diffSamples").value,
                 boundryWidth: document.getElementById("boundryWidth").value,
                 riverSimEnable: document.getElementById("enableRiverSim").checked,
-                riverSim: document.getElementById("riverSimStrength").value,
+                riverSim: document.getElementById("riverSimRange").value,
+                riverEffortDist: document.getElementById('effortDistSlider').value
         }
 
         if(document.getElementById("enable3ColorMode").checked){
@@ -365,6 +366,8 @@ function closeAdvancedSettings(clear){
                         document.getElementById("midColorReset").classList.add("disabled");
                 }
 
+                toggleRiverSim(advSettingsBackup.riverSimEnable);
+                /*
                 if(advSettingsBackup.riverSimEnable){
                         document.getElementById("enableRiverSim").checked = true;
                         document.getElementById("riverSimStrength").disabled = false;
@@ -374,22 +377,13 @@ function closeAdvancedSettings(clear){
                         document.getElementById("riverSimStrength").disabled = true;
                         document.getElementById("riverSimStrength").value = 6;
                 }
+                */
         } else if(document.getElementById("enableRiverSim").checked){
-                let temp = parseFloat(document.getElementById("riverSimStrength").value);
-                if(temp < 2){
+                //let temp = parseFloat(document.getElementById("riverSimRange").value);
+                let boundry = parseInt(document.getElementById("boundryWidth").value, 10);
+                if(boundry && boundry <= 10){
                         let title = "River Strength Warning";
-                        let msg = "River falloff values below 2 usually result in a crash if there are any populated rivers which run past the edges of the simulation bounds.";
-                        modalDialog(title, msg);
-                } else if(temp < 10) {
-                        let boundry = parseInt(document.getElementById("boundryWidth").value, 10);
-                        if(boundry && boundry <= 10){
-                                let title = "River Strength Warning";
-                                let msg = "Using river falloff values below 10 without a larger Boundry Width is not recommended and often results in a crash.";
-                                modalDialog(title, msg);
-                        }
-                } else if(temp > 30){
-                        let title = "River Strength Warning";
-                        let msg = "River falloff values above 30 typically produce the same distributions as when river simulation is disabled except with less accurate results.";
+                        let msg = "Simulating rivers usually require a larger boundry value. Try at least 20km.";
                         modalDialog(title, msg);
                 }
         }
